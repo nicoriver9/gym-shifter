@@ -1,0 +1,85 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model Teacher {
+  id         Int            @id @default(autoincrement())
+  name       String
+  email      String?        @unique
+  phone      String?
+  created_at DateTime       @default(now())
+
+  classes    ClassSchedule[] @relation("TeacherClasses") // Sin onDelete aquí
+}
+
+model ClassType {
+  id          Int      @id @default(autoincrement())
+  name        String   @unique
+  description String?
+  schedules   ClassSchedule[] // Relación con los horarios
+}
+
+model ClassSchedule {
+  id          Int           @id @default(autoincrement())
+  class_type_id Int
+  classType    ClassType    @relation(fields: [class_type_id], references: [id])
+  teacher_id  Int
+  teacher     Teacher       @relation("TeacherClasses", fields: [teacher_id], references: [id], onDelete: Cascade) // onDelete aquí
+  day_of_week Int
+  start_time  String
+  end_time    String
+  room        String?
+  created_at  DateTime      @default(now())
+
+  Reservation Reservation[]
+}
+
+model Pack {
+  id               Int      @id @default(autoincrement())
+  name             String
+  classes_included Int      // Número de clases que incluye el pack
+  price            Float    // O Decimal para mayor precisión
+  validity_days    Int      // Tiempo de validez en días
+  unlimited_classes Boolean @default(false) // Indica si el pack es ilimitado
+  created_at       DateTime @default(now())
+  users         User[]
+}
+
+model Reservation {
+  id            Int           @id @default(autoincrement())
+  user_id       Int
+  class_id      Int
+  status        String        // "pending", "confirmed", "cancelled"
+  created_at    DateTime      @default(now())
+
+  user          User          @relation(fields: [user_id], references: [id])
+  classSchedule ClassSchedule @relation(fields: [class_id], references: [id])
+}
+
+model User {
+  id            Int         @id @default(autoincrement())
+  email         String      @unique
+  password      String?     // Opcional para usuarios que se registran con Google
+  googleId      String?     @unique // ID único de Google
+  firstName     String
+  lastName      String
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+  packs         Pack[]      // Relación con los packs que ha comprado el usuario
+  reservations  Reservation[] // Relación con las reservas del usuario
+
+  // Índices para búsquedas rápidas
+  @@index([email])
+  @@index([googleId])
+}
