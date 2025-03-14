@@ -1,4 +1,5 @@
 import { Module } from '@nestjs/common';
+import { ConfigModule } from '@nestjs/config';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { ClassesModule } from './classes/classes.module';
@@ -10,9 +11,21 @@ import { ClassTypeService } from './class-type/class-type.service';
 import { ClassTypeModule } from './class-type/class-type.module';
 import { UsersService } from './user/user.service';
 import { UserModule } from './user/user.module';
+import { PaymentsModule } from './payments/payments.module';
+import { PrismaModule } from './prisma/prisma.module';
 
 @Module({
-  imports: [ClassesModule, PacksModule, ReservationsModule, TeachersModule, ClassTypeModule, UserModule],
+  imports: [
+    ConfigModule.forRoot({ isGlobal: true, envFilePath: '.env' }), // Cargar variables de entorno
+    PrismaModule,
+    ClassesModule,
+    PacksModule,
+    ReservationsModule,
+    TeachersModule,
+    ClassTypeModule,
+    UserModule,
+    PaymentsModule,
+  ],
   controllers: [AppController, ClassTypeController],
   providers: [AppService, ClassTypeService, UsersService],
 })

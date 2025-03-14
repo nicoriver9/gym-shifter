@@ -1,5 +1,5 @@
 // src/users/users.service.ts
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
@@ -16,7 +16,18 @@ export class UsersService {
 
   // Obtener todos los usuarios
   async getAllUsers() {
-    return this.prisma.user.findMany();
+    return this.prisma.user.findMany({
+      select: {
+        id: true,
+        email: true,
+        firstName: true,
+        lastName: true,
+        createdAt: true,
+        updatedAt: true,
+        packs: true, // Incluir solo los campos necesarios
+        reservations: true
+      },
+    });
   }
 
   // Obtener un usuario por ID
@@ -111,6 +122,42 @@ export class UsersService {
         },
       },
       include: { packs: true }, // Incluir los packs del usuario en la respuesta
+    });
+  }
+
+  async assignSinglePackToUser(userId: number, packId: number) {
+    // Verificar si el usuario ya tiene un pack asignado
+    const user = await this.prisma.user.findUnique({
+      where: { id: userId },
+      include: { packs: true }, // Incluir los packs del usuario
+    });
+  
+    if (!user) {
+      throw new NotFoundException(`Usuario con ID ${userId} no encontrado`);
+    }
+  
+    if (user.packs.length > 0) {
+      throw new BadRequestException('El usuario ya tiene un pack asignado.');
+    }
+  
+    // Verificar si el pack existe
+    const pack = await this.prisma.pack.findUnique({
+      where: { id: packId },
+    });
+  
+    if (!pack) {
+      throw new NotFoundException(`Pack con ID ${packId} no encontrado`);
+    }
+  
+    // Asignar el pack al usuario
+    return this.prisma.user.update({
+      where: { id: userId },
+      data: {
+        packs: {
+          connect: { id: packId },
+        },
+      },
+      include: { packs: true }, // Incluir los packs en la respuesta
     });
   }
 }

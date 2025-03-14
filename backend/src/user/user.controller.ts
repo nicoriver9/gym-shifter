@@ -1,53 +1,63 @@
 // src/users/users.controller.ts
 import {
-    Controller,
-    Get,
-    Post,
-    Body,
-    Param,
-    Put,
-    Delete,
-  } from '@nestjs/common';
-  import { UsersService } from './user.service';
+  Controller,
+  Get,
+  Post,
+  Body,
+  Param,
+  Put,
+  Delete,
+} from '@nestjs/common';
+import { UsersService } from './user.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
-  
-  
-  @Controller('users')
-  export class UsersController {
-    constructor(private readonly usersService: UsersService) {}
-  
-    // Crear un nuevo usuario
-    @Post()
-    create(@Body() data: CreateUserDto) {
-      return this.usersService.createUser(data);
-    }
-  
-    // Obtener todos los usuarios
-    @Get()
-    getAll() {
-      return this.usersService.getAllUsers();
-    }
-  
-    // Obtener un usuario por ID
-    @Get(':id')
-    getById(@Param('id') id: string) {
-      return this.usersService.getUserById(Number(id));
-    }
-  
-    // Actualizar un usuario
-    @Put(':id')
-    update(@Param('id') id: string, @Body() data: UpdateUserDto) {
-      return this.usersService.updateUser(Number(id), data);
-    }
-  
-    // Eliminar un usuario
-    @Delete(':id')
-    delete(@Param('id') id: string) {
-      return this.usersService.deleteUser(Number(id));
-    }
 
-     // Asignar un pack a un usuario
+@Controller('users')
+export class UsersController {
+  constructor(private readonly usersService: UsersService) {}
+
+  // Crear un nuevo usuario
+  @Post()
+  create(@Body() data: CreateUserDto) {
+    return this.usersService.createUser(data);
+  }
+
+  // Obtener todos los usuarios
+  @Get()
+  getAll() {
+    return this.usersService.getAllUsers();
+  }
+
+  // Obtener un usuario por ID
+  @Get(':id')
+  getById(@Param('id') id: string) {
+    return this.usersService.getUserById(Number(id));
+  }
+
+  // Actualizar un usuario
+  @Put(':id')
+  update(@Param('id') id: string, @Body() data: UpdateUserDto) {
+    return this.usersService.updateUser(Number(id), data);
+  }
+
+  // Eliminar un usuario
+  @Delete(':id')
+  delete(@Param('id') id: string) {
+    return this.usersService.deleteUser(Number(id));
+  }
+
+  @Post('single/:userId/pack')
+  async assignSinglePack(
+    @Param('userId') userId: string,
+    @Body() body: { packId: number }, // Recibimos el packId en el body
+  ) {
+    return this.usersService.assignSinglePackToUser(
+      Number(userId),
+      body.packId,
+    );
+  }
+
+  // Asignar un pack a un usuario
   @Post(':userId/packs/:packId')
   async assignPack(
     @Param('userId') userId: string,
@@ -62,6 +72,9 @@ import { UpdateUserDto } from './dto/update-user.dto';
     @Param('userId') userId: string,
     @Param('packId') packId: string,
   ) {
-    return this.usersService.unassignPackFromUser(Number(userId), Number(packId));
+    return this.usersService.unassignPackFromUser(
+      Number(userId),
+      Number(packId),
+    );
   }
-  }
+}
