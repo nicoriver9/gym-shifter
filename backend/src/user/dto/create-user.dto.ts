@@ -1,8 +1,11 @@
 // src/users/dto/create-user.dto.ts
-export class CreateUserDto {
-    email: string;
-    password?: string; // Opcional para usuarios de Google
-    googleId?: string; // Opcional para usuarios tradicionales
-    firstName: string;
-    lastName: string;
-  }
+import { Role } from '@prisma/client'; // Importa el Enum desde Prisma
+
+export interface CreateUserDto {
+  username?: string;
+  password?: string;
+  email: string;
+  firstName: string;
+  lastName: string;
+  role?: Role;
+}

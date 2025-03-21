@@ -70,21 +70,36 @@ model Reservation {
 
 model User {
   id           Int           @id @default(autoincrement())
+  username     String?       @unique @default(cuid())
   email        String        @unique
-  password     String? // Opcional para usuarios que se registran con Google
+  password     String? 
   googleId     String?       @unique // ID único de Google
   firstName    String
   lastName     String
   createdAt    DateTime      @default(now())
   updatedAt    DateTime      @updatedAt
-  packs        Pack[] // Relación con los packs que ha comprado el usuario
-  payments     Payment[] // Relación con los pagos del usuario
-  reservations Reservation[] // Relación con las reservas del usuario
-  isActive     Boolean       @default(true) 
+  packs        Pack[] 
+  payments     Payment[] 
+  reservations Reservation[] 
+  isActive     Boolean       @default(true)
+  role         Role          @default(User) 
+  userAudits   UserAudit[]  
+
 
   // Índices para búsquedas rápidas
   @@index([email])
   @@index([googleId])
+}
+
+model UserAudit {
+  audit_id    Int      @id @default(autoincrement())
+  user_id     Int
+  action      String
+  action_date DateTime @default(now()) @db.DateTime(3)
+  ip_address  String?
+  details     String?
+
+  user User @relation(fields: [user_id], references: [id])
 }
 
 model Payment {
@@ -93,7 +108,7 @@ model Payment {
   packId        Int // ID del pack comprado
   amount        Float // Monto pagado (en pesos argentinos)
   status        String // Estado del pago: "pending", "success", "failed"
-  mercadoPagoId String? @unique // ID de la transacción en MercadoPago
+  mercadoPagoId String?  @unique // ID de la transacción en MercadoPago
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
 
@@ -105,4 +120,9 @@ model Payment {
   @@index([userId])
   @@index([packId])
   @@index([mercadoPagoId])
+}
+
+enum Role {
+  Admin
+  User
 }

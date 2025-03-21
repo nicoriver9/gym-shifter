@@ -19,6 +19,8 @@ export class UsersService {
     return this.prisma.user.findMany({
       select: {
         id: true,
+        username: true,
+        role: true,
         email: true,
         firstName: true,
         lastName: true,

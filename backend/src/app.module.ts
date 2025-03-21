@@ -13,10 +13,12 @@ import { UsersService } from './user/user.service';
 import { UserModule } from './user/user.module';
 import { PaymentsModule } from './payments/payments.module';
 import { PrismaModule } from './prisma/prisma.module';
+import { AuthModule } from './auth/auth.module';
 
 @Module({
   imports: [
     ConfigModule.forRoot({ isGlobal: true, envFilePath: '.env' }), // Cargar variables de entorno
+    AuthModule,
     PrismaModule,
     ClassesModule,
     PacksModule,

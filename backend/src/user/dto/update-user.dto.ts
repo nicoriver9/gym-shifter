@@ -1,8 +1,11 @@
-// src/users/dto/update-user.dto.ts
-export class UpdateUserDto {
-    email?: string;
-    password?: string; // Opcional para usuarios de Google
-    googleId?: string; // Opcional para usuarios tradicionales
-    firstName?: string;
-    lastName?: string;
-  }
+// src/users/dto/create-user.dto.ts
+import { Role } from '@prisma/client'; // Importa el Enum desde Prisma
+
+export interface UpdateUserDto {
+  username?: string;
+  password?: string;
+  email: string;
+  firstName: string;
+  lastName: string;
+  role?: Role;
+}
