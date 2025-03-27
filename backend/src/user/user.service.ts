@@ -25,9 +25,10 @@ export class UsersService {
         firstName: true,
         lastName: true,
         createdAt: true,
-        updatedAt: true,
-        packs: true, // Incluir solo los campos necesarios
-        reservations: true
+        updatedAt: true,        
+        current_pack: true,   // Pack activo actual
+        classes_remaining: true,
+        reservations: true,        
       },
     });
   }
@@ -36,7 +37,9 @@ export class UsersService {
   async getUserById(id: number) {
     return this.prisma.user.findUnique({
       where: { id },
-      include: { packs: true, reservations: true }, // Incluir packs y reservas
+      include: { 
+        current_pack: true,                
+        reservations: true }, // Incluir packs y reservas
     });
   }
 
@@ -96,6 +99,7 @@ export class UsersService {
       },
       include: { packs: true }, // Incluir los packs del usuario en la respuesta
     });
+  
   }
 
   // Desasignar un pack de un usuario
@@ -127,39 +131,5 @@ export class UsersService {
     });
   }
 
-  async assignSinglePackToUser(userId: number, packId: number) {
-    // Verificar si el usuario ya tiene un pack asignado
-    const user = await this.prisma.user.findUnique({
-      where: { id: userId },
-      include: { packs: true }, // Incluir los packs del usuario
-    });
   
-    if (!user) {
-      throw new NotFoundException(`Usuario con ID ${userId} no encontrado`);
-    }
-  
-    if (user.packs.length > 0) {
-      throw new BadRequestException('El usuario ya tiene un pack asignado.');
-    }
-  
-    // Verificar si el pack existe
-    const pack = await this.prisma.pack.findUnique({
-      where: { id: packId },
-    });
-  
-    if (!pack) {
-      throw new NotFoundException(`Pack con ID ${packId} no encontrado`);
-    }
-  
-    // Asignar el pack al usuario
-    return this.prisma.user.update({
-      where: { id: userId },
-      data: {
-        packs: {
-          connect: { id: packId },
-        },
-      },
-      include: { packs: true }, // Incluir los packs en la respuesta
-    });
-  }
 }

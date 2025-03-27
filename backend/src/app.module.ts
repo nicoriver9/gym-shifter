@@ -14,6 +14,9 @@ import { UserModule } from './user/user.module';
 import { PaymentsModule } from './payments/payments.module';
 import { PrismaModule } from './prisma/prisma.module';
 import { AuthModule } from './auth/auth.module';
+import { UserPackController } from './user-pack/user-pack.controller';
+import { UserPackService } from './user-pack/user-pack.service';
+import { UserPackModule } from './user-pack/user-pack.module';
 
 @Module({
   imports: [
@@ -27,8 +30,9 @@ import { AuthModule } from './auth/auth.module';
     ClassTypeModule,
     UserModule,
     PaymentsModule,
+    UserPackModule,
   ],
-  controllers: [AppController, ClassTypeController],
-  providers: [AppService, ClassTypeService, UsersService],
+  controllers: [AppController, ClassTypeController, UserPackController],
+  providers: [AppService, ClassTypeService, UsersService, UserPackService],
 })
 export class AppModule {}

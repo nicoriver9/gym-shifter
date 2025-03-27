@@ -7,12 +7,13 @@ import {
   Param,
   Put,
   Delete,
+  ConsoleLogger,
 } from '@nestjs/common';
 import { UsersService } from './user.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 
-@Controller('users')
+@Controller('api/users')
 export class UsersController {
   constructor(private readonly usersService: UsersService) {}
 
@@ -24,13 +25,14 @@ export class UsersController {
 
   // Obtener todos los usuarios
   @Get()
-  getAll() {
+  async getAll() {
+    const result = await this.usersService.getAllUsers()    
     return this.usersService.getAllUsers();
   }
 
   // Obtener un usuario por ID
   @Get(':id')
-  getById(@Param('id') id: string) {
+  getById(@Param('id') id: number) {
     return this.usersService.getUserById(Number(id));
   }
 
@@ -46,18 +48,7 @@ export class UsersController {
     return this.usersService.deleteUser(Number(id));
   }
 
-  @Post('single/:userId/pack')
-  async assignSinglePack(
-    @Param('userId') userId: string,
-    @Body() body: { packId: number }, // Recibimos el packId en el body
-  ) {
-    return this.usersService.assignSinglePackToUser(
-      Number(userId),
-      body.packId,
-    );
-  }
-
-  // Asignar un pack a un usuario
+  // Asignar un pack a un usuario  
   @Post(':userId/packs/:packId')
   async assignPack(
     @Param('userId') userId: string,

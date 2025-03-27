@@ -12,7 +12,9 @@ import { ClassesService } from './classes.service';
 
 @Controller('classes')
 export class ClassesController {
-  constructor(private readonly classesService: ClassesService) {}
+  constructor(    
+    private readonly classesService: ClassesService
+  ) {}
 
   /**
    * Crear una nueva clase en el calendario.
@@ -23,6 +25,27 @@ export class ClassesController {
     return this.classesService.createClass(data);
   }
 
+  @Get('current')
+  async getCurrentClass() {
+    try {
+      const currentClass = await this.classesService.getCurrentClass();
+      
+      return {
+        success: true,
+        data: currentClass,
+        message: currentClass.is_active 
+          ? 'Clase en curso encontrada' 
+          : 'No hay clases en curso'
+      };
+    } catch (error) {
+      return {
+        success: false,
+        data: null,
+        message: error.message
+      };
+    }
+  }
+  
   /**
    * Obtener todas las clases en el calendario.
    * Incluye información del tipo de clase (`classType`) y del profesor (`teacher`).

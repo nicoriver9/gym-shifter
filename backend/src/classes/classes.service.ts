@@ -1,5 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
+import * as moment from 'moment-timezone';
 
 @Injectable()
 export class ClassesService {
@@ -11,6 +12,54 @@ export class ClassesService {
    */
   async createClass(data) {
     return this.prisma.classSchedule.create({ data });
+  }
+
+  async getCurrentClass() {
+    const now = moment().tz('America/Argentina/Buenos_Aires');
+    const currentDay = now.isoWeekday();
+    const currentTime = now.format('HH:mm');
+
+    const currentClass = await this.prisma.classSchedule.findFirst({
+      where: {
+        day_of_week: currentDay,
+        start_time: { lte: currentTime },
+        end_time: { gte: currentTime },
+      },
+      include: {
+        classType: true,
+        teacher: true,
+        Reservation: {
+          where: { status: 'confirmed' },
+        },
+      },
+    });
+
+    // Estructura base cuando no hay clase
+    const baseResponse = {
+      id: null,
+      name: null,
+      start_time: null,
+      end_time: null,
+      teacher: null,
+      attendees_count: 0,
+      room: null,
+      is_active: false,
+    };
+
+    if (!currentClass) {
+      return baseResponse;
+    }
+
+    return {
+      id: currentClass.id,
+      name: currentClass.classType.name,
+      start_time: currentClass.start_time,
+      end_time: currentClass.end_time,
+      teacher: currentClass.teacher.name,
+      attendees_count: currentClass.Reservation.length,
+      room: currentClass.room,
+      is_active: true,
+    };
   }
 
   /**
@@ -73,13 +122,18 @@ export class ClassesService {
   /**
    * Eliminar una clase específica por `class_type_id`, `day_of_week` y `start_time`.
    */
-  async deleteClassBySchedule(classTypeId: number, dayOfWeek: number, startTime: string, endTime: string) {
+  async deleteClassBySchedule(
+    classTypeId: number,
+    dayOfWeek: number,
+    startTime: string,
+    endTime: string,
+  ) {
     return this.prisma.classSchedule.deleteMany({
       where: {
         class_type_id: classTypeId,
         day_of_week: dayOfWeek,
         start_time: startTime,
-        end_time: endTime
+        end_time: endTime,
       },
     });
   }

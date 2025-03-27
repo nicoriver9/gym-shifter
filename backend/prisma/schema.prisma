@@ -53,7 +53,9 @@ model Pack {
   validity_days     Int // Tiempo de validez en días
   unlimited_classes Boolean   @default(false) // Indica si el pack es ilimitado
   created_at        DateTime  @default(now())
-  users             User[] // Relación con los usuarios que han comprado el pack
+  users             User[]    @relation("UserPacks")
+  // Relación con User (pack actual)
+  current_users     User[]    @relation("UserCurrentPack")
   payments          Payment[] // Relación con los pagos asociados al pack
 }
 
@@ -69,22 +71,25 @@ model Reservation {
 }
 
 model User {
-  id           Int           @id @default(autoincrement())
-  username     String?       @unique @default(cuid())
-  email        String        @unique
-  password     String? 
-  googleId     String?       @unique // ID único de Google
-  firstName    String
-  lastName     String
-  createdAt    DateTime      @default(now())
-  updatedAt    DateTime      @updatedAt
-  packs        Pack[] 
-  payments     Payment[] 
-  reservations Reservation[] 
-  isActive     Boolean       @default(true)
-  role         Role          @default(User) 
-  userAudits   UserAudit[]  
-
+  id                   Int           @id @default(autoincrement())
+  username             String?       @unique @default(cuid())
+  email                String        @unique
+  password             String?
+  googleId             String?       @unique // ID único de Google
+  firstName            String
+  lastName             String
+  createdAt            DateTime      @default(now())
+  updatedAt            DateTime      @updatedAt
+  packs                Pack[]        @relation("UserPacks")
+  current_pack_id      Int?
+  current_pack         Pack?         @relation("UserCurrentPack", fields: [current_pack_id], references: [id])
+  classes_remaining    Int           @default(0)
+  pack_expiration_date DateTime?
+  payments             Payment[]
+  reservations         Reservation[]
+  isActive             Boolean       @default(true)
+  role                 Role          @default(User)
+  userAudits           UserAudit[]
 
   // Índices para búsquedas rápidas
   @@index([email])

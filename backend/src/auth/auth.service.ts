@@ -36,6 +36,8 @@ export class AuthService {
     // Retornar el access_token, username y role
     return {
       access_token,
+      firstName: user.firstName,
+      lastName: user.lastName,
       user_id: user.id,
       username: user.username,  // Nombre de usuario
       role: user.role,          // Rol del usuario
