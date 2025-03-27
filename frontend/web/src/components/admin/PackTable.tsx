@@ -71,11 +71,11 @@ const PackTable = () => {
         <table className="min-w-full bg-gray-900 text-white rounded-lg shadow-md overflow-hidden">
           <thead>
             <tr className="bg-gray-700 text-white text-left text-sm uppercase tracking-wider">
-              <th className="px-6 py-3">ID</th>
-              <th className="px-6 py-3">Nombre</th>
-              <th className="px-6 py-3">Clases Incluidas</th>
-              <th className="px-6 py-3">Precio</th>
-              <th className="px-6 py-3">Validez (Días)</th>
+              <th className="px-6 py-3 text-center">Nombre</th>
+              <th className="px-6 py-3 text-center">Clases Incluidas</th>
+              <th className="px-6 py-3 text-center">Precio</th>
+              <th className="px-6 py-3 text-center">Validez (Días)</th>
+              <th className="px-6 py-3 text-center">ID</th>
               <th className="px-6 py-3 text-center">Acciones</th>
             </tr>
           </thead>
@@ -86,12 +86,12 @@ const PackTable = () => {
                   key={pack.id}
                   className="border-b border-gray-700 hover:bg-gray-800 transition"
                 >
-                  <td className="px-6 py-4">{pack.id}</td>
-                  <td className="px-6 py-4">{pack.name}</td>
-                  <td className="px-6 py-4">{pack.classes_included}</td>
-                  <td className="px-6 py-4">${pack.price}</td>
-                  <td className="px-6 py-4">{pack.validity_days}</td>
-                  <td className="px-6 py-4 flex justify-center space-x-4">
+                  <td className="px-6 py-4 text-center">{pack.id}</td>
+                  <td className="px-6 py-4 text-center">{pack.name}</td>
+                  <td className="px-6 py-4 text-center">{pack.classes_included}</td>
+                  <td className="px-6 py-4 text-center">${pack.price}</td>
+                  <td className="px-6 py-4 text-center">{pack.validity_days}</td>
+                  <td className="px-6 py-4 text-center flex justify-center space-x-4">
                     <button
                       className="bg-yellow-500 hover:bg-yellow-600 text-white px-4 py-2 rounded-lg transition"
                       onClick={() => handleEdit(pack)}

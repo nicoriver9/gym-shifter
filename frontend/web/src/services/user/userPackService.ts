@@ -1,11 +1,25 @@
 // src/services/userService.ts
-const API_URL = 'http://localhost:3000/api/users';
+const API_URL = 'http://localhost:3000/api/user-pack';
 
-export const getUsers = async () => {
-  const response = await fetch(API_URL);
+// src/services/user/userPackService.ts
+export const confirmClassAttendance = async (
+  userId: number,
+  currentDateTime: Date
+) => {
+  const response = await fetch(`${API_URL}/confirm-attendance`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ 
+      userId,
+      currentDateTime: currentDateTime.toISOString()
+    }),
+  });
+
   if (!response.ok) {
-    throw new Error("Error al obtener los usuarios");
+    const errorData = await response.json();
+    throw new Error(errorData.message || 'Error al confirmar asistencia');
   }
+
   return response.json();
 };
 
@@ -20,14 +34,17 @@ export const assignPackToUser = async (userId: number, packId: number) => {
   return response.json();
 };
 
-export const unassignPackFromUser = async (userId: number, packId: number) => {
-  const response = await fetch(`${API_URL}/${userId}/packs/${packId}`, {
-    method: 'DELETE',
+export const unassignPackFromUser = async (userId: number) => {
+  const response = await fetch(`${API_URL}/remove-pack/${userId}`, {
+    method: 'POST',
     headers: { 'Content-Type': 'application/json' },
   });
+
   if (!response.ok) {
-    throw new Error("Error al desasignar el pack del usuario");
+    const errorData = await response.json();
+    throw new Error(errorData.message || "Error al desasignar el pack del usuario");
   }
+
   return response.json();
 };
 
@@ -61,15 +78,17 @@ export const decrementUserClasses = async (userId: number, decrementBy: number =
     throw new Error(errorData.message || 'Error al descontar clases');
   }
 
-  return response.json();
-};
-
-export const getUserById = async (id: number) => {
-  const response = await fetch(`${API_URL}/${id}`);  
-  if (!response.ok) {
-    throw new Error("Error al obtener el usuario");
-  }
-  return response.json();
+  const responseData = await response.json(); // Asegúrate de parsear la respuesta
+  
+  // Devuelve directamente los datos importantes
+  return {
+    success: true,
+    data: {
+      classes_remaining: responseData.data.classes_remaining,
+      pack_name: responseData.data.pack_name,
+      pack_expiration_date: responseData.data.pack_expiration_date
+    }
+  };
 };
 
 export const createUser = async (data: any) => {

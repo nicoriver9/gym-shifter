@@ -1,5 +1,5 @@
 // src/services/userService.ts
-const API_URL = 'http://localhost:3000/users';
+const API_URL = 'http://localhost:3000/api/users';
 
 export const getUsers = async () => {
   const response = await fetch(API_URL);
@@ -32,7 +32,7 @@ export const unassignPackFromUser = async (userId: number, packId: number) => {
 };
 
 export const assignSinglePackToUser = async (userId: number, packId: number) => {
-  const response = await fetch(`http://localhost:3000/users/single/${userId}/pack`, {
+  const response = await fetch(`${API_URL}/single/${userId}/pack`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ packId }),

@@ -58,13 +58,13 @@ const ReservationTable = () => {
         <table className="table-auto w-full bg-gray-900 text-white rounded-lg shadow-md">
           <thead>
             <tr className="bg-gray-700 text-white text-left text-sm uppercase tracking-wider">
-              <th className="px-2 py-2 whitespace-nowrap">ID</th>
-              <th className="px-2 py-2 whitespace-nowrap">Usuario</th>
-              <th className="px-2 py-2 whitespace-nowrap">Tipo de Clase</th>
-              <th className="px-2 py-2 whitespace-nowrap">Día</th>
-              <th className="px-2 py-2 whitespace-nowrap">Horario</th>
-              <th className="px-2 py-2 whitespace-nowrap">Profesor</th>
-              <th className="px-2 py-2 whitespace-nowrap">Estado</th>
+              <th className="px-2 py-2 text-center whitespace-nowrap">ID</th>
+              <th className="px-2 py-2 text-center whitespace-nowrap">Usuario</th>
+              <th className="px-2 py-2 text-center whitespace-nowrap">Tipo de Clase</th>
+              <th className="px-2 py-2 text-center whitespace-nowrap">Día</th>
+              <th className="px-2 py-2 text-center whitespace-nowrap">Horario</th>
+              <th className="px-2 py-2 text-center whitespace-nowrap">Profesor</th>
+              <th className="px-2 py-2 text-center whitespace-nowrap">Estado</th>
               <th className="px-2 py-2 whitespace-nowrap text-center">Acciones</th>
             </tr>
           </thead>
@@ -75,13 +75,13 @@ const ReservationTable = () => {
                   key={reservation.id}
                   className="border-b border-gray-700 hover:bg-gray-800 transition text-sm"
                 >
-                  <td className="px-2 py-2 whitespace-nowrap">{reservation.id}</td>
-                  <td className="px-2 py-2 whitespace-nowrap">{`${reservation.user.firstName} ${reservation.user.lastName}`}</td>
-                  <td className="px-2 py-2 whitespace-nowrap">{reservation.classSchedule.classType.name}</td>
-                  <td className="px-2 py-2 whitespace-nowrap">{reservation.classSchedule.day_of_week}</td>
-                  <td className="px-2 py-2 whitespace-nowrap">{`${reservation.classSchedule.start_time} - ${reservation.classSchedule.end_time}`}</td>
-                  <td className="px-2 py-2 whitespace-nowrap">{reservation.classSchedule.teacherName}</td>
-                  <td className="px-2 py-2 whitespace-nowrap">{reservation.status}</td>
+                  <td className="px-2 py-2 text-center whitespace-nowrap">{reservation.id}</td>
+                  <td className="px-2 py-2 text-center whitespace-nowrap">{`${reservation.user.firstName} ${reservation.user.lastName}`}</td>
+                  <td className="px-2 py-2 text-center whitespace-nowrap">{reservation.classSchedule.classType.name}</td>
+                  <td className="px-2 py-2 text-center whitespace-nowrap">{reservation.classSchedule.day_of_week}</td>
+                  <td className="px-2 py-2 text-center whitespace-nowrap">{`${reservation.classSchedule.start_time} - ${reservation.classSchedule.end_time}`}</td>
+                  <td className="px-2 py-2 text-center whitespace-nowrap">{reservation.classSchedule.teacherName}</td>
+                  <td className="px-2 py-2 text-center whitespace-nowrap">{reservation.status}</td>
                   <td className="px-2 py-2 whitespace-nowrap text-center space-x-1">
                     <button
                       className="bg-yellow-500 hover:bg-yellow-600 text-white px-2 py-1 rounded-lg transition text-sm"

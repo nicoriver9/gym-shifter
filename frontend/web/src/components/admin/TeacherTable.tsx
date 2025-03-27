@@ -60,8 +60,8 @@ const TeacherTable = () => {
         <table className="min-w-full bg-gray-900 text-white rounded-lg shadow-md overflow-hidden">
           <thead>
             <tr className="bg-gray-700 text-white text-left text-sm uppercase tracking-wider">
-              <th className="px-6 py-3">ID</th>
-              <th className="px-6 py-3">Nombre</th>
+              <th className="px-6 py-3 text-center">ID</th>
+              <th className="px-6 py-3 text-center">Nombre</th>
               <th className="px-6 py-3 text-center">Acciones</th>
             </tr>
           </thead>
@@ -72,8 +72,8 @@ const TeacherTable = () => {
                   key={teacher.id}
                   className="border-b border-gray-700 hover:bg-gray-800 transition"
                 >
-                  <td className="px-6 py-4">{teacher.id}</td>
-                  <td className="px-6 py-4">{teacher.name}</td>
+                  <td className="px-6 py-4 text-center">{teacher.id}</td>
+                  <td className="px-6 py-4 text-center">{teacher.name}</td>
                   <td className="px-6 py-4 flex justify-center space-x-4">
                     <button
                       className="bg-yellow-500 hover:bg-yellow-600 text-white px-4 py-2 rounded-lg transition"

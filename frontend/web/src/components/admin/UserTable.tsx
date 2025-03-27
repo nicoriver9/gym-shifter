@@ -1,9 +1,9 @@
-import { useEffect, useState } from 'react';
-import CreateUserModal from './modals/userModals/CreateUserModal';
-import EditUserModal from './modals/userModals/EditUserModal';
-import ConfirmDeleteUserModal from './modals/userModals/ConfirmDeleteUserModal';
-import { getUsers, deleteUser } from '../../services/admin/userService';
-import { getPacks } from '../../services/admin/packService';
+import { useEffect, useState } from "react";
+import CreateUserModal from "./modals/userModals/CreateUserModal";
+import EditUserModal from "./modals/userModals/EditUserModal";
+import ConfirmDeleteUserModal from "./modals/userModals/ConfirmDeleteUserModal";
+import { getUsers, deleteUser } from "../../services/admin/userService";
+import { getPacks } from "../../services/admin/packService";
 
 interface Pack {
   id: number;
@@ -31,7 +31,7 @@ const UserTable = () => {
   };
 
   const fetchUsers = async () => {
-    const data = await getUsers();
+    const data = await getUsers();    
     setUsers(data);
   };
 
@@ -53,10 +53,12 @@ const UserTable = () => {
     }
   };
 
-  const calculateRemainingDays = (validityDays: string, createdAt: string) => {
-    const createdDate = new Date(createdAt).getDate();
-    return parseInt(validityDays) - createdDate;
-  };
+  function calculateRemainingDays(expirationDate: Date | string): number {
+    const expDate = new Date(expirationDate);
+    const today = new Date();
+    const diffTime = expDate.getTime() - today.getTime();
+    return Math.max(0, Math.ceil(diffTime / (1000 * 60 * 60 * 24)));
+  }
 
   return (
     <div className="max-w-6xl mx-auto mt-8">
@@ -77,10 +79,10 @@ const UserTable = () => {
         <table className="min-w-full bg-gray-900 text-white rounded-lg shadow-md overflow-hidden">
           <thead>
             <tr className="bg-gray-700 text-white text-left text-sm uppercase tracking-wider">
-              <th className="px-6 py-3">ID</th>
-              <th className="px-6 py-3">Nombre</th>
-              <th className="px-6 py-3">Email</th>
-              <th className="px-6 py-3">Packs</th>
+              <th className="px-6 py-3 text-center">ID</th>
+              <th className="px-6 py-3 text-center">Nombre</th>
+              <th className="px-6 py-3 text-center">Email</th>
+              <th className="px-6 py-3 text-center">Packs</th>
               <th className="px-6 py-3 text-center">Acciones</th>
             </tr>
           </thead>
@@ -91,21 +93,34 @@ const UserTable = () => {
                   key={user.id}
                   className="border-b border-gray-700 hover:bg-gray-800 transition"
                 >
-                  <td className="px-6 py-4">{user.id}</td>
-                  <td className="px-6 py-4">{`${user.firstName} ${user.lastName}`}</td>
-                  <td className="px-6 py-4">{user.email}</td>
-                  <td className="px-6 py-4">
-                    {user.packs && user.packs.length > 0 ? (
-                      user.packs.map((pack: Pack) => (
-                        <div key={pack.id}>
-                          <strong>{pack.name}</strong> - Fecha:{' '}
-                          {new Date(pack.created_at).toLocaleDateString()} - Días
-                          restantes:{' '}
-                          {calculateRemainingDays(pack.validity_days, pack.created_at)} días
-                        </div>
-                      ))
+                  <td className="px-6 py-4 text-center">{user.id}</td>
+                  <td className="px-6 py-4 text-center">{`${user.firstName} ${user.lastName}`}</td>
+                  <td className="px-6 py-4 text-center">{user.email}</td>
+                  <td className="px-6 py-4 text-center">
+                    {user.current_pack ? (
+                      <div>
+                        <strong>{user.current_pack.name}</strong> - Fecha:{" "}
+                        {new Date(
+                          user.current_pack.created_at
+                        ).toLocaleDateString()}{" "}
+                        -{" "}
+                        {user.pack_expiration_date ? (
+                          calculateRemainingDays(user.pack_expiration_date) ===
+                          0 ? (
+                            <span style={{ color: "red" }}>Pack vencido</span>
+                          ) : (
+                            `Días restantes: ${calculateRemainingDays(
+                              user.pack_expiration_date
+                            )} días`
+                          )
+                        ) : (
+                          "Sin fecha de expiración"
+                        )}
+                        <br />
+                        Clases restantes: {user.classes_remaining ?? 0}
+                      </div>
                     ) : (
-                      <div>Sin Packs Asignados</div>
+                      <div>Sin Pack Asignado</div>
                     )}
                   </td>
                   <td className="px-6 py-4 flex justify-center space-x-4">

@@ -12,7 +12,7 @@ const LoginForm = ({ onLogin }: { onLogin: () => void }) => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setErrorMessage(null); // Limpiar el mensaje de error antes de intentar el login
-  
+
     try {
       const response = await fetch("http://localhost:3000/api/auth/login", {
         method: "POST",
@@ -21,29 +21,31 @@ const LoginForm = ({ onLogin }: { onLogin: () => void }) => {
         },
         body: JSON.stringify({ username, password }),
       });
-  
+
       const data = await response.json();
-  
+
       if (response.status === 401 || !data.access_token) {
         throw new Error(data.message || "Credenciales incorrectas");
       }
-  
+
       if (!response.ok) {
         throw new Error("Error en la solicitud");
       }
-  
+
       // Guardar los datos en el localStorage
+      localStorage.setItem("firstName", data.firstName);
+      localStorage.setItem("lastName", data.lastName);
       localStorage.setItem("access_token", data.access_token);
       localStorage.setItem("user_id", data.user_id);
       localStorage.setItem("username", data.username);
       localStorage.setItem("role", data.role);
-  
+
       if (data.access_token) {
         onLogin();
       }
     } catch (error) {
       console.error("Error al iniciar sesión:", error);
-  
+
       // ✅ Verificamos si error es una instancia de Error antes de acceder a error.message
       if (error instanceof Error) {
         setErrorMessage(error.message);
@@ -52,7 +54,7 @@ const LoginForm = ({ onLogin }: { onLogin: () => void }) => {
       }
     }
   };
-  
+
 
   const handleGoogleSuccess = async (credentialResponse: any) => {
     try {
@@ -91,7 +93,7 @@ const LoginForm = ({ onLogin }: { onLogin: () => void }) => {
       // Llamar a la función onLogin para redirigir al usuario
       onLogin();
     } catch (error) {
-      console.error("Error al iniciar sesión con Google:", error);      
+      console.error("Error al iniciar sesión con Google:", error);
       setErrorMessage((error as Error).message || "Ocurrió un error inesperado.");
     }
   };
@@ -102,7 +104,8 @@ const LoginForm = ({ onLogin }: { onLogin: () => void }) => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-900 text-white">
+    <div className="min-h-screen flex flex-col justify-center items-center bg-gray-900 text-white">
+      {/* Contenedor principal del Login */}
       <div
         className="bg-gray-800 p-8 rounded-lg shadow-md w-96 text-center"
         data-aos="zoom-in"
@@ -117,7 +120,7 @@ const LoginForm = ({ onLogin }: { onLogin: () => void }) => {
 
         <h2 className="text-2xl font-bold mb-6">Iniciar Sesión</h2>
 
-        {/* Mostrar el mensaje de error si existe */}
+        {/* Mensaje de error */}
         {errorMessage && (
           <div className="mb-4 p-2 bg-red-600 text-white rounded">
             {errorMessage}
@@ -148,7 +151,6 @@ const LoginForm = ({ onLogin }: { onLogin: () => void }) => {
             />
           </div>
 
-          {/* Botón de Iniciar Sesión */}
           <button
             type="submit"
             className="w-full bg-purple-600 hover:bg-purple-700 p-2 rounded font-medium transition"
@@ -157,16 +159,30 @@ const LoginForm = ({ onLogin }: { onLogin: () => void }) => {
           </button>
         </form>
 
-        {/* Divider */}
         <div className="my-4 border-t border-gray-600"></div>
 
-        {/* Botón de Login con Google */}
         <div className="flex justify-center">
           <GoogleLogin onSuccess={handleGoogleSuccess} onError={handleGoogleError} />
         </div>
       </div>
+
+      {/* Footer */}
+      <footer className="absolute bottom-4 left-4 text-sm text-gray-400">
+        Sitio creado por{' '}
+        <a
+          href="https://www.cuyoweb.com"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="text-white no-underline font-semibold hover:text-purple-400"
+        >
+          Cuyoweb
+        </a>{' '}
+        © {new Date().getFullYear()} - Todos los derechos reservados.
+      </footer>
+
     </div>
   );
+
 };
 
 export default LoginForm;

@@ -8,6 +8,7 @@ import TeacherTable from "./TeacherTable";
 import PackTable from "./PackTable";
 import UserTable from "./UserTable";
 import ReservationTable from "./ReservationTable";
+import CurrentClassAttendance from "./CurrentClassAttendance";
 
 interface MainPanelProps {
   onLogout: () => void;
@@ -29,6 +30,10 @@ const MainPanel: React.FC<MainPanelProps> = ({ onLogout }) => {
       >
         <FiLogOut className="text-xl" /> Cerrar Sesión
       </button>
+
+      <div className="w-full max-w-4xl mb-6">
+        <CurrentClassAttendance />
+      </div>
 
       {/* Botones de navegación */}
       <div className="flex justify-center gap-4 mb-6 flex-wrap">
