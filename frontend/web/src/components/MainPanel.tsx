@@ -2,10 +2,10 @@
 import { useState } from "react";
 import ClassTypeTable from "./admin/ClassTypes";
 import ClassScheduler from "./admin/ClassScheduler";
-import TeacherTable from "./TeacherTable";
-import PackTable from "./PackTable";
-import UserTable from "./UserTable";
-import ReservationTable from "./ReservationTable";
+import TeacherTable from "../components/admin//TeacherTable";
+import PackTable from "../components/admin/PackTable";
+import UserTable from "../components/admin/UserTable";
+import ReservationTable from "../components/admin/ReservationTable";
 import { FiLogOut } from "react-icons/fi";
 
 import AOS from "aos";
