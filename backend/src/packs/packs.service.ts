@@ -23,7 +23,11 @@ export class PacksService {
 
   // Obtener todos los packs
   async getAllPacks() {
-    return this.prisma.pack.findMany();
+    return this.prisma.pack.findMany({
+      where:{
+        isDeleted: false
+      }
+    });
   }
 
   // Obtener un pack por ID
@@ -43,8 +47,11 @@ export class PacksService {
 
   // Eliminar un pack
   async deletePack(id: number) {
-    return this.prisma.pack.delete({
+    return this.prisma.pack.update({
       where: { id },
+      data: {
+        isDeleted: true, 
+      },
     });
   }
 }

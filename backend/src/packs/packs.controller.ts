@@ -11,6 +11,8 @@ import {
 import { PacksService } from './packs.service';
 import { UpdatePackDto } from './dto/update-pack.dto';
 import { CreatePackDto } from './dto/create-pack.dto';
+import { Roles } from 'src/auth/roles/roles.decorator';
+import { Role } from '@prisma/client';
 
 
 @Controller('packs')
@@ -18,36 +20,37 @@ export class PacksController {
   constructor(private readonly packsService: PacksService) {}
 
   // Crear un nuevo pack
+  @Roles(Role.Admin)
   @Post()
   create(@Body() data: CreatePackDto) {
     return this.packsService.createPack(data);
   }
 
-  // Crear múltiples packs
+  @Roles(Role.Admin)
   @Post('bulk')
   createMultiple(@Body() data: CreatePackDto[]) {
     return this.packsService.createMultiplePacks(data);
   }
 
-  // Obtener todos los packs
+  @Roles(Role.Admin, Role.User)
   @Get()
   getAll() {
     return this.packsService.getAllPacks();
   }
 
-  // Obtener un pack por ID
+  @Roles(Role.Admin, Role.User)
   @Get(':id')
   getById(@Param('id') id: string) {
     return this.packsService.getPackById(Number(id));
   }
 
-  // Actualizar un pack
+  @Roles(Role.Admin)
   @Put(':id')
   update(@Param('id') id: string, @Body() data: UpdatePackDto) {
     return this.packsService.updatePack(Number(id), data);
   }
 
-  // Eliminar un pack
+  @Roles(Role.Admin)
   @Delete(':id')
   delete(@Param('id') id: string) {
     return this.packsService.deletePack(Number(id));

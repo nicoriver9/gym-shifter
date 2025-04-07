@@ -10,24 +10,27 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { TeachersService } from './teachers.service';
+import { Roles } from 'src/auth/roles/roles.decorator';
+import { Role } from '@prisma/client';
 
 @Controller('teachers')
 export class TeachersController {
   constructor(private readonly teachersService: TeachersService) {}
 
   // Crear un nuevo profesor
+  @Roles(Role.Admin)
   @Post()
   create(@Body() data) {
     return this.teachersService.createTeacher(data);
   }
 
-  // Obtener todos los profesores
+  @Roles(Role.Admin)
   @Get()
   getAll() {
     return this.teachersService.getAllTeachers();
   }
 
-  // Obtener un profesor por ID
+  @Roles(Role.Admin)
   @Get(':id')
   async getById(@Param('id') id: string) {
     const teacher = await this.teachersService.getTeacherById(Number(id));
@@ -37,7 +40,7 @@ export class TeachersController {
     return teacher;
   }
 
-  // Modificar un profesor
+  @Roles(Role.Admin)
   @Put(':id')
   async update(@Param('id') id: string, @Body() data) {
     const teacher = await this.teachersService.getTeacherById(Number(id));
@@ -47,7 +50,7 @@ export class TeachersController {
     return this.teachersService.updateTeacher(Number(id), data);
   }
 
-  // Eliminar un profesor
+  @Roles(Role.Admin)
   @Delete(':id')
   async delete(@Param('id') id: string) {
     const teacher = await this.teachersService.getTeacherById(Number(id));

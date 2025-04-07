@@ -9,6 +9,8 @@ import {
   Query,
 } from '@nestjs/common';
 import { ClassesService } from './classes.service';
+import { Roles } from 'src/auth/roles/roles.decorator';
+import { Role } from '@prisma/client';
 
 @Controller('classes')
 export class ClassesController {
@@ -20,11 +22,13 @@ export class ClassesController {
    * Crear una nueva clase en el calendario.
    * Se debe enviar `class_type_id`, `day_of_week`, `start_time`, `end_time`, y `teacher_id`.
    */
+  @Roles(Role.Admin)
   @Post()
   create(@Body() data) {
     return this.classesService.createClass(data);
   }
 
+  @Roles(Role.Admin)
   @Get('current')
   async getCurrentClass() {
     try {
@@ -46,40 +50,31 @@ export class ClassesController {
     }
   }
   
-  /**
-   * Obtener todas las clases en el calendario.
-   * Incluye información del tipo de clase (`classType`) y del profesor (`teacher`).
-   */
+  @Roles(Role.Admin)
   @Get()
   getAll() {
     return this.classesService.getAllClasses();
   }
   
-  /**
-   * Obtener clases de un día específico.
-   */
+  @Roles(Role.Admin)
   @Get('by-day/:day')
   getByDay(@Param('day') day: number) {
     return this.classesService.getClassesByDay(day);
   }
 
-  /**
-   * Crear múltiples clases en el calendario.
-   * Se debe enviar un array con `class_type_id`, `day_of_week`, `start_time`, `end_time`, y `teacher_id`.
-   */
+  @Roles(Role.Admin)
   @Post('bulk')
   async createMultipleClasses(@Body() classes: any[]) {    
     return this.classesService.createMultipleClasses(classes);
   }
 
-  /**
-   * Actualizar una clase en el calendario.
-   */
+  @Roles(Role.Admin)
   @Put(':id')
   async updateClass(@Param('id') id: string, @Body() data: any) {
     return this.classesService.updateClass(Number(id), data);
   }
 
+  @Roles(Role.Admin)
   @Delete('delete-by-schedule')
   async deleteClassBySchedule(
     @Query('class_type_id') classTypeId: string,

@@ -1,9 +1,12 @@
 // src/users/users.service.ts
-import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
-
 
 @Injectable()
 export class UsersService {
@@ -25,10 +28,15 @@ export class UsersService {
         firstName: true,
         lastName: true,
         createdAt: true,
-        updatedAt: true,        
-        current_pack: true,   // Pack activo actual
+        updatedAt: true,
+        current_pack: true, // Pack activo actual
         classes_remaining: true,
-        reservations: true,        
+        pack_expiration_date: true,
+        last_class_reset: true,
+        reservations: true,
+      },
+      where: {
+        isActive: true,
       },
     });
   }
@@ -36,10 +44,11 @@ export class UsersService {
   // Obtener un usuario por ID
   async getUserById(id: number) {
     return this.prisma.user.findUnique({
-      where: { id },
-      include: { 
-        current_pack: true,                
-        reservations: true }, // Incluir packs y reservas
+      where: { id, isActive: true },
+      include: {
+        current_pack: true,
+        reservations: true,
+      }, // Incluir packs y reservas
     });
   }
 
@@ -53,8 +62,9 @@ export class UsersService {
 
   // Eliminar un usuario
   async deleteUser(id: number) {
-    return this.prisma.user.delete({
+    return this.prisma.user.update({
       where: { id },
+      data: { isActive: false },
     });
   }
 
@@ -72,8 +82,8 @@ export class UsersService {
     });
   }
 
-   // Asignar un pack a un usuario
-   async assignPackToUser(userId: number, packId: number) {
+  // Asignar un pack a un usuario
+  async assignPackToUser(userId: number, packId: number) {
     const user = await this.prisma.user.findUnique({
       where: { id: userId },
     });
@@ -99,7 +109,6 @@ export class UsersService {
       },
       include: { packs: true }, // Incluir los packs del usuario en la respuesta
     });
-  
   }
 
   // Desasignar un pack de un usuario
@@ -130,6 +139,4 @@ export class UsersService {
       include: { packs: true }, // Incluir los packs del usuario en la respuesta
     });
   }
-
-  
 }

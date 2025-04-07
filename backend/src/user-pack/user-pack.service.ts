@@ -1,10 +1,13 @@
 // src/services/user-pack.service.ts
 import { Injectable, NotFoundException } from '@nestjs/common';
+import { Cron, CronExpression } from '@nestjs/schedule';
 import { PrismaService } from '../prisma/prisma.service';
 
 @Injectable()
 export class UserPackService {
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService    
+  ) {}
 
   // src/user-pack/user-pack.service.ts
   async confirmClassAttendance(userId: number, currentDateTime: Date) {
@@ -223,4 +226,52 @@ export class UserPackService {
       },
     });
   }
+
+  @Cron(CronExpression.EVERY_DAY_AT_2AM)
+  async resetWeeklyClasses() {
+    const today = new Date();
+
+    // Obtener usuarios con pack limitado (no ilimitado) y activo
+    const users = await this.prisma.user.findMany({
+      where: {
+        current_pack_id: { not: null },
+        pack_expiration_date: { gt: today },
+        NOT: {
+          current_pack: {
+            unlimited_classes: true,
+          },
+        },
+      },
+      include: {
+        current_pack: true,
+      },
+    });
+
+    for (const user of users) {
+      const lastReset = user.last_class_reset ?? user.createdAt;
+
+      const diffInDays = Math.floor(
+        (today.getTime() - new Date(lastReset).getTime()) / (1000 * 60 * 60 * 24)
+      );
+
+      if (diffInDays >= 7) {
+        // Reiniciar clases semanales
+        await this.prisma.user.update({
+          where: { id: user.id },
+          data: {
+            classes_remaining: user.current_pack?.classes_included || 0,
+            last_class_reset: today,
+          },
+        });
+
+        console.log(`🔁 Clases reiniciadas para el usuario ${user.email}`);
+      }
+    }
+  }
+
+  async forceResetWeeklyClasses() {
+    await this.resetWeeklyClasses(); // Llama directamente al cron interno
+    return { message: 'Reinicio manual de clases semanales ejecutado.' };
+  }
+
 }

@@ -12,18 +12,22 @@ import {
 import { UsersService } from './user.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
+import { Roles } from 'src/auth/roles/roles.decorator';
+import { Role } from '@prisma/client';
 
 @Controller('api/users')
 export class UsersController {
   constructor(private readonly usersService: UsersService) {}
 
   // Crear un nuevo usuario
+  @Roles(Role.Admin)
   @Post()
   create(@Body() data: CreateUserDto) {
     return this.usersService.createUser(data);
   }
 
   // Obtener todos los usuarios
+  @Roles(Role.Admin, Role.User)
   @Get()
   async getAll() {
     const result = await this.usersService.getAllUsers()    
@@ -31,23 +35,27 @@ export class UsersController {
   }
 
   // Obtener un usuario por ID
+  @Roles(Role.Admin, Role.User)
   @Get(':id')
   getById(@Param('id') id: number) {
     return this.usersService.getUserById(Number(id));
   }
 
   // Actualizar un usuario
+  @Roles(Role.Admin)
   @Put(':id')
   update(@Param('id') id: string, @Body() data: UpdateUserDto) {
     return this.usersService.updateUser(Number(id), data);
   }
 
+  @Roles(Role.Admin)
   // Eliminar un usuario
   @Delete(':id')
   delete(@Param('id') id: string) {
     return this.usersService.deleteUser(Number(id));
   }
 
+  @Roles(Role.Admin)
   // Asignar un pack a un usuario  
   @Post(':userId/packs/:packId')
   async assignPack(
@@ -57,6 +65,7 @@ export class UsersController {
     return this.usersService.assignPackToUser(Number(userId), Number(packId));
   }
 
+  @Roles(Role.Admin)
   // Desasignar un pack de un usuario
   @Delete(':userId/packs/:packId')
   async unassignPack(

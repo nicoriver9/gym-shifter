@@ -4,14 +4,18 @@ import { PrismaService } from '../prisma/prisma.service';
 // import { mercadoPagoPayment } from '../config/mercadopago.config';
 import { CreatePaymentDto } from './dto/create-payment.dto';
 import MercadoPagoConfig, { Preference } from 'mercadopago';
+import { UserPackService } from '../user-pack/user-pack.service';
 
 @Injectable()
 export class PaymentsService {
   private readonly mercadoPagoClient: MercadoPagoConfig;
-  private readonly mercadoPagoPreference: Preference;
+  private readonly mercadoPagoPreference: Preference;  
 
-  constructor(private prisma: PrismaService) {
-    // Configurar el cliente de MercadoPago
+  constructor(
+    private prisma: PrismaService,
+    private userPackService: UserPackService
+  ) {
+    // Configurar el cliente de MercadoPago    
     this.mercadoPagoClient = new MercadoPagoConfig({
       accessToken: process.env.MERCADOPAGO_ACCESS_TOKEN,
     });
@@ -65,22 +69,90 @@ export class PaymentsService {
     return preference.init_point; // URL de pago generada por MercadoPago
   }
 
+  async getApprovedPayments() {
+    return this.prisma.payment.findMany({
+      where: {
+        status: 'approved',
+      },
+      include: {
+        user: {
+          select: {
+            id: true,
+            firstName: true,
+            lastName: true,
+            email: true,
+          },
+        },
+        pack: {
+          select: {
+            id: true,
+            name: true,
+            price: true,
+          },
+        },
+      },
+      orderBy: {
+        createdAt: 'desc',
+      },
+    });
+  }
+
+  async getTeacherPaymentsReport() {
+    return this.prisma.payment.findMany({
+      where: {
+        status: 'approved',
+      },
+      include: {
+        user: {
+          include: {
+            reservations: {
+              where: {
+                status: 'confirmed'
+              },
+              include: {
+                classSchedule: {
+                  include: {
+                    teacher: true,
+                    classType: true
+                  }
+                }
+              }
+            }
+          }
+        },
+        pack: true
+      },
+      orderBy: {
+        createdAt: 'desc'
+      }
+    });
+  }
+
   async registerPayment(
     userId: number,
     packId: number,
     paymentId: string,
     status: string,
   ) {
-    // Registrar el pago en la base de datos
+    const pack = await this.prisma.pack.findUnique({ where: { id: packId } });
+  
+    if (!pack) throw new NotFoundException(`Pack con ID ${packId} no encontrado`);
+  
+    // 1. Registrar el pago en la base de datos
     await this.prisma.payment.create({
       data: {
         userId,
         packId,
-        amount: (await this.prisma.pack.findUnique({ where: { id: packId } })).price,
+        amount: pack.price,
         status,
         mercadoPagoId: paymentId,
       },
     });
+  
+    // 2. Si el pago fue exitoso, asignar el pack
+    if (status === 'approved') {
+      await this.userPackService.assignPackToUser(userId, packId);
+    }
   }
 
   async handleWebhook(data: any) {

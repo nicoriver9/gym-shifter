@@ -84,7 +84,7 @@ export class UserPackController {
       const result = await this.userPackService.assignSinglePackToUser(
         parseInt(userId),
         body.packId,
-      );      
+      );
       return {
         success: true,
         data: result,
@@ -171,4 +171,19 @@ export class UserPackController {
     }
   }
 
+  @Post('force-reset-weekly-classes')
+  async forceResetWeeklyClasses() {
+    try {
+      const result = await this.userPackService.forceResetWeeklyClasses();
+      return {
+        success: true,
+        ...result,
+      };
+    } catch (error) {
+      return {
+        success: false,
+        message: error.message,
+      };
+    }
+  }
 }

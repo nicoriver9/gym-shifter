@@ -1,9 +1,18 @@
 // src/auth/auth.controller.ts
-import { Controller, Post, Body, Logger, Req, UnauthorizedException } from '@nestjs/common';
+import {
+  Controller,
+  Post,
+  Body,
+  Logger,
+  Req,
+  UnauthorizedException,
+} from '@nestjs/common';
 import { Request } from 'express';
 import { AuthService } from './auth.service';
 import { PrismaService } from '../prisma/prisma.service';
 import { JwtAuthGuard } from 'src/jwt-auth/jwt-auth.guard';
+import { Roles } from './roles/roles.decorator';
+import { Role } from '@prisma/client';
 
 @Controller('api/auth')
 export class AuthController {
@@ -16,8 +25,21 @@ export class AuthController {
   ) {}
 
   @Post('login')
-  async login(@Req() req: Request, @Body() body: any) {
+  async login(@Req() req: Request, @Body() body: any) {    
     try {
+      // ✅ Si es login con Google
+      if (body.google_id && body.email) {
+        const user = await this.authService.loginWithGoogle(body);
+        this.currentUserId = user.user_id;
+        await this.logUserAudit(
+          req,
+          'google-login',
+          'User logged in with Google',
+        );
+        return user;
+      }
+
+      // 🔐 Login tradicional con username/password
       const { username, password } = body;
       const user = await this.authService.validateUser(username, password);
 
@@ -36,12 +58,17 @@ export class AuthController {
     }
   }
 
+  @Roles(Role.Admin)
   @Post('register')
   async register(@Body() body: any) {
     return this.authService.register(body);
   }
 
-  private async logUserAudit(request: Request, action: string, details?: string) {
+  private async logUserAudit(
+    request: Request,
+    action: string,
+    details?: string,
+  ) {
     if (!this.currentUserId) {
       this.logger.warn('No user ID set for auditing purposes.');
       return;

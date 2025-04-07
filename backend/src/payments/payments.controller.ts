@@ -1,12 +1,21 @@
 // src/payments/payments.controller.ts
-import { Controller, Post, Body, Req, Get, Param, NotFoundException, Query } from '@nestjs/common';
+import {
+  Controller,
+  Post,
+  Body,
+  Req,
+  Get,
+  Param,
+  NotFoundException,
+  Query,
+} from '@nestjs/common';
 import { PaymentsService } from './payments.service';
-import { CreatePaymentDto } from './dto/create-payment.dto';
+// import { CreatePaymentDto } from './dto/create-payment.dto';
 
 @Controller('payments')
 export class PaymentsController {
   constructor(private readonly paymentsService: PaymentsService) {}
-  
+
   @Get('all-links')
   async getAllPaymentLinks(@Query('user_id') userId: string) {
     // Lista de packs disponibles
@@ -55,6 +64,16 @@ export class PaymentsController {
     );
 
     return paymentLinks;
+  }
+
+  @Get('approved')
+  async getApprovedPayments() {
+    return this.paymentsService.getApprovedPayments();
+  }
+
+  @Get('teacher-report')
+  async getTeacherReport() {
+    return this.paymentsService.getTeacherPaymentsReport();
   }
 
   @Get('link')

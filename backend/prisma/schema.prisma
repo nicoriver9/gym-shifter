@@ -53,6 +53,7 @@ model Pack {
   validity_days     Int // Tiempo de validez en días
   unlimited_classes Boolean   @default(false) // Indica si el pack es ilimitado
   created_at        DateTime  @default(now())
+  isDeleted         Boolean   @default(false)
   users             User[]    @relation("UserPacks")
   // Relación con User (pack actual)
   current_users     User[]    @relation("UserCurrentPack")
@@ -85,6 +86,7 @@ model User {
   current_pack         Pack?         @relation("UserCurrentPack", fields: [current_pack_id], references: [id])
   classes_remaining    Int           @default(0)
   pack_expiration_date DateTime?
+  last_class_reset     DateTime?
   payments             Payment[]
   reservations         Reservation[]
   isActive             Boolean       @default(true)
