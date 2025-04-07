@@ -12,7 +12,7 @@ import {
 import { UsersService } from './user.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
-import { Roles } from 'src/auth/roles/roles.decorator';
+import { Roles } from '../auth/roles/roles.decorator';
 import { Role } from '@prisma/client';
 
 @Controller('api/users')
