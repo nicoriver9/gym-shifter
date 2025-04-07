@@ -10,6 +10,8 @@ const PacksPage = () => {
   const [loading, setLoading] = useState(true);
   const { userPackClassesIncluded, userPack } = useUserPackStore();
 
+  const userId = Number(localStorage.getItem("user_id"));
+
   useEffect(() => {
     fetchPacks();
   }, []);
@@ -27,7 +29,7 @@ const PacksPage = () => {
 
   const handleBuyPack = async (packId: number) => {
     try {
-      const response = await getPaymentLink(1, packId); // Reemplaza "1" con el ID del usuario
+      const response = await getPaymentLink(userId, packId); // Reemplaza "1" con el ID del usuario
       const paymentLink = response.paymentLink;
       window.open(paymentLink, '_blank');
     } catch (error) {

@@ -13,24 +13,33 @@ export const CurrentClassSection = ({ classes, classTypes, teachers }: CurrentCl
   const [timeLeft, setTimeLeft] = useState<string>('');
 
   useEffect(() => {
-    // Buscar la clase actual al montar el componente
-    const now = new Date();
-    const foundClass = findCurrentClass(classes, now);
-    
-    if (foundClass) {
-      const enrichedClass = {
-        ...foundClass,
-        classType: classTypes.find(type => type.id === foundClass.class_type_id),
-        teacher: teachers.find(teacher => teacher.id === foundClass.teacher_id)
-      };
-      setCurrentClass(enrichedClass);
-      
-      // Calcular tiempo restante
-      updateTimeLeft(foundClass, now);
-      const interval = setInterval(() => updateTimeLeft(foundClass, new Date()), 60000);
-      
-      return () => clearInterval(interval);
-    }
+    const checkForCurrentClass = () => {
+      const now = new Date();
+      const foundClass = findCurrentClass(classes, now);
+
+      if (foundClass) {
+        const enrichedClass = {
+          ...foundClass,
+          classType: classTypes.find(type => type.id === foundClass.class_type_id),
+          teacher: teachers.find(teacher => teacher.id === foundClass.teacher_id)
+        };
+        setCurrentClass(enrichedClass);
+        updateTimeLeft(foundClass, now);
+      } else {
+        setCurrentClass(null);
+        setTimeLeft('');
+      }
+    };
+
+    // Verificamos al montar el componente
+    checkForCurrentClass();
+
+    // Verificamos cada 30 segundos
+    const interval = setInterval(() => {
+      checkForCurrentClass();
+    }, 30000);
+
+    return () => clearInterval(interval);
   }, [classes, classTypes, teachers]);
 
   const updateTimeLeft = (classItem: any, currentTime: Date) => {

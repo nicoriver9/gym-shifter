@@ -20,7 +20,15 @@ const CurrentClassAttendance = () => {
   useEffect(() => {
     const fetchCurrentClass = async () => {
       try {
-        const response = await fetch('http://localhost:3000/classes/current');
+        const accessToken = localStorage.getItem('access_token');
+        if (!accessToken) {
+          throw new Error('No hay token de acceso');
+        }
+        const response = await fetch(`${import.meta.env.VITE_API_URL}/classes/current`, {
+          headers: {
+            'Authorization': `Bearer ${accessToken}`
+          }
+        });
         
         if (!response.ok) {
           throw new Error('Error al obtener la clase actual');
@@ -34,7 +42,7 @@ const CurrentClassAttendance = () => {
 
         setCurrentClass(data.data);
       } catch (err) {
-        setError(err.message);
+        setError((err as Error).message);
       } finally {
         setLoading(false);
       }
@@ -72,7 +80,7 @@ const CurrentClassAttendance = () => {
 
   return (
     <div className="bg-purple-900 border border-purple-600 rounded-lg p-6 mb-6">
-      <h3 className="text-xl font-bold text-white mb-4">Clase en Curso</h3>
+      <h3 className="text-xl text-center font-bold text-white mb-4">CLASE EN CURSO</h3>
       
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-white">
         <div>

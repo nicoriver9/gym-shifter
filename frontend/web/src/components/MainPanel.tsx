@@ -1,21 +1,25 @@
-// src/components/MainPanel.tsx
 import { useState } from "react";
+import { FiLogOut } from "react-icons/fi";
+// import { useNavigate } from "react-router-dom";
+
 import ClassTypeTable from "./admin/ClassTypes";
 import ClassScheduler from "./admin/ClassScheduler";
-import TeacherTable from "../components/admin//TeacherTable";
-import PackTable from "../components/admin/PackTable";
-import UserTable from "../components/admin/UserTable";
-import ReservationTable from "../components/admin/ReservationTable";
-import { FiLogOut } from "react-icons/fi";
+import TeacherTable from "./admin/TeacherTable";
+import PackTable from "./admin/PackTable";
+import UserTable from "./admin/UserTable";
+import ReservationTable from "./admin/ReservationTable";
+import CurrentClassAttendance from "./admin/CurrentClassAttendance";
+import PaymentTable from "./admin/PaymentTable";
+import TeacherPaymentReport from "./admin/TeacherPaymentReport";
 
-import AOS from "aos";
-import "aos/dist/aos.css";
+interface MainPanelProps {
+  onLogout: () => void;
+}
 
-AOS.init();
-
-const MainPanel = ({ onLogout }: { onLogout: () => void }) => {
+const MainPanel: React.FC<MainPanelProps> = ({ onLogout }) => {
   const [currentView, setCurrentView] = useState<
-    "classTypes" | "scheduler" | "teachers" | "packs" | "users" | "reservations"
+    "classTypes" | "scheduler" | "teachers" | "packs" | "users" | "attendances" 
+    // | "payments" | "TeacherPayments"
   >("classTypes");
 
   return (
@@ -30,6 +34,10 @@ const MainPanel = ({ onLogout }: { onLogout: () => void }) => {
         <FiLogOut className="text-xl" /> Cerrar Sesión
       </button>
 
+      <div className="w-full max-w-4xl mb-6">
+        <CurrentClassAttendance />
+      </div>
+
       {/* Botones de navegación */}
       <div className="flex justify-center gap-4 mb-6 flex-wrap">
         {[
@@ -38,7 +46,9 @@ const MainPanel = ({ onLogout }: { onLogout: () => void }) => {
           { key: "packs", label: "Packs" },
           { key: "teachers", label: "Profesores" },
           { key: "users", label: "Usuarios" },
-          { key: "reservations", label: "Reservaciones" },
+          { key: "attendances", label: "Asistencias" },
+          // { key: "payments", label: "Registro de Pagos" }, 
+          // { key: "TeacherPayments", label: "Distribucion de Pagos" },
         ].map(({ key, label }) => (
           <button
             key={key}
@@ -60,7 +70,9 @@ const MainPanel = ({ onLogout }: { onLogout: () => void }) => {
         {currentView === "teachers" && <TeacherTable />}
         {currentView === "packs" && <PackTable />}
         {currentView === "users" && <UserTable />}
-        {currentView === "reservations" && <ReservationTable />}
+        {currentView === "attendances" && <ReservationTable />}
+        {/* {currentView === "payments" && <PaymentTable />}  */}
+        {/* {currentView === "TeacherPayments" && <TeacherPaymentReport />}  */}
       </div>
     </div>
   );

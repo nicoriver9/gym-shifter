@@ -1,14 +1,21 @@
 // src/services/userService.ts
-const API_URL = 'http://localhost:3000/api/user-pack';
+const API_URL = `${import.meta.env.VITE_API_URL}/api/user-pack`;
 
-// src/services/user/userPackService.ts
+// Función para obtener el token de acceso
+const getAccessToken = () => {
+  return localStorage.getItem('access_token');
+};
+
 export const confirmClassAttendance = async (
   userId: number,
   currentDateTime: Date
 ) => {
   const response = await fetch(`${API_URL}/confirm-attendance`, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers: { 
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${getAccessToken()}`
+    },
     body: JSON.stringify({ 
       userId,
       currentDateTime: currentDateTime.toISOString()
@@ -26,7 +33,10 @@ export const confirmClassAttendance = async (
 export const assignPackToUser = async (userId: number, packId: number) => {
   const response = await fetch(`${API_URL}/${userId}/packs/${packId}`, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers: { 
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${getAccessToken()}`
+    },
   });
   if (!response.ok) {
     throw new Error("Error al asignar el pack al usuario");
@@ -37,7 +47,10 @@ export const assignPackToUser = async (userId: number, packId: number) => {
 export const unassignPackFromUser = async (userId: number) => {
   const response = await fetch(`${API_URL}/remove-pack/${userId}`, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers: { 
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${getAccessToken()}`
+    },
   });
 
   if (!response.ok) {
@@ -51,7 +64,10 @@ export const unassignPackFromUser = async (userId: number) => {
 export const assignSinglePackToUser = async (userId: number, packId: number) => {
   const response = await fetch(`${API_URL}/single/${userId}/pack`, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers: { 
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${getAccessToken()}`
+    },
     body: JSON.stringify({ packId }),
   });
 
@@ -66,7 +82,10 @@ export const assignSinglePackToUser = async (userId: number, packId: number) => 
 export const decrementUserClasses = async (userId: number, decrementBy: number = 1) => {
   const response = await fetch(`${API_URL}/decrement-classes`, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers: { 
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${getAccessToken()}`
+    },
     body: JSON.stringify({ 
       userId,
       decrementBy 
@@ -94,7 +113,10 @@ export const decrementUserClasses = async (userId: number, decrementBy: number =
 export const createUser = async (data: any) => {
   const response = await fetch(API_URL, {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
+    headers: { 
+      "Content-Type": "application/json",
+      'Authorization': `Bearer ${getAccessToken()}`
+    },
     body: JSON.stringify(data),
   });
   if (!response.ok) {
@@ -106,7 +128,10 @@ export const createUser = async (data: any) => {
 export const updateUser = async (id: number, data: any) => {
   const response = await fetch(`${API_URL}/${id}`, {
     method: "PUT",
-    headers: { "Content-Type": "application/json" },
+    headers: { 
+      "Content-Type": "application/json",
+      'Authorization': `Bearer ${getAccessToken()}`
+    },
     body: JSON.stringify(data),
   });
   if (!response.ok) {
@@ -118,6 +143,9 @@ export const updateUser = async (id: number, data: any) => {
 export const deleteUser = async (id: number) => {
   const response = await fetch(`${API_URL}/${id}`, {
     method: "DELETE",
+    headers: { 
+      'Authorization': `Bearer ${getAccessToken()}`
+    },
   });
   if (!response.ok) {
     throw new Error("Error al eliminar el usuario");

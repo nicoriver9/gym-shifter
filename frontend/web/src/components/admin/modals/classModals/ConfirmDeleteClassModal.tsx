@@ -21,8 +21,16 @@ export default function ConfirmDeleteModal({
   const fetchClass = async () => {
     if(classTypeId){
       try {
+        const accessToken = localStorage.getItem('access_token');
+        if (!accessToken) {
+          throw new Error('No hay token de acceso');
+        }
         const response = await fetch(
-          `http://localhost:3000/class-types/${classTypeId}`
+          `${import.meta.env.VITE_API_URL}/class-types/${classTypeId}`, {
+            headers: {
+              'Authorization': `Bearer ${accessToken}`
+            }
+          }
         );
         if (!response.ok) {
           throw new Error("Error al obtener el nombre de la clase");

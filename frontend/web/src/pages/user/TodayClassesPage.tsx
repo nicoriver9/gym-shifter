@@ -27,7 +27,7 @@ const TodayClassesPage = () => {
   
 
   useEffect(() => {
-    fetch('http://localhost:3000/class-types')
+    fetch(`${import.meta.env.VITE_API_URL}/class-types`)
       .then((res) => res.json())
       .then((data) => setClassTypes(data))
       .catch((err) => {
@@ -39,7 +39,7 @@ const TodayClassesPage = () => {
   useEffect(() => {
     if (classTypes.length === 0) return;
 
-    fetch('http://localhost:3000/classes')
+    fetch(`${import.meta.env.VITE_API_URL}/classes`)
       .then((res) => res.json())
       .then((data) => {
         const formattedEvents = data.map((event: any) => ({

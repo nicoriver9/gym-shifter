@@ -26,9 +26,28 @@ export default function AddClassModal({ show, handleClose, onSave, classTypes }:
   const [teachers, setTeachers] = useState<Teacher[]>([]);
 
   useEffect(() => {
-    fetch("http://localhost:3000/teachers")
-      .then((res) => res.json())
-      .then((data) => setTeachers(data));
+    const fetchTeachers = async () => {
+      try {
+        const accessToken = localStorage.getItem('access_token');
+        if (!accessToken) {
+          throw new Error('No hay token de acceso');
+        }
+        const response = await fetch(`${import.meta.env.VITE_API_URL}/teachers`, {
+          headers: {
+            'Authorization': `Bearer ${accessToken}`
+          }
+        });
+        if (!response.ok) {
+          throw new Error('Error al obtener los profesores');
+        }
+        const data = await response.json();
+        setTeachers(data);
+      } catch (error) {
+        console.error('Error al obtener los profesores:', error);
+      }
+    };
+
+    fetchTeachers();
   }, []);
 
   /** 🔥 Manejar selección de días */

@@ -9,8 +9,6 @@ import { ConfirmationModal } from "../../components/user/ConfirmationModal";
 import { findCurrentClass } from "../../utils/user/classUtils";
 import { CurrentClassSection } from "../../components/user/CurrentClassSection";
 
-const API_URL = "http://localhost:3000";
-
 const QRScannerPage = () => {
   const [scanResult, setScanResult] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -20,8 +18,18 @@ const QRScannerPage = () => {
   const [hasCurrentClass, setHasCurrentClass] = useState<boolean>(false);
   const userId = Number(localStorage.getItem("user_id"));
 
-  const { setUserPack, setUserPackClassesIncluded, setPackExpirationDate } =
-    useUserPackStore();
+  const {
+    userPack,
+    userPackClassesIncluded,
+    setUserPack,
+    setUserPackClassesIncluded,
+    setPackExpirationDate,
+  } = useUserPackStore();
+
+  const hasValidPack =
+    !!userPack &&
+    userPack !== "No tienes un pack asignado" &&
+    userPackClassesIncluded !== null;
 
   const [currentClass, setCurrentClass] = useState<any>(null);
   const [classes, setClasses] = useState<any[]>([]);
@@ -30,17 +38,17 @@ const QRScannerPage = () => {
 
   // Cargar clases, tipos de clase y profesores
   useEffect(() => {
-    fetch(`${API_URL}/class-types`)
+    fetch(`${import.meta.env.VITE_API_URL}/class-types`)
       .then((res) => res.json())
       .then(setClassTypes);
 
-    fetch(`${API_URL}/teachers`)
+    fetch(`${import.meta.env.VITE_API_URL}/teachers`)
       .then((res) => res.json())
       .then(setTeachers);
 
-    fetch(`${API_URL}/classes`)
+    fetch(`${import.meta.env.VITE_API_URL}/classes`)
       .then((res) => res.json())
-      .then(data => {
+      .then((data) => {
         setClasses(data);
         // Verificar si hay clases en curso al cargar
         checkCurrentClass(data);
@@ -75,7 +83,7 @@ const QRScannerPage = () => {
     if (data && hasCurrentClass) {
       const now = new Date();
       const foundClass = findCurrentClass(classes, now);
-      
+
       if (!foundClass) {
         setError("No hay clases programadas en este momento");
         setHasCurrentClass(false);
@@ -84,8 +92,12 @@ const QRScannerPage = () => {
 
       setCurrentClass({
         ...foundClass,
-        classType: classTypes.find(type => type.id === foundClass.class_type_id),
-        teacher: teachers.find(teacher => teacher.id === foundClass.teacher_id)
+        classType: classTypes.find(
+          (type) => type.id === foundClass.class_type_id
+        ),
+        teacher: teachers.find(
+          (teacher) => teacher.id === foundClass.teacher_id
+        ),
       });
 
       setIsModalOpen(true);
@@ -94,7 +106,7 @@ const QRScannerPage = () => {
 
   const handleManualCheckIn = async () => {
     if (!hasCurrentClass) return;
-    
+
     const now = new Date();
     const foundClass = findCurrentClass(classes, now);
 
@@ -106,8 +118,10 @@ const QRScannerPage = () => {
 
     setCurrentClass({
       ...foundClass,
-      classType: classTypes.find(type => type.id === foundClass.class_type_id),
-      teacher: teachers.find(teacher => teacher.id === foundClass.teacher_id)
+      classType: classTypes.find(
+        (type) => type.id === foundClass.class_type_id
+      ),
+      teacher: teachers.find((teacher) => teacher.id === foundClass.teacher_id),
     });
 
     setIsModalOpen(true);
@@ -115,7 +129,7 @@ const QRScannerPage = () => {
 
   const confirmAttendance = async () => {
     if (!currentClass) return;
-    
+
     setIsProcessing(true);
     try {
       const now = new Date();
@@ -139,7 +153,11 @@ const QRScannerPage = () => {
   return (
     <div className="max-w-xl mx-auto mt-10 px-4">
       <PackInfo />
-      <CurrentClassSection classes={classes} classTypes={classTypes} teachers={teachers} />
+      <CurrentClassSection
+        classes={classes}
+        classTypes={classTypes}
+        teachers={teachers}
+      />
 
       {/* Modal de confirmación */}
       <ConfirmationModal
@@ -153,8 +171,12 @@ const QRScannerPage = () => {
           currentClass ? (
             <div>
               <p>¿Confirmar asistencia a:</p>
-              <p className="font-bold text-lg mt-2">{currentClass.classType?.name}</p>
-              <p>Horario: {currentClass.start_time} - {currentClass.end_time}</p>
+              <p className="font-bold text-lg mt-2">
+                {currentClass.classType?.name}
+              </p>
+              <p>
+                Horario: {currentClass.start_time} - {currentClass.end_time}
+              </p>
               <p>Profesor: {currentClass.teacher?.name}</p>
               <p className="mt-2">Se descontará una clase de tu pack.</p>
             </div>
@@ -178,7 +200,7 @@ const QRScannerPage = () => {
       )}
 
       {/* Contenido principal - Solo mostrar si hay clase en curso */}
-      {!scanResult && hasCurrentClass && (
+      {!scanResult && hasCurrentClass && hasValidPack && (
         <>
           {isMobile ? (
             <>
@@ -199,7 +221,9 @@ const QRScannerPage = () => {
                     disabled={isProcessing}
                     className="bg-purple-600 hover:bg-purple-700 text-white px-6 py-3 rounded-lg transition shadow-md disabled:bg-gray-500"
                   >
-                    {isProcessing ? "Procesando..." : "Confirmar asistencia manualmente"}
+                    {isProcessing
+                      ? "Procesando..."
+                      : "Confirmar asistencia manualmente"}
                   </button>
                 </div>
               )}
@@ -208,8 +232,8 @@ const QRScannerPage = () => {
             <div className="flex flex-col justify-center items-center min-h-[60vh] px-4 gap-4">
               <div className="bg-yellow-100 text-yellow-800 px-6 py-4 rounded-md shadow-md text-center max-w-md w-full">
                 <p className="font-semibold">
-                  ⚠️ Por favor, ingresa a la aplicación desde tu celular para usar
-                  el escáner de QR.
+                  ⚠️ Por favor, ingresa a la aplicación desde tu celular para
+                  usar el escáner de QR.
                 </p>
               </div>
               <button
@@ -217,17 +241,27 @@ const QRScannerPage = () => {
                 disabled={isProcessing}
                 className="bg-purple-600 hover:bg-purple-700 text-white px-6 py-3 rounded-lg transition shadow-md disabled:bg-gray-500"
               >
-                {isProcessing ? "Procesando..." : "Confirmar asistencia manualmente"}
+                {isProcessing
+                  ? "Procesando..."
+                  : "Confirmar asistencia manualmente"}
               </button>
             </div>
           )}
         </>
       )}
 
+      {!scanResult && hasCurrentClass && !hasValidPack && (
+        <div className="bg-red-900 text-white p-4 rounded-lg text-center mb-6">
+          No puedes confirmar tu asistencia porque no tienes un pack activo
+          asignado.
+        </div>
+      )}
+
       {/* Mensaje cuando no hay clases */}
       {!hasCurrentClass && !scanResult && (
         <div className="bg-blue-900 text-white p-4 rounded-lg text-center mb-6">
-          No hay clases en curso actualmente. El escáner QR y la confirmación manual estarán disponibles cuando haya una clase programada.
+          No hay clases en curso actualmente. El escáner QR y la confirmación
+          manual estarán disponibles cuando haya una clase programada.
         </div>
       )}
 

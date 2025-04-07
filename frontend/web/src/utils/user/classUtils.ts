@@ -1,8 +1,8 @@
 // src/utils/classUtils.ts
 export const findCurrentClass = (classes: any[], currentTime: Date) => {
     const currentDay = currentTime.getDay(); // 0 (Domingo) a 6 (Sábado)
-    const currentHours = currentTime.getHours();
-    const currentMinutes = currentTime.getMinutes();
+    // const currentHours = currentTime.getHours();
+    // const currentMinutes = currentTime.getMinutes();
   
     return classes.find((classItem) => {
       // Verificar día de la semana (ajustar según tu modelo de datos)

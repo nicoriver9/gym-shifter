@@ -26,14 +26,24 @@ export default function ClassScheduler() {
 
   /** 🔥 Obtener los tipos de clases */
   useEffect(() => {
-    fetch("http://localhost:3000/class-types")
+    const accessToken = localStorage.getItem('access_token');
+    fetch(`${import.meta.env.VITE_API_URL}/class-types`, {
+      headers: {
+        'Authorization': `Bearer ${accessToken}`
+      }
+    })
       .then((res) => res.json())
       .then((data) => setClassTypes(data));
   }, []);
 
   /** 🔥 Obtener las clases del calendario */
   useEffect(() => {
-    fetch("http://localhost:3000/classes")
+    const accessToken = localStorage.getItem('access_token');
+    fetch(`${import.meta.env.VITE_API_URL}/classes`, {
+      headers: {
+        'Authorization': `Bearer ${accessToken}`
+      }
+    })
       .then((res) => res.json())
       .then((data) => {
         const formattedEvents = data.map((event: any) => ({
@@ -51,7 +61,12 @@ export default function ClassScheduler() {
 
 
   function fetchClasses() {
-    fetch("http://localhost:3000/classes")
+    const accessToken = localStorage.getItem('access_token');
+    fetch(`${import.meta.env.VITE_API_URL}/classes`, {
+      headers: {
+        'Authorization': `Bearer ${accessToken}`
+      }
+    })
       .then((res) => res.json())
       .then((data) => {
         const formattedEvents = data.map((event: any) => ({
@@ -67,17 +82,20 @@ export default function ClassScheduler() {
   }
 
   /** 🔥 Guardar nuevas clases */
-  const handleSaveClass = async (newClasses: any[]) => {
-    console.log("newClasses", newClasses);
+  const handleSaveClass = async (newClasses: any[]) => {    
     const validClasses = newClasses.filter((c) => c.start_time < c.end_time);
     if (validClasses.length !== newClasses.length) {
       alert("Algunas clases tienen horarios de inicio y fin inválidos.");
       return;
     }
 
-    await fetch("http://localhost:3000/classes/bulk", {
+    const accessToken = localStorage.getItem('access_token');
+    await fetch(`${import.meta.env.VITE_API_URL}/classes/bulk`, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: { 
+        "Content-Type": "application/json",
+        'Authorization': `Bearer ${accessToken}`
+      },
       body: JSON.stringify(validClasses),
     });
 
@@ -146,11 +164,15 @@ export default function ClassScheduler() {
   /** 🔥 Actualizar una clase */
   const handleUpdateClass = async (updatedClass: ClassEvent) => {
     try {
+      const accessToken = localStorage.getItem('access_token');
       const response = await fetch(
-        `http://localhost:3000/classes/${updatedClass.id}`,
+        `${import.meta.env.VITE_API_URL}/classes/${updatedClass.id}`,
         {
           method: "PUT",
-          headers: { "Content-Type": "application/json" },
+          headers: { 
+            "Content-Type": "application/json",
+            'Authorization': `Bearer ${accessToken}`
+          },
           body: JSON.stringify(updatedClass),
         }
       );
@@ -196,15 +218,18 @@ export default function ClassScheduler() {
   };
 
   // Función para eliminar la clase después de la confirmación
-  // TODO: let this function for future considerations
   const handleDeleteClass = async () => {
     if (!classToDelete) return;
 
     try {
+      const accessToken = localStorage.getItem('access_token');
       const response = await fetch(
-        `http://localhost:3000/classes/${classToDelete.id}`,
+        `${import.meta.env.VITE_API_URL}/classes/${classToDelete.id}`,
         {
           method: "DELETE",
+          headers: { 
+            'Authorization': `Bearer ${accessToken}`
+          }
         }
       );
 
@@ -223,7 +248,7 @@ export default function ClassScheduler() {
       );
 
       // Opcional: Refrescar los datos desde el backend para mayor seguridad
-      fetch("http://localhost:3000/classes")
+      fetch(`${import.meta.env.VITE_API_URL}/classes`)
         .then((res) => res.json())
         .then((data) => {
           const formattedEvents = data.map((event: any) => ({
@@ -249,8 +274,14 @@ export default function ClassScheduler() {
     console.log('classTypeId', classTypeId)
     let className = "";
     try {
+      const accessToken = localStorage.getItem('access_token');
       const response = await fetch(
-        `http://localhost:3000/class-types/${classTypeId}`
+        `${import.meta.env.VITE_API_URL}/class-types/${classTypeId}`,
+        {
+          headers: { 
+            'Authorization': `Bearer ${accessToken}`
+          }
+        }
       );
       if (!response.ok) {
         throw new Error("Error al obtener el nombre de la clase");
@@ -263,12 +294,16 @@ export default function ClassScheduler() {
     }
 
     try {
+      const accessToken = localStorage.getItem('access_token');
       const response = await fetch(
-        `http://localhost:3000/classes/delete-by-schedule?class_type_id=${encodeURIComponent(
+        `${import.meta.env.VITE_API_URL}/classes/delete-by-schedule?class_type_id=${encodeURIComponent(
           classTypeId
         )}&day_of_week=${dayOfWeek}&start_time=${startTime}&end_time=${endTime}`,
         {
           method: "DELETE",
+          headers: { 
+            'Authorization': `Bearer ${accessToken}`
+          }
         }
       );
 

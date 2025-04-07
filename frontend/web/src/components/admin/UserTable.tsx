@@ -14,16 +14,29 @@ interface Pack {
 
 const UserTable = () => {
   const [users, setUsers] = useState<any[]>([]);
+  const [filteredUsers, setFilteredUsers] = useState<any[]>([]);
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [selectedUser, setSelectedUser] = useState<any>(null);
   const [packs, setPacks] = useState<Pack[]>([]);
+  const [searchTerm, setSearchTerm] = useState("");
 
   useEffect(() => {
     fetchUsers();
     fetchPacks();
   }, []);
+
+  useEffect(() => {
+    const lowerSearch = searchTerm.toLowerCase();
+    const filtered = users.filter(
+      (user) =>
+        user.firstName.toLowerCase().includes(lowerSearch) ||
+        user.lastName.toLowerCase().includes(lowerSearch) ||
+        user.email.toLowerCase().includes(lowerSearch)
+    );
+    setFilteredUsers(filtered);
+  }, [searchTerm, users]);
 
   const fetchPacks = async () => {
     const data = await getPacks();
@@ -31,7 +44,7 @@ const UserTable = () => {
   };
 
   const fetchUsers = async () => {
-    const data = await getUsers();    
+    const data = await getUsers();
     setUsers(data);
   };
 
@@ -66,13 +79,20 @@ const UserTable = () => {
         Gestión de Usuarios
       </h2>
 
-      <div className="flex justify-center mb-6">
+      <div className="flex justify-center mb-6 gap-4">
         <button
           className="bg-purple-700 hover:bg-purple-800 px-6 py-3 font-semibold text-white rounded-lg shadow-md transition"
           onClick={() => setShowCreateModal(true)}
         >
           + Crear Usuario
         </button>
+        <input
+          type="text"
+          placeholder="Buscar por nombre, apellido o email"
+          className="px-4 py-2 rounded-md border border-gray-600 w-80 text-black"
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+        />
       </div>
 
       <div className="overflow-x-auto">
@@ -87,8 +107,8 @@ const UserTable = () => {
             </tr>
           </thead>
           <tbody>
-            {users.length > 0 ? (
-              users.map((user) => (
+            {filteredUsers.length > 0 ? (
+              filteredUsers.map((user) => (
                 <tr
                   key={user.id}
                   className="border-b border-gray-700 hover:bg-gray-800 transition"
@@ -102,8 +122,7 @@ const UserTable = () => {
                         <strong>{user.current_pack.name}</strong> - Fecha:{" "}
                         {new Date(
                           user.current_pack.created_at
-                        ).toLocaleDateString()}{" "}
-                        -{" "}
+                        ).toLocaleDateString()} {" "}- {" "}
                         {user.pack_expiration_date ? (
                           calculateRemainingDays(user.pack_expiration_date) ===
                           0 ? (

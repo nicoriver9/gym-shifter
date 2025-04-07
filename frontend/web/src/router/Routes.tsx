@@ -4,7 +4,7 @@ import UserDashboard from "../pages/user/UserDashboard";
 import PacksPage from "../pages/user/PacksPage";
 import QRScannerPage from "../pages/user/QRScannerPage";
 import TodayClassesPage from "../pages/user/TodayClassesPage";
-import MainPanel from "../components/admin/MainPanel";
+import MainPanel from "../components/MainPanel";
 import AccessDenied from "../pages/AccessDenied";
 
 // Definir los tipos de los props
@@ -48,6 +48,12 @@ const AppRoutes: React.FC<AppRoutesProps> = ({ isAuthenticated, userRole, onLogi
             }
           />
         </Route>
+
+        {/* Agregar ruta para success que redirija a packs */}
+        <Route
+          path="/payments/success"
+          element={<Navigate to="/dashboard/packs" replace />}
+        />
 
         {/* Ruta comodín para redirigir a la raíz */}
         <Route path="*" element={<Navigate to="/" />} />

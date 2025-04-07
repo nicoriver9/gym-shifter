@@ -18,10 +18,16 @@ const CreateTeacherModal = ({ show, handleClose, refreshTable }: CreateTeacherMo
     try {
       console.log("📤 Enviando profesor al backend:", name);
 
-      const response = await fetch("http://localhost:3000/teachers", {
+      const accessToken = localStorage.getItem('access_token');
+      if (!accessToken) {
+        throw new Error('No hay token de acceso');
+      }
+
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/teachers`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
+          'Authorization': `Bearer ${accessToken}`
         },
         body: JSON.stringify({ name }),
       });

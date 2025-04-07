@@ -24,8 +24,16 @@ const ConfirmDeleteTeacherModal = ({
     try {
       console.log("🗑 Eliminando profesor:", teacher.id);
 
-      const response = await fetch(`http://localhost:3000/teachers/${teacher.id}`, {
+      const accessToken = localStorage.getItem('access_token');
+      if (!accessToken) {
+        throw new Error('No hay token de acceso');
+      }
+
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/teachers/${teacher.id}`, {
         method: "DELETE",
+        headers: {
+          'Authorization': `Bearer ${accessToken}`
+        }
       });
 
       if (!response.ok) {

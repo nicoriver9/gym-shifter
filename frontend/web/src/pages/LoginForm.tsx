@@ -14,7 +14,7 @@ const LoginForm = ({ onLogin }: { onLogin: () => void }) => {
     setErrorMessage(null); // Limpiar el mensaje de error antes de intentar el login
 
     try {
-      const response = await fetch("http://localhost:3000/api/auth/login", {
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/api/auth/login`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -62,7 +62,7 @@ const LoginForm = ({ onLogin }: { onLogin: () => void }) => {
       console.log("Usuario autenticado con Google:", decodedToken);
 
       // Realizar la solicitud POST a la API de autenticación con Google
-      const response = await fetch("http://localhost:3000/api/auth/login", {
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/api/auth/login`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -70,6 +70,8 @@ const LoginForm = ({ onLogin }: { onLogin: () => void }) => {
         body: JSON.stringify({
           email: decodedToken.email,
           google_id: decodedToken.sub,
+          firstName: decodedToken.given_name,
+          lastName: decodedToken.family_name,
         }),
       });
 

@@ -19,9 +19,28 @@ export default function EditClassModal({
 
   // Cargar lista de profesores
   useEffect(() => {
-    fetch(`http://localhost:3000/teachers/${classData?.teacher_id || ""}`)
-      .then((res) => res.json())
-      .then((data) => setTeachers(data));
+    const fetchTeachers = async () => {
+      try {
+        const accessToken = localStorage.getItem('access_token');
+        if (!accessToken) {
+          throw new Error('No hay token de acceso');
+        }
+        const response = await fetch(`${import.meta.env.VITE_API_URL}/teachers/${classData?.teacher_id || ""}`, {
+          headers: {
+            'Authorization': `Bearer ${accessToken}`
+          }
+        });
+        if (!response.ok) {
+          throw new Error('Error al obtener los profesores');
+        }
+        const data = await response.json();
+        setTeachers(data);
+      } catch (error) {
+        console.error('Error al obtener los profesores:', error);
+      }
+    };
+
+    fetchTeachers();
   }, []);
 
   // Actualizar valores cuando cambia la clase seleccionada
@@ -37,9 +56,28 @@ export default function EditClassModal({
 
   // Cargar lista de tipos de clase
   useEffect(() => {
-    fetch('http://localhost:3000/class-types')
-      .then((res) => res.json())
-      .then((data) => setClassTypes(data));
+    const fetchClassTypes = async () => {
+      try {
+        const accessToken = localStorage.getItem('access_token');
+        if (!accessToken) {
+          throw new Error('No hay token de acceso');
+        }
+        const response = await fetch(`${import.meta.env.VITE_API_URL}/class-types`, {
+          headers: {
+            'Authorization': `Bearer ${accessToken}`
+          }
+        });
+        if (!response.ok) {
+          throw new Error('Error al obtener los tipos de clase');
+        }
+        const data = await response.json();
+        setClassTypes(data);
+      } catch (error) {
+        console.error('Error al obtener los tipos de clase:', error);
+      }
+    };
+
+    fetchClassTypes();
   }, []);
 
   const handleSubmit = () => {
