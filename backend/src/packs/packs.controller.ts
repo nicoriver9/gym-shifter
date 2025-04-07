@@ -11,7 +11,7 @@ import {
 import { PacksService } from './packs.service';
 import { UpdatePackDto } from './dto/update-pack.dto';
 import { CreatePackDto } from './dto/create-pack.dto';
-import { Roles } from 'src/auth/roles/roles.decorator';
+import { Roles } from '../auth/roles/roles.decorator';
 import { Role } from '@prisma/client';
 
 
