@@ -1,6 +1,6 @@
 import { Controller, Get, Post, Put, Delete, Param, Body } from '@nestjs/common';
 import { ClassTypeService } from './class-type.service';
-import { Roles } from 'src/auth/roles/roles.decorator';
+import { Roles } from '../auth/roles/roles.decorator';
 import { Role } from '@prisma/client';
 
 @Controller('class-types')
