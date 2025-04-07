@@ -9,7 +9,7 @@ import {
   Query,
 } from '@nestjs/common';
 import { ClassesService } from './classes.service';
-import { Roles } from 'src/auth/roles/roles.decorator';
+import { Roles } from '../auth/roles/roles.decorator';
 import { Role } from '@prisma/client';
 
 @Controller('classes')
