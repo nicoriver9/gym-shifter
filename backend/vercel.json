@@ -4,9 +4,11 @@
       {
         "src": "src/main.ts",
         "use": "@vercel/node",
+        "config": {
         "includeFiles": [
           "node_modules/moment-timezone/**/*"
-        ]
+         ]
+       }
       }
     ],
     "rewrites": [
