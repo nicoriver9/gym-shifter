@@ -12,7 +12,7 @@ import {
 import { UsersService } from './user.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
-import { Roles } from '../auth/roles/roles.decorator';
+import { Roles } from 'src/auth/roles/roles.decorator';
 import { Role } from '@prisma/client';
 
 @Controller('api/users')
@@ -37,8 +37,8 @@ export class UsersController {
   // Obtener un usuario por ID
   @Roles(Role.Admin, Role.User)
   @Get(':id')
-  getById(@Param('id') id: number) {
-    return this.usersService.getUserById(Number(id));
+  async getById(@Param('id') id: number) {    
+    return await this.usersService.getUserById(Number(id));
   }
 
   // Actualizar un usuario

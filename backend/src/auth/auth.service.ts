@@ -16,11 +16,17 @@ export class AuthService {
     // Buscamos al usuario por nombre de usuario en la base de datos
     const user = await this.prisma.user.findUnique({ where: { username } });
 
-    // Si el usuario no existe o la contraseña es incorrecta
+    // Si el usuario no existe
     if (!user) {
       throw new UnauthorizedException('Usuario no encontrado');
     }
 
+    // Si el usuario no está activo
+    if (!user.isActive) {
+      throw new UnauthorizedException('Usuario no activo');
+    }
+
+    // Si la contraseña es incorrecta
     if (!(await bcrypt.compare(password, user.password))) {
       throw new UnauthorizedException('Contraseña incorrecta');
     }
