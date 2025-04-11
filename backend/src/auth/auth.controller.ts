@@ -10,7 +10,7 @@ import {
 import { Request } from 'express';
 import { AuthService } from './auth.service';
 import { PrismaService } from '../prisma/prisma.service';
-import { JwtAuthGuard } from 'src/jwt-auth/jwt-auth.guard';
+// import { JwtAuthGuard } from 'src/jwt-auth/jwt-auth.guard';
 import { Roles } from './roles/roles.decorator';
 import { Role } from '@prisma/client';
 
