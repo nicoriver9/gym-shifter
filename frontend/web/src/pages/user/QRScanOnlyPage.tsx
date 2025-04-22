@@ -1,0 +1,110 @@
+// src/pages/user/QRScanOnlyPage.tsx
+import { useEffect, useState } from "react";
+import { Scanner } from "@yudiel/react-qr-scanner";
+import { confirmClassAttendance } from "../../services/user/userPackService";
+import { useUserPackStore } from "../../store/packCounter";
+import { findCurrentClass } from "../../utils/user/classUtils";
+import { useNavigate } from "react-router-dom";
+
+const QRScanOnlyPage = () => {
+  const navigate = useNavigate();
+  const [classes, setClasses] = useState<any[]>([]);
+  const [, setClassTypes] = useState<any[]>([]);
+  const [, setTeachers] = useState<any[]>([]);
+  const [hasCurrentClass, setHasCurrentClass] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const userId = Number(localStorage.getItem("user_id"));
+
+  const { setUserPack, setUserPackClassesIncluded, setPackExpirationDate } =
+    useUserPackStore();
+
+  useEffect(() => {
+    fetch(`${import.meta.env.VITE_API_URL}/class-types`)
+      .then((res) => res.json())
+      .then(setClassTypes);
+
+    fetch(`${import.meta.env.VITE_API_URL}/teachers`)
+      .then((res) => res.json())
+      .then(setTeachers);
+
+    fetch(`${import.meta.env.VITE_API_URL}/classes`)
+      .then((res) => res.json())
+      .then((data) => {
+        setClasses(data);
+        const now = new Date();
+        const found = findCurrentClass(data, now);
+        setHasCurrentClass(!!found);
+      });
+  }, []);
+
+  const handleScan = async (data: any) => {
+    if (data && hasCurrentClass) {
+      const now = new Date();
+      const foundClass = findCurrentClass(classes, now);
+
+      if (!foundClass) {
+        setError("No hay clases en este momento");
+        return;
+      }
+
+      try {
+        const result = await confirmClassAttendance(userId, now);
+        console.log(result)
+        if (result.success && result.data) {
+          setUserPack(result.data.pack_name);
+          setUserPackClassesIncluded(result.data.classes_remaining);
+          setPackExpirationDate(result.data.pack_expiration_date);
+
+          alert(
+            `✅ Asistencia confirmada a ${result.data.class_name} con ${result.data.teacher_name}. Clases restantes: ${result.data.classes_remaining}`
+          );
+          navigate("/dashboard/confirm-attendance");
+        } else {
+          throw new Error("Respuesta inesperada del servidor");
+        }
+      } catch (err: any) {
+        setError(err.message || "Error al confirmar asistencia");
+      }
+    }
+  };
+
+  return (
+    <div className="max-w-xl mx-auto mt-10 px-4">
+      <h2 className="text-center text-xl font-bold mb-6 text-white">
+        Escanea el código QR
+      </h2>
+
+      <div className="rounded-md overflow-hidden shadow-md border border-gray-700 mb-4">
+        <Scanner
+          onScan={handleScan}
+          onError={(e: any) =>
+            setError("Error al escanear: " + e?.name || "desconocido")
+          }
+          constraints={{
+            facingMode: { ideal: "environment" }, // ✅ Usa `ideal` en lugar de `exacto`
+            width: { ideal: 1280 },
+            height: { ideal: 720 },
+          }}
+        />
+      </div>
+
+      {error && (
+        <div className="bg-red-100 text-red-800 px-6 py-4 mb-4 rounded-md shadow-md text-center">
+          ❌ {error}
+        </div>
+      )}
+
+      <div className="flex justify-center mt-6">
+        <button
+          onClick={() => navigate("/dashboard/confirm-attendance")}
+          className="bg-gray-600 hover:bg-gray-700 text-white px-6 py-3 rounded-lg transition shadow-md"
+        >
+          ← Volver
+        </button>
+      </div>
+    </div>
+  );
+};
+
+export default QRScanOnlyPage;

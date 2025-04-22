@@ -49,7 +49,7 @@ export const PackInfo = () => {
       }
     } catch (error) {
       if (retries > 0) {
-        setTimeout(() => fetchUserPack(retries - 1), 1000); // Retry luego de 1 segundo
+        setTimeout(() => fetchUserPack(retries - 1), 1000);
       } else {
         console.error("❌ Error al obtener el pack del usuario:", error);
         setUserPack("Error al cargar el pack");
@@ -64,15 +64,23 @@ export const PackInfo = () => {
     fetchUserPack();
   }, []);
 
-  const calculateDaysRemaining = (dateString: string, cycleLengthDays = 0) => {
+  const calculateDaysRemaining = (dateString: string) => {
     const today = new Date();
-    const startDate = new Date(dateString);
-    const endDate = new Date(startDate);
-    endDate.setDate(startDate.getDate() + cycleLengthDays);
-
+    const endDate = new Date(dateString);
     const diffTime = endDate.getTime() - today.getTime();
     const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
     return diffDays > 0 ? diffDays : 0;
+  };
+
+  const calculateWeeklyCycleDaysRemaining = (startDateStr: string, cycleLengthDays = 7) => {
+    const today = new Date();
+    const startDate = new Date(startDateStr);
+    const msInDay = 1000 * 60 * 60 * 24;
+    const diffMs = today.getTime() - startDate.getTime();
+    const daysSinceStart = Math.floor(diffMs / msInDay);
+    const daysPassedInCurrentCycle = daysSinceStart % cycleLengthDays;
+    const daysRemaining = cycleLengthDays - daysPassedInCurrentCycle;
+    return daysRemaining;
   };
 
   const renderPackInfo = () => {
@@ -89,7 +97,7 @@ export const PackInfo = () => {
       : null;
 
     const daysRemainingWeekly = weeklyCycleStartDate
-      ? calculateDaysRemaining(weeklyCycleStartDate, 7)
+      ? calculateWeeklyCycleDaysRemaining(weeklyCycleStartDate)
       : null;
 
     const isUnlimited = userPackClassesIncluded === 9999;
@@ -132,17 +140,21 @@ export const PackInfo = () => {
                 <span className="text-yellow-300 ml-1">(se renueva pronto)</span>
               )}
             </p>
-            {weeklyCycleStartDate && (
-              <p className="text-center text-xs text-purple-300 mt-1">
-                Se renueva el:{" "}
-                <span className="font-bold">
-                  {new Date(
-                    new Date(weeklyCycleStartDate).getTime() +
-                      7 * 24 * 60 * 60 * 1000
-                  ).toLocaleDateString()}
-                </span>
-              </p>
-            )}
+            {weeklyCycleStartDate && (() => {
+              const start = new Date(weeklyCycleStartDate);
+              const now = new Date();
+              const diffDays = Math.floor((now.getTime() - start.getTime()) / (1000 * 60 * 60 * 24));
+              const completedCycles = Math.floor(diffDays / 7);
+              const nextReset = new Date(start.getTime() + (completedCycles + 1) * 7 * 24 * 60 * 60 * 1000);
+              return (
+                <p className="text-center text-xs text-purple-300 mt-1">
+                  Próxima renovación:{" "}
+                  <span className="font-bold">
+                    {nextReset.toLocaleDateString()}
+                  </span>
+                </p>
+              );
+            })()}
           </div>
         </div>
       </>

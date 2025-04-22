@@ -1,6 +1,6 @@
 import { FiLogOut } from "react-icons/fi";
 import { Link, Outlet } from "react-router-dom";
-import { useUserPackStore } from '../../store/packCounter'; // Importa el store
+import { useUserPackStore } from "../../store/packCounter";
 
 interface UserDashboardProps {
   onLogout: () => void;
@@ -11,10 +11,7 @@ const UserDashboard: React.FC<UserDashboardProps> = ({ onLogout }) => {
   const lastName = localStorage.getItem("lastName");
   const userRole = localStorage.getItem("role");
 
-  // Accede al estado del store
   const { userPackClassesIncluded } = useUserPackStore();
-
-  // Verifica si no hay clases disponibles
   const noClassesAvailable = userPackClassesIncluded === 0;
 
   return (
@@ -23,7 +20,7 @@ const UserDashboard: React.FC<UserDashboardProps> = ({ onLogout }) => {
         {firstName} {lastName}
       </h1>
 
-      {/* Botón de Cerrar Sesión con ícono */}
+      {/* Botón de Cerrar Sesión */}
       <button
         onClick={onLogout}
         className="absolute top-4 right-4 flex items-center gap-2 bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-full transition"
@@ -42,13 +39,13 @@ const UserDashboard: React.FC<UserDashboardProps> = ({ onLogout }) => {
 
         {/* Botón "Confirmar asistencia" */}
         <Link
-          to="/dashboard/qr-scanner"
+          to="/dashboard/confirm-attendance"
           className={`px-6 py-2 rounded-full ${
             noClassesAvailable
-              ? 'bg-gray-500 cursor-not-allowed'
-              : 'bg-purple-600 hover:bg-purple-700'
+              ? "bg-gray-500 cursor-not-allowed"
+              : "bg-purple-600 hover:bg-purple-700"
           } text-white font-medium transition`}
-          onClick={(e) => noClassesAvailable && e.preventDefault()} // Evita la navegación si no hay clases
+          onClick={(e) => noClassesAvailable && e.preventDefault()}
         >
           Confirmar asistencia
         </Link>
@@ -58,14 +55,15 @@ const UserDashboard: React.FC<UserDashboardProps> = ({ onLogout }) => {
           to="/dashboard/today-classes"
           className={`px-6 py-2 rounded-full ${
             noClassesAvailable
-              ? 'bg-gray-500 cursor-not-allowed'
-              : 'bg-purple-600 hover:bg-purple-700'
+              ? "bg-gray-500 cursor-not-allowed"
+              : "bg-purple-600 hover:bg-purple-700"
           } text-white font-medium transition`}
-          onClick={(e) => noClassesAvailable && e.preventDefault()} // Evita la navegación si no hay clases
+          onClick={(e) => noClassesAvailable && e.preventDefault()}
         >
           Clases de Hoy
         </Link>
 
+        {/* Panel admin */}
         {userRole === "Admin" && (
           <Link
             to="/dashboard/administration"
@@ -76,7 +74,7 @@ const UserDashboard: React.FC<UserDashboardProps> = ({ onLogout }) => {
         )}
       </div>
 
-      {/* Renderizar las rutas anidadas */}
+      {/* Rutas anidadas */}
       <div className="w-full max-w-4xl">
         <Outlet />
       </div>

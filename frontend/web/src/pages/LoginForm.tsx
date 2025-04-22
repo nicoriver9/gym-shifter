@@ -169,8 +169,8 @@ const LoginForm = ({ onLogin }: { onLogin: () => void }) => {
       </div>
 
       {/* Footer */}
-      <footer className="absolute bottom-4 left-4 text-sm text-gray-400">
-        Sitio creado por{' '}
+      <footer className="w-full mt-6 text-center text-xs text-gray-400 px-4 sm:px-0">
+        Sitio creado por{" "}
         <a
           href="https://www.cuyoweb.com"
           target="_blank"
@@ -178,9 +178,10 @@ const LoginForm = ({ onLogin }: { onLogin: () => void }) => {
           className="text-white no-underline font-semibold hover:text-purple-400"
         >
           Cuyoweb
-        </a>{' '}
+        </a>{" "}
         © {new Date().getFullYear()} - Todos los derechos reservados.
       </footer>
+
 
     </div>
   );

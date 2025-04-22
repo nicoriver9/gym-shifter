@@ -1,4 +1,3 @@
-// src/components/admin/users/EditUserModal.tsx
 import { useState, useEffect } from "react";
 import {
   updateUser,
@@ -55,7 +54,7 @@ const EditUserModal = ({
       setEmail(user.email || "");
       setPassword("");
       fetchPacks();
-      setUserInfo(user); // Establecer la información del usuario directamente
+      setUserInfo(user);
     }
   }, [user]);
 
@@ -121,67 +120,61 @@ const EditUserModal = ({
   if (!show) return null;
 
   return (
-    <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
-      <div
-        className="bg-gray-900 text-white p-6 rounded-lg shadow-lg w-full max-w-md"
-        data-aos="zoom-in"
-      >
-        <h2 className="text-xl font-semibold mb-4 text-purple-500">
+    <div className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50 px-4">
+      <div className="bg-gray-900 rounded-lg shadow-lg w-full max-w-lg max-h-[90vh] overflow-y-auto p-6">
+        <h2 className="text-2xl font-bold text-white text-center mb-6">
           Editar Usuario
         </h2>
 
         <div className="space-y-4">
           <div>
-            <label className="block text-sm font-medium mb-1">Nombre</label>
+            <label className="text-white block mb-1">Nombre</label>
             <input
               type="text"
               value={firstName}
               onChange={(e) => setFirstName(e.target.value)}
-              className="w-full px-3 py-2 text-gray-900 rounded-lg focus:ring-2 focus:ring-purple-500 outline-none"
+              className="w-full p-2 rounded bg-gray-800 text-white"
             />
           </div>
 
           <div>
-            <label className="block text-sm font-medium mb-1">Apellido</label>
+            <label className="text-white block mb-1">Apellido</label>
             <input
               type="text"
               value={lastName}
               onChange={(e) => setLastName(e.target.value)}
-              className="w-full px-3 py-2 text-gray-900 rounded-lg focus:ring-2 focus:ring-purple-500 outline-none"
+              className="w-full p-2 rounded bg-gray-800 text-white"
             />
           </div>
 
           <div>
-            <label className="block text-sm font-medium mb-1">Email</label>
+            <label className="text-white block mb-1">Email</label>
             <input
               type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className="w-full px-3 py-2 text-gray-900 rounded-lg focus:ring-2 focus:ring-purple-500 outline-none"
+              className="w-full p-2 rounded bg-gray-800 text-white"
             />
           </div>
 
           <div>
-            <label className="block text-sm font-medium mb-1">
+            <label className="text-white block mb-1">
               Contraseña (Opcional)
             </label>
             <input
               type="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              className="w-full px-3 py-2 text-gray-900 rounded-lg focus:ring-2 focus:ring-purple-500 outline-none"
+              className="w-full p-2 rounded bg-gray-800 text-white"
             />
           </div>
 
-          {/* Sección de Packs */}
           <div>
-            <label className="block text-sm font-medium mb-1">
-              Asignar Pack
-            </label>
+            <label className="text-white block mb-1">Asignar Pack</label>
             <select
+              className="w-full p-2 mb-2 rounded bg-gray-800 text-white"
               value={selectedPackId || ""}
               onChange={(e) => setSelectedPackId(Number(e.target.value))}
-              className="w-full px-3 py-2 text-gray-900 rounded-lg focus:ring-2 focus:ring-purple-500 outline-none"
               disabled={!!userInfo?.current_pack}
             >
               <option value="">Selecciona un pack</option>
@@ -191,22 +184,20 @@ const EditUserModal = ({
                 </option>
               ))}
             </select>
-
             <button
+              className="mt-2 font-semibold bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded w-full"
               onClick={handleAssignPack}
-              className="w-full mt-2 bg-green-600 hover:bg-green-700 px-4 py-2 rounded-lg transition"
               disabled={!!userInfo?.current_pack}
             >
               Asignar Pack
             </button>
           </div>
 
-          {/* Información del Pack Actual */}
           <div>
-            <h3 className="text-sm font-medium text-purple-400 mb-2">
+            <label className="text-white font-semibold block mb-1">
               Pack Actual
-            </h3>
-            <div className="bg-gray-800 rounded-lg p-4">
+            </label>
+            <div className="bg-gray-800 p-4 rounded-lg text-white">
               {userInfo?.current_pack ? (
                 <div className="space-y-2">
                   <div className="flex justify-between">
@@ -237,9 +228,9 @@ const EditUserModal = ({
                   )}
                   <button
                     onClick={handleUnassignPack}
-                    className="w-full mt-3 bg-red-600 hover:bg-red-700 px-4 py-2 rounded-lg transition"
+                    className="w-full mt-3 font-semibold bg-red-600 hover:bg-red-700 px-4 py-2 rounded-lg transition"
                   >
-                    Desasignar Pack
+                    Eliminar Pack
                   </button>
                 </div>
               ) : (
@@ -250,17 +241,16 @@ const EditUserModal = ({
             </div>
           </div>
 
-          {/* Botones de acción */}
-          <div className="flex justify-end gap-2 mt-6">
+          <div className="flex justify-between mt-6">
             <button
-              className="bg-purple-700 hover:bg-purple-800 px-4 py-2 rounded-lg transition"
+              className="px-4 py-2 bg-purple-600 hover:bg-purple-700 rounded text-white font-semibold"
               onClick={handleSubmit}
               disabled={loading}
             >
               {loading ? "Guardando..." : "Guardar"}
             </button>
             <button
-              className="bg-gray-600 hover:bg-gray-700 px-4 py-2 rounded-lg transition"
+              className="px-4 py-2 bg-gray-600 hover:bg-gray-700 rounded text-white"
               onClick={handleClose}
               disabled={loading}
             >

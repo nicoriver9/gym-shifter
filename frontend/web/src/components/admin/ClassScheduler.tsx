@@ -101,65 +101,7 @@ export default function ClassScheduler() {
 
     fetchClasses();
   };
-
-  const handleEventClick = (clickInfo: any) => {
-    // Extraemos la información correctamente
-    const eventTitle = clickInfo.event.title;
-    const eventStart = clickInfo.event.start;
-    const eventEnd = clickInfo.event.end;
-
-    // Función para encontrar el ID del evento con logging para debug
-    const findEventId = () => {
-      const matchingEvent = events.find((event) => {
-        const eventStartHour = new Date(event.start).getHours();
-        const eventStartMinutes = new Date(event.start).getMinutes();
-        const clickedStartHour = eventStart.getHours();
-        const clickedStartMinutes = eventStart.getMinutes();
-
-        const eventEndHour = new Date(event.end).getHours();
-        const eventEndMinutes = new Date(event.end).getMinutes();
-        const clickedEndHour = eventEnd.getHours();
-        const clickedEndMinutes = eventEnd.getMinutes();
-
-        const timeMatches =
-          eventStartHour === clickedStartHour &&
-          eventStartMinutes === clickedStartMinutes &&
-          eventEndHour === clickedEndHour &&
-          eventEndMinutes === clickedEndMinutes;
-
-        return event.title === eventTitle && timeMatches;
-      });
-
-      return matchingEvent;
-    };
-
-    // Convertimos las fechas a formato "HH:MM"
-    const formatTime = (date: Date) => {
-      const hours = date.getHours().toString().padStart(2, "0");
-      const minutes = date.getMinutes().toString().padStart(2, "0");
-      return `${hours}:${minutes}`;
-    };
-
-    if (clickInfo.event) {
-      const eventId = findEventId().id; // Obtenemos el ID usando la nueva función
-
-      if (eventId) {
-        setSelectedClass({
-          id: eventId,
-          class_type_id: findEventId().class_type_id,
-          day_of_week: eventStart.getDay(),
-          start_time: formatTime(eventStart),
-          end_time: formatTime(eventEnd),
-          teacher_id: findEventId().teacher_id,
-        });
-        setShowEditModal(true);
-      } else {
-        console.warn("No se pudo encontrar el ID del evento.");
-      }
-    } else {
-      console.warn("No se encontró la clase seleccionada.");
-    }
-  };
+  
 
   /** 🔥 Actualizar una clase */
   const handleUpdateClass = async (updatedClass: ClassEvent) => {
@@ -217,53 +159,6 @@ export default function ClassScheduler() {
     setShowDeleteModal(true);
   };
 
-  // Función para eliminar la clase después de la confirmación
-  const handleDeleteClass = async () => {
-    if (!classToDelete) return;
-
-    try {
-      const accessToken = localStorage.getItem('access_token');
-      const response = await fetch(
-        `${import.meta.env.VITE_API_URL}/classes/${classToDelete.id}`,
-        {
-          method: "DELETE",
-          headers: { 
-            'Authorization': `Bearer ${accessToken}`
-          }
-        }
-      );
-
-      if (!response.ok) {
-        throw new Error("Error al eliminar la clase");
-      }
-
-      // Cierra los modales
-      setShowDeleteModal(false);
-      setShowEditModal(false);
-      setSelectedClass(null);
-
-      // Actualiza el estado de eventos eliminando la clase
-      setEvents((prev) =>
-        prev.filter((event) => event.id !== classToDelete.id)
-      );
-
-      // Opcional: Refrescar los datos desde el backend para mayor seguridad
-      fetch(`${import.meta.env.VITE_API_URL}/classes`)
-        .then((res) => res.json())
-        .then((data) => {
-          const formattedEvents = data.map((event: any) => ({
-            id: event.id,
-            title: event.class_name,
-            start: getDateForDay(event.day_of_week, event.start_time),
-            end: getDateForDay(event.day_of_week, event.end_time),
-            teacher_id: event.teacher_id,
-          }));
-          setEvents(formattedEvents);
-        });
-    } catch (error) {
-      console.error("Error al eliminar la clase:", error);
-    }
-  };
 
   const handleDeleteClassBySchedule = async (
     classTypeId: number,

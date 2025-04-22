@@ -115,8 +115,8 @@ const ClassTypeTable = () => {
         show={showDeleteModal}
         handleClose={() => setShowDeleteModal(false)}
         handleConfirm={handleDeleteConfirm}
-        classType={selectedClassType}
-        refreshTable={fetchClassTypes}
+        className={selectedClassType?.name} 
+        // refreshTable={fetchClassTypes}
       />
     </div>
   );

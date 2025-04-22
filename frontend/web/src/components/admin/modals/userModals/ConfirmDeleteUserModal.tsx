@@ -3,6 +3,7 @@ interface ConfirmDeleteUserModalProps {
   show: boolean;
   handleClose: () => void;
   handleConfirm: () => void;
+  user: string
 }
 
 const ConfirmDeleteUserModal = ({

@@ -1,35 +1,33 @@
 import { useState, useEffect } from "react";
-import AppRoutes from "./router/Routes"; // Importamos el archivo que maneja las rutas
-
+import AppRoutes from "./router/Routes";
+import SplashScreen from "./pages/SplashScreen";
 
 import AOS from "aos";
 import "aos/dist/aos.css";
 
 AOS.init();
 
-
 const App = () => {
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
   const [userRole, setUserRole] = useState<string | null>(null);
-  const [loading, setLoading] = useState(true); // Estado para evitar que se renderice antes de verificar la autenticación
+  const [loading, setLoading] = useState(true); // controla splash + auth
 
-  // Verificar si el usuario está autenticado y obtener su rol al cargar la aplicación
   useEffect(() => {
-    const token = localStorage.getItem("access_token");
-    const role = localStorage.getItem("role");
+    const timer = setTimeout(() => {
+      const token = localStorage.getItem("access_token");
+      const role = localStorage.getItem("role");
 
-    if (token) {
-      setIsAuthenticated(true);
-      setUserRole(role);
-    } else {
-      setIsAuthenticated(false);
-      setUserRole(null);
-    }
+      if (token) {
+        setIsAuthenticated(true);
+        setUserRole(role);
+      }
 
-    setLoading(false); // Marcar como cargado después de verificar la autenticación
+      setLoading(false); // termina splash + verificación
+    }, 1000);
+
+    return () => clearTimeout(timer);
   }, []);
 
-  // Manejar inicio de sesión
   const handleLogin = () => {
     const token = localStorage.getItem("access_token");
     const role = localStorage.getItem("role");
@@ -40,7 +38,6 @@ const App = () => {
     }
   };
 
-  // Manejar cierre de sesión
   const handleLogout = () => {
     localStorage.removeItem("access_token");
     localStorage.removeItem("user_id");
@@ -50,9 +47,8 @@ const App = () => {
     setUserRole(null);
   };
 
-  // Mostrar una pantalla de carga antes de verificar autenticación
   if (loading) {
-    return <div className="text-white text-center mt-10">Cargando...</div>;
+    return <SplashScreen />;
   }
 
   return (

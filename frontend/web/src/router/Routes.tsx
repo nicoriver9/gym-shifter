@@ -1,13 +1,20 @@
-import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
+import {
+  BrowserRouter as Router,
+  Routes,
+  Route,
+  Navigate,
+} from "react-router-dom";
 import LoginForm from "../pages/LoginForm";
 import UserDashboard from "../pages/user/UserDashboard";
 import PacksPage from "../pages/user/PacksPage";
-import QRScannerPage from "../pages/user/QRScannerPage";
+import AttendancePage from "../pages/user/AttendancePage"; // ✅ nueva vista principal
+import QRScanOnlyPage from "../pages/user/QRScanOnlyPage"; // ✅ vista solo QR
 import TodayClassesPage from "../pages/user/TodayClassesPage";
 import MainPanel from "../components/MainPanel";
 import AccessDenied from "../pages/AccessDenied";
+import PaymentAliasCard from "../pages/user/PaymentAliasCard"; // alias de pago
 
-// Definir los tipos de los props
+// Props del router
 interface AppRoutesProps {
   isAuthenticated: boolean;
   userRole: string | null;
@@ -15,28 +22,44 @@ interface AppRoutesProps {
   onLogout: () => void;
 }
 
-const AppRoutes: React.FC<AppRoutesProps> = ({ isAuthenticated, userRole, onLogin, onLogout }) => {
+const AppRoutes: React.FC<AppRoutesProps> = ({
+  isAuthenticated,
+  userRole,
+  onLogin,
+  onLogout,
+}) => {
   return (
     <Router>
       <Routes>
-        {/* Si el usuario NO está autenticado, mostrar LoginForm */}
+        {/* Login */}
         <Route
-          path="/"
+          path="/login"
           element={
-            !isAuthenticated ? <LoginForm onLogin={onLogin} /> : <Navigate to="/dashboard" replace />
+            !isAuthenticated ? (
+              <LoginForm onLogin={onLogin} />
+            ) : (
+              <Navigate to="/dashboard" replace />
+            )
           }
         />
 
-        {/* Ruta del panel de usuario */}
+        {/* Dashboard */}
         <Route
           path="/dashboard"
-          element={isAuthenticated ? <UserDashboard onLogout={onLogout} /> : <Navigate to="/" />}
+          element={
+            isAuthenticated ? (
+              <UserDashboard onLogout={onLogout} />
+            ) : (
+              <Navigate to="/login" />
+            )
+          }
         >
           <Route path="packs" element={<PacksPage />} />
-          <Route path="qr-scanner" element={<QRScannerPage />} />
+          <Route path="confirm-attendance" element={<AttendancePage />} /> {/* ✅ nueva ruta */}
+          <Route path="scan" element={<QRScanOnlyPage />} /> {/* ✅ nueva ruta */}
           <Route path="today-classes" element={<TodayClassesPage />} />
 
-          {/* Ruta de administración solo para Admins */}
+          {/* Panel Admin */}
           <Route
             path="administration"
             element={
@@ -49,14 +72,17 @@ const AppRoutes: React.FC<AppRoutesProps> = ({ isAuthenticated, userRole, onLogi
           />
         </Route>
 
-        {/* Agregar ruta para success que redirija a packs */}
+        {/* Alias de pago */}
+        <Route path="/payment/alias" element={<PaymentAliasCard />} />
+
+        {/* Redirección de éxito de pago */}
         <Route
           path="/payments/success"
           element={<Navigate to="/dashboard/packs" replace />}
         />
 
-        {/* Ruta comodín para redirigir a la raíz */}
-        <Route path="*" element={<Navigate to="/" />} />
+        {/* Catch all */}
+        <Route path="*" element={<Navigate to="/login" />} />
       </Routes>
     </Router>
   );

@@ -3,7 +3,7 @@ import CreatePackModal from './modals/packModals/CreatePackModal';
 import EditPackModal from './modals/packModals/EditPackModal';
 import ConfirmDeletePackModal from './modals/packModals/ConfirmDeletePackModal';
 import { getPacks, deletePack } from '../../services/admin/packService';
-import { getPaymentLink } from '../../services/admin/paymentService';
+// import { getPaymentLink } from '../../services/admin/paymentService';
 
 const PackTable = () => {
   const [packs, setPacks] = useState<any[]>([]);
@@ -39,18 +39,18 @@ const PackTable = () => {
     }
   };
 
-  const handleGetPaymentLink = async (packId: number) => {
-    try {
-      const response = await getPaymentLink(1, packId);
-      const paymentLink = response.paymentLink;
+  // const handleGetPaymentLink = async (packId: number) => {
+  //   try {
+  //     const response = await getPaymentLink(1, packId);
+  //     const paymentLink = response.paymentLink;
 
-      await navigator.clipboard.writeText(paymentLink);
-      alert('Link de pago copiado al portapapeles: ' + paymentLink);
-    } catch (error) {
-      console.error('Error al obtener el link de pago:', error);
-      alert('Error al obtener el link de pago');
-    }
-  };
+  //     await navigator.clipboard.writeText(paymentLink);
+  //     alert('Link de pago copiado al portapapeles: ' + paymentLink);
+  //   } catch (error) {
+  //     console.error('Error al obtener el link de pago:', error);
+  //     alert('Error al obtener el link de pago');
+  //   }
+  // };
 
   return (
     <div className="max-w-5xl mx-auto mt-8">
@@ -104,12 +104,12 @@ const PackTable = () => {
                     >
                       Eliminar
                     </button>
-                    <button
+                    {/* <button
                       className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg transition"
                       onClick={() => handleGetPaymentLink(pack.id)}
                     >
                       Link de Pago
-                    </button>
+                    </button> */}
                   </td>
                 </tr>
               ))
@@ -142,7 +142,7 @@ const PackTable = () => {
         handleClose={() => setShowDeleteModal(false)}
         handleConfirm={handleDeleteConfirm}
         pack={selectedPack}
-        refreshTable={fetchPacks}
+        // refreshTable={fetchPacks}
       />
     </div>
   );

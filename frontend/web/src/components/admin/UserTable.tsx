@@ -19,7 +19,7 @@ const UserTable = () => {
   const [showEditModal, setShowEditModal] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [selectedUser, setSelectedUser] = useState<any>(null);
-  const [packs, setPacks] = useState<Pack[]>([]);
+  const [,setPacks] = useState<Pack[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
 
   useEffect(() => {

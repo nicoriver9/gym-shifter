@@ -1,9 +1,9 @@
-import React from 'react';
 
 interface ConfirmDeletePackModalProps {
   show: boolean;
   handleClose: () => void;
   handleConfirm: () => void;
+  pack?: { name: string }; 
 }
 
 const ConfirmDeletePackModal = ({

@@ -9,8 +9,8 @@ import PackTable from "./admin/PackTable";
 import UserTable from "./admin/UserTable";
 import ReservationTable from "./admin/ReservationTable";
 import CurrentClassAttendance from "./admin/CurrentClassAttendance";
-import PaymentTable from "./admin/PaymentTable";
-import TeacherPaymentReport from "./admin/TeacherPaymentReport";
+// import PaymentTable from "./admin/PaymentTable";
+// import TeacherPaymentReport from "./admin/TeacherPaymentReport";
 
 interface MainPanelProps {
   onLogout: () => void;

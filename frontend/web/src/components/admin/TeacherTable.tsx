@@ -1,12 +1,15 @@
-// src/components/TeacherTable.tsx
 import { useEffect, useState } from "react";
 import CreateTeacherModal from "./modals/teacherModals/CreateTeacherModal";
 import EditTeacherModal from "./modals/teacherModals/EditTeacherModal";
 import ConfirmDeleteTeacherModal from "./modals/teacherModals/ConfirmDeleteTeacherModal";
-import { getTeachers, deleteTeacher } from "../../services/admin/teacherService";
+import {
+  getTeachers,
+  // deleteTeacher,
+} from "../../services/admin/teacherService";
 
 const TeacherTable = () => {
   const [teachers, setTeachers] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
@@ -17,8 +20,14 @@ const TeacherTable = () => {
   }, []);
 
   const fetchTeachers = async () => {
-    const data = await getTeachers();
-    setTeachers(data);
+    try {
+      const data = await getTeachers();
+      setTeachers(data);
+    } catch (error) {
+      console.error("Error al obtener los profesores:", error);
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleEdit = (teacher: any) => {
@@ -31,13 +40,21 @@ const TeacherTable = () => {
     setShowDeleteModal(true);
   };
 
-  const handleDeleteConfirm = async () => {
-    if (selectedTeacher) {
-      await deleteTeacher(selectedTeacher.id);
-      fetchTeachers();
-      setShowDeleteModal(false);
-    }
-  };
+  // const handleDeleteConfirm = async () => {
+  //   if (selectedTeacher) {
+  //     await deleteTeacher(selectedTeacher.id);
+  //     fetchTeachers();
+  //     setShowDeleteModal(false);
+  //   }
+  // };
+
+  if (loading) {
+    return (
+      <div className="flex justify-center items-center min-h-screen">
+        <div className="text-white text-xl">Cargando...</div>
+      </div>
+    );
+  }
 
   return (
     <div className="max-w-4xl mx-auto mt-8">
