@@ -33,7 +33,7 @@ export class ClassesController {
   async getCurrentClass() {
     try {
       const currentClass = await this.classesService.getCurrentClass();
-      
+      // console.log(currentClass)      
       return {
         success: true,
         data: currentClass,

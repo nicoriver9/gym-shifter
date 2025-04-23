@@ -27,6 +27,7 @@ export class UserPackService {
         room: currentClass.room,
       };
 
+      
       // 3. Verificar si el usuario ya asistió
       const existingAttendance = await prisma.reservation.findFirst({
         where: {
@@ -35,6 +36,8 @@ export class UserPackService {
           status: 'confirmed',
         },
       });
+      
+      // console.log('existingAttendance', existingAttendance)
 
       if (existingAttendance) {
         // Obtener el usuario sin descontar clases
@@ -49,6 +52,7 @@ export class UserPackService {
           isNewConfirmation: false,
         };
       }
+
 
       // 4. Descontar clase y registrar asistencia
       const user = await this.decrementUserClasses(userId, 1);
