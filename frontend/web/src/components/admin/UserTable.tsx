@@ -19,7 +19,7 @@ const UserTable = () => {
   const [showEditModal, setShowEditModal] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [selectedUser, setSelectedUser] = useState<any>(null);
-  const [,setPacks] = useState<Pack[]>([]);
+  const [, setPacks] = useState<Pack[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
 
   useEffect(() => {
@@ -28,14 +28,15 @@ const UserTable = () => {
   }, []);
 
   useEffect(() => {
-    const lowerSearch = searchTerm.toLowerCase();
-    const filtered = users.filter(
-      (user) =>
-        user.firstName.toLowerCase().includes(lowerSearch) ||
-        user.lastName.toLowerCase().includes(lowerSearch) ||
-        user.email.toLowerCase().includes(lowerSearch)
+    const lower = searchTerm.toLowerCase();
+    setFilteredUsers(
+      users.filter(
+        u =>
+          u.firstName.toLowerCase().includes(lower) ||
+          u.lastName.toLowerCase().includes(lower) ||
+          u.email.toLowerCase().includes(lower)
+      )
     );
-    setFilteredUsers(filtered);
   }, [searchTerm, users]);
 
   const fetchPacks = async () => {
@@ -46,121 +47,92 @@ const UserTable = () => {
   const fetchUsers = async () => {
     const data = await getUsers();
     setUsers(data);
+    setFilteredUsers(data);
   };
 
-  const handleEdit = (user: any) => {
-    setSelectedUser(user);
-    setShowEditModal(true);
-  };
+  const handleEdit = (user: any) => { setSelectedUser(user); setShowEditModal(true); };
+  const handleDelete = (user: any) => { setSelectedUser(user); setShowDeleteModal(true); };
+  const handleDeleteConfirm = async () => { if (selectedUser) { await deleteUser(selectedUser.id); fetchUsers(); setShowDeleteModal(false); } };
 
-  const handleDelete = (user: any) => {
-    setSelectedUser(user);
-    setShowDeleteModal(true);
+  const daysRemaining = (exp: Date | string): number => {
+    const diff = new Date(exp).getTime() - Date.now();
+    return Math.max(0, Math.ceil(diff / (1000 * 60 * 60 * 24)));
   };
-
-  const handleDeleteConfirm = async () => {
-    if (selectedUser) {
-      await deleteUser(selectedUser.id);
-      fetchUsers();
-      setShowDeleteModal(false);
-    }
-  };
-
-  function calculateRemainingDays(expirationDate: Date | string): number {
-    const expDate = new Date(expirationDate);
-    const today = new Date();
-    const diffTime = expDate.getTime() - today.getTime();
-    return Math.max(0, Math.ceil(diffTime / (1000 * 60 * 60 * 24)));
-  }
 
   return (
-    <div className="max-w-6xl mx-auto mt-8">
-      <h2 className="text-2xl font-semibold text-white text-center mb-4">
+    <div className="max-w-screen-lg mx-auto mt-8 px-4 md:px-8">
+      <h2 className="text-2xl md:text-3xl font-semibold text-white text-center mb-8">
         Gestión de Usuarios
       </h2>
 
-      <div className="flex justify-center mb-6 gap-4">
+      {/* Controls */}
+      <div className="flex flex-col md:flex-row items-center justify-between gap-4 mb-6">
         <button
-          className="bg-purple-700 hover:bg-purple-800 px-6 py-3 font-semibold text-white rounded-lg shadow-md transition"
+          className="bg-purple-600 hover:bg-purple-700 text-white text-sm md:text-base font-medium px-4 md:px-6 py-2 rounded-md shadow-sm"
           onClick={() => setShowCreateModal(true)}
         >
           + Crear Usuario
         </button>
+
         <input
           type="text"
           placeholder="Buscar por nombre, apellido o email"
-          className="px-4 py-2 rounded-md border border-gray-600 w-80 text-black"
+          className="w-full md:w-80 text-sm md:text-base px-3 py-2 rounded-md border border-gray-600 bg-gray-700 text-white placeholder-gray-400 transition"
           value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
+          onChange={e => setSearchTerm(e.target.value)}
         />
       </div>
 
-      <div className="overflow-x-auto">
-        <table className="min-w-full bg-gray-900 text-white rounded-lg shadow-md overflow-hidden">
+      {/* Table/container */}
+      <div className="overflow-x-auto bg-gray-800 rounded-lg shadow-lg">
+        <table className="w-full table-auto text-white">
           <thead>
-            <tr className="bg-gray-700 text-white text-left text-sm uppercase tracking-wider">
-              <th className="px-6 py-3 text-center">ID</th>
-              <th className="px-6 py-3 text-center">Nombre</th>
-              <th className="px-6 py-3 text-center">Email</th>
-              <th className="px-6 py-3 text-center">Packs</th>
-              <th className="px-6 py-3 text-center">Acciones</th>
+            <tr className="bg-gray-700 text-left text-sm md:text-base uppercase tracking-wide">
+              <th className="px-4 py-3">ID</th>
+              <th className="px-4 py-3">Nombre</th>
+              <th className="px-4 py-3">Email</th>
+              <th className="px-4 py-3">Packs</th>
+              <th className="px-4 py-3">Acciones</th>
             </tr>
           </thead>
           <tbody>
-            {filteredUsers.length > 0 ? (
-              filteredUsers.map((user) => (
-                <tr
-                  key={user.id}
-                  className="border-b border-gray-700 hover:bg-gray-800 transition"
-                >
-                  <td className="px-6 py-4 text-center">{user.id}</td>
-                  <td className="px-6 py-4 text-center">{`${user.firstName} ${user.lastName}`}</td>
-                  <td className="px-6 py-4 text-center">{user.email}</td>
-                  <td className="px-6 py-4 text-center">
-                    {user.current_pack ? (
-                      <div>
-                        <strong>{user.current_pack.name}</strong> - Fecha:{" "}
-                        {new Date(
-                          user.current_pack.created_at
-                        ).toLocaleDateString()} {" "}- {" "}
-                        {user.pack_expiration_date ? (
-                          calculateRemainingDays(user.pack_expiration_date) ===
-                          0 ? (
-                            <span style={{ color: "red" }}>Pack vencido</span>
-                          ) : (
-                            `Días restantes: ${calculateRemainingDays(
-                              user.pack_expiration_date
-                            )} días`
-                          )
-                        ) : (
-                          "Sin fecha de expiración"
-                        )}
-                        <br />
-                        Clases restantes: {user.classes_remaining ?? 0}
+            {filteredUsers.length ? (
+              filteredUsers.map(u => (
+                <tr key={u.id} className="border-b border-gray-700 even:bg-gray-900 hover:bg-gray-700 transition">
+                  <td className="px-4 py-3 text-sm md:text-base">{u.id}</td>
+                  <td className="px-4 py-3 text-sm md:text-base">{u.firstName} {u.lastName}</td>
+                  <td className="px-4 py-3 text-sm md:text-base">{u.email}</td>
+                  <td className="px-4 py-3 text-sm md:text-base">
+                    {u.current_pack ? (
+                      <div className="space-y-1 text-sm md:text-base">
+                        <div><strong>{u.current_pack.name}</strong></div>
+                        <div>Fecha: {new Date(u.current_pack.created_at).toLocaleDateString()}</div>
+                        <div>
+                          {daysRemaining(u.pack_expiration_date) === 0
+                            ? <span className="text-red-400">Pack vencido</span>
+                            : `Días restantes: ${daysRemaining(u.pack_expiration_date)}`}
+                        </div>
+                        <div>Clases restantes: {u.classes_remaining ?? 0}</div>
                       </div>
                     ) : (
-                      <div>Sin Pack Asignado</div>
+                      <span className="text-sm md:text-base">Sin Pack Asignado</span>
                     )}
                   </td>
-                  <td className="px-6 py-4 flex justify-center space-x-4">
+                  <td className="px-4 py-3 flex items-center justify-center space-x-2">
                     <button
-                      className="bg-yellow-500 hover:bg-yellow-600 text-white px-4 py-2 rounded-lg transition"
-                      onClick={() => handleEdit(user)}
-                    >
-                      Editar
-                    </button>
+                      className="bg-green-500 hover:bg-green-600 font-semibold text-white text-xs md:text-sm px-2 md:px-3 py-1 md:py-2 rounded-md transition"
+                      onClick={() => handleEdit(u)}
+                    >Editar</button>
                     <button
-                      className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg transition"
-                      onClick={() => handleDelete(user)}
-                    >
-                      Eliminar
-                    </button>
+                      className="bg-red-600 hover:bg-red-700 font-semibold text-white text-xs md:text-sm px-2 md:px-3 py-1 md:py-2 rounded-md transition"
+                      onClick={() => handleDelete(u)}
+                    >Eliminar</button>
                   </td>
                 </tr>
               ))
             ) : (
               <tr>
-                <td colSpan={5} className="text-center py-4 text-gray-400">
+                <td colSpan={5} className="py-4 text-center text-gray-400 text-sm md:text-base">
                   No hay usuarios registrados.
                 </td>
               </tr>
@@ -169,25 +141,10 @@ const UserTable = () => {
         </table>
       </div>
 
-      <CreateUserModal
-        show={showCreateModal}
-        handleClose={() => setShowCreateModal(false)}
-        refreshTable={fetchUsers}
-      />
-
-      <EditUserModal
-        show={showEditModal}
-        handleClose={() => setShowEditModal(false)}
-        user={selectedUser}
-        refreshTable={fetchUsers}
-      />
-
-      <ConfirmDeleteUserModal
-        show={showDeleteModal}
-        handleClose={() => setShowDeleteModal(false)}
-        handleConfirm={handleDeleteConfirm}
-        user={selectedUser}
-      />
+      {/* Modals */}
+      <CreateUserModal show={showCreateModal} handleClose={() => setShowCreateModal(false)} refreshTable={fetchUsers} />
+      <EditUserModal show={showEditModal} handleClose={() => setShowEditModal(false)} user={selectedUser} refreshTable={fetchUsers} />
+      <ConfirmDeleteUserModal show={showDeleteModal} handleClose={() => setShowDeleteModal(false)} handleConfirm={handleDeleteConfirm} user={selectedUser} />
     </div>
   );
 };

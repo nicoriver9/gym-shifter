@@ -5,6 +5,8 @@ import { confirmClassAttendance } from "../../services/user/userPackService";
 import { useUserPackStore } from "../../store/packCounter";
 import { findCurrentClass } from "../../utils/user/classUtils";
 import { useNavigate } from "react-router-dom";
+import { FiArrowLeftCircle } from "react-icons/fi";
+
 
 const QRScanOnlyPage = () => {
   const navigate = useNavigate();
@@ -98,9 +100,9 @@ const QRScanOnlyPage = () => {
       <div className="flex justify-center mt-6">
         <button
           onClick={() => navigate("/dashboard/confirm-attendance")}
-          className="bg-gray-600 hover:bg-gray-700 text-white px-6 py-3 rounded-lg transition shadow-md"
+          className="flex items-center bg-gray-600 hover:bg-gray-700 font-semibold text-white px-6 py-3 rounded-lg transition shadow-md"
         >
-          ← Volver
+          <FiArrowLeftCircle className="text-2xl mr-2" /> Volver
         </button>
       </div>
     </div>

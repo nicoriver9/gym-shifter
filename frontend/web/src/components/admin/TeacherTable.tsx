@@ -2,10 +2,7 @@ import { useEffect, useState } from "react";
 import CreateTeacherModal from "./modals/teacherModals/CreateTeacherModal";
 import EditTeacherModal from "./modals/teacherModals/EditTeacherModal";
 import ConfirmDeleteTeacherModal from "./modals/teacherModals/ConfirmDeleteTeacherModal";
-import {
-  getTeachers,
-  // deleteTeacher,
-} from "../../services/admin/teacherService";
+import { getTeachers } from "../../services/admin/teacherService";
 
 const TeacherTable = () => {
   const [teachers, setTeachers] = useState<any[]>([]);
@@ -40,14 +37,6 @@ const TeacherTable = () => {
     setShowDeleteModal(true);
   };
 
-  // const handleDeleteConfirm = async () => {
-  //   if (selectedTeacher) {
-  //     await deleteTeacher(selectedTeacher.id);
-  //     fetchTeachers();
-  //     setShowDeleteModal(false);
-  //   }
-  // };
-
   if (loading) {
     return (
       <div className="flex justify-center items-center min-h-screen">
@@ -57,8 +46,8 @@ const TeacherTable = () => {
   }
 
   return (
-    <div className="max-w-4xl mx-auto mt-8">
-      <h2 className="text-2xl font-semibold text-white text-center mb-4">
+    <div className="max-w-4xl mx-auto mt-8 px-4">
+      <h2 className="text-2xl font-semibold text-white text-center mb-8">
         Gestión de Profesores
       </h2>
 
@@ -76,7 +65,7 @@ const TeacherTable = () => {
       <div className="overflow-x-auto">
         <table className="min-w-full bg-gray-900 text-white rounded-lg shadow-md overflow-hidden">
           <thead>
-            <tr className="bg-gray-700 text-white text-left text-sm uppercase tracking-wider">
+            <tr className="bg-gray-700 text-white text-sm uppercase tracking-wider">
               <th className="px-6 py-3 text-center">ID</th>
               <th className="px-6 py-3 text-center">Nombre</th>
               <th className="px-6 py-3 text-center">Acciones</th>
@@ -91,19 +80,21 @@ const TeacherTable = () => {
                 >
                   <td className="px-6 py-4 text-center">{teacher.id}</td>
                   <td className="px-6 py-4 text-center">{teacher.name}</td>
-                  <td className="px-6 py-4 flex justify-center space-x-4">
-                    <button
-                      className="bg-yellow-500 hover:bg-yellow-600 text-white px-4 py-2 rounded-lg transition"
-                      onClick={() => handleEdit(teacher)}
-                    >
-                      Editar
-                    </button>
-                    <button
-                      className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg transition"
-                      onClick={() => handleDelete(teacher)}
-                    >
-                      Eliminar
-                    </button>
+                  <td className="px-6 py-4 text-center">
+                    <div className="inline-flex justify-center space-x-4">
+                      <button
+                        className="bg-green-600 hover:bg-green-700 font-semibold text-white px-4 py-2 rounded-lg transition"
+                        onClick={() => handleEdit(teacher)}
+                      >
+                        Editar
+                      </button>
+                      <button
+                        className="bg-red-600 hover:bg-red-700 font-semibold text-white px-4 py-2 rounded-lg transition"
+                        onClick={() => handleDelete(teacher)}
+                      >
+                        Eliminar
+                      </button>
+                    </div>
                   </td>
                 </tr>
               ))

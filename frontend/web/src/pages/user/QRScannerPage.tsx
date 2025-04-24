@@ -135,7 +135,7 @@ const QRScannerPage = () => {
       const now = new Date();
       const result = await confirmClassAttendance(userId, now);
       handleSuccess(result);
-    } catch (err) {
+    } catch (err: any) {
       setError(err.message);
     } finally {
       setIsProcessing(false);

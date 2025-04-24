@@ -1,10 +1,11 @@
 import { useState, useEffect } from "react";
 import FullCalendar from "@fullcalendar/react";
+import { DatesSetArg } from "@fullcalendar/core";
 import dayGridPlugin from "@fullcalendar/daygrid";
 import timeGridPlugin from "@fullcalendar/timegrid";
 import interactionPlugin from "@fullcalendar/interaction";
-import { Button } from "react-bootstrap";
 import esLocale from "@fullcalendar/core/locales/es";
+import { Button } from "react-bootstrap";
 
 import ConfirmDeleteModal from "./modals/classModals/ConfirmDeleteClassModal";
 import AddClassModal from "./modals/classModals/AddClassModal";
@@ -15,150 +16,113 @@ import { getDateForDay } from "../../helpers/classSchedulerFunctions";
 export default function ClassScheduler() {
   const [showModal, setShowModal] = useState(false);
   const [events, setEvents] = useState<any[]>([]);
-  const [classTypes, setClassTypes] = useState<{ id: number; name: string }[]>(
-    []
-  );
-
+  const [classTypes, setClassTypes] = useState<{ id: number; name: string }[]>([]);
   const [selectedClass, setSelectedClass] = useState<ClassEvent | null>(null);
   const [showEditModal, setShowEditModal] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [classToDelete, setClassToDelete] = useState<ClassEvent | null>(null);
 
-  /** 🔥 Obtener los tipos de clases */
+  // Para la cabecera de fecha:
+  const [rangeLabel, setRangeLabel] = useState<string>("");
+
+  // Carga tipos de clase
   useEffect(() => {
-    const accessToken = localStorage.getItem('access_token');
+    const token = localStorage.getItem("access_token");
     fetch(`${import.meta.env.VITE_API_URL}/class-types`, {
-      headers: {
-        'Authorization': `Bearer ${accessToken}`
-      }
+      headers: { Authorization: `Bearer ${token}` },
     })
-      .then((res) => res.json())
-      .then((data) => setClassTypes(data));
+      .then(r => r.json())
+      .then(data => setClassTypes(data));
   }, []);
 
-  /** 🔥 Obtener las clases del calendario */
+  // Carga eventos
   useEffect(() => {
-    const accessToken = localStorage.getItem('access_token');
+    if (!classTypes.length) return;
+    const token = localStorage.getItem("access_token");
     fetch(`${import.meta.env.VITE_API_URL}/classes`, {
-      headers: {
-        'Authorization': `Bearer ${accessToken}`
-      }
+      headers: { Authorization: `Bearer ${token}` },
     })
-      .then((res) => res.json())
-      .then((data) => {
-        const formattedEvents = data.map((event: any) => ({
-          id: event.id,
-          title: classTypes.find((type) => type.id === event.class_type_id)
-            ?.name,
-          start: getDateForDay(event.day_of_week, event.start_time),
-          end: getDateForDay(event.day_of_week, event.end_time),
-          teacher_id: event.teacher_id,
-          class_type_id: event.class_type_id,
+      .then(r => r.json())
+      .then(data => {
+        const ev = data.map((e: any) => ({
+          id: e.id,
+          title:
+            classTypes.find((t) => t.id === e.class_type_id)?.name || "Sin nombre",
+          start: getDateForDay(e.day_of_week, e.start_time),
+          end: getDateForDay(e.day_of_week, e.end_time),
+          class_type_id: e.class_type_id,
+          teacher_id: e.teacher_id,
         }));
-        setEvents(formattedEvents);
+        setEvents(ev);
       });
   }, [classTypes]);
 
-
-  function fetchClasses() {
-    const accessToken = localStorage.getItem('access_token');
+  // Función helper para recargar
+  const fetchClasses = () => {
+    const token = localStorage.getItem("access_token");
     fetch(`${import.meta.env.VITE_API_URL}/classes`, {
-      headers: {
-        'Authorization': `Bearer ${accessToken}`
-      }
+      headers: { Authorization: `Bearer ${token}` },
     })
-      .then((res) => res.json())
-      .then((data) => {
-        const formattedEvents = data.map((event: any) => ({
-          id: event.id,
-          title: classTypes.find((type) => type.id === event.class_type_id)
-            ?.name,
-          start: getDateForDay(event.day_of_week, event.start_time),
-          end: getDateForDay(event.day_of_week, event.end_time),
-          teacher_id: event.teacher_id,
+      .then(r => r.json())
+      .then(data => {
+        const ev = data.map((e: any) => ({
+          id: e.id,
+          title:
+            classTypes.find((t) => t.id === e.class_type_id)?.name || "Sin nombre",
+          start: getDateForDay(e.day_of_week, e.start_time),
+          end: getDateForDay(e.day_of_week, e.end_time),
+          class_type_id: e.class_type_id,
+          teacher_id: e.teacher_id,
         }));
-        setEvents(formattedEvents);
+        setEvents(ev);
       });
-  }
+  };
 
-  /** 🔥 Guardar nuevas clases */
-  const handleSaveClass = async (newClasses: any[]) => {    
-    const validClasses = newClasses.filter((c) => c.start_time < c.end_time);
-    if (validClasses.length !== newClasses.length) {
-      alert("Algunas clases tienen horarios de inicio y fin inválidos.");
+  // Guardar nuevas clases
+  const handleSaveClass = async (newClasses: any[]) => {
+    const valid = newClasses.filter((c) => c.start_time < c.end_time);
+    if (valid.length !== newClasses.length) {
+      alert("Algunas clases tienen horarios inválidos.");
       return;
     }
-
-    const accessToken = localStorage.getItem('access_token');
+    const token = localStorage.getItem("access_token");
     await fetch(`${import.meta.env.VITE_API_URL}/classes/bulk`, {
       method: "POST",
-      headers: { 
+      headers: {
         "Content-Type": "application/json",
-        'Authorization': `Bearer ${accessToken}`
+        Authorization: `Bearer ${token}`,
       },
-      body: JSON.stringify(validClasses),
+      body: JSON.stringify(valid),
     });
-
     fetchClasses();
+    setShowModal(false);
   };
-  
 
-  /** 🔥 Actualizar una clase */
-  const handleUpdateClass = async (updatedClass: ClassEvent) => {
-    try {
-      const accessToken = localStorage.getItem('access_token');
-      const response = await fetch(
-        `${import.meta.env.VITE_API_URL}/classes/${updatedClass.id}`,
-        {
-          method: "PUT",
-          headers: { 
-            "Content-Type": "application/json",
-            'Authorization': `Bearer ${accessToken}`
-          },
-          body: JSON.stringify(updatedClass),
-        }
-      );
-
-      if (!response.ok) {
-        throw new Error("Error al actualizar la clase");
+  // Actualizar
+  const handleUpdateClass = async (updated: ClassEvent) => {
+    const token = localStorage.getItem("access_token");
+    const res = await fetch(
+      `${import.meta.env.VITE_API_URL}/classes/${updated.id}`,
+      {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify(updated),
       }
-
-      setEvents((prev) =>
-        prev.map((event) =>
-          event.id === updatedClass.id
-            ? {
-              ...event,
-              title: classTypes.find(
-                (type) => type.id === updatedClass.class_type_id
-              )?.name,
-              start: getDateForDay(
-                updatedClass.day_of_week,
-                updatedClass.start_time
-              ),
-              end: getDateForDay(
-                updatedClass.day_of_week,
-                updatedClass.end_time
-              ),
-              teacher_id: updatedClass.teacher_id,
-            }
-            : event
-        )
-      );
-
-      setShowEditModal(false);
+    );
+    if (res.ok) {
       fetchClasses();
-
-    } catch (error) {
-      console.error("Error al actualizar la clase:", error);
+      setShowEditModal(false);
     }
   };
 
-  // Función para abrir el modal de confirmación
-  const confirmDeleteClass = (classData: ClassEvent) => {
-    setClassToDelete(classData);
+  // Eliminar
+  const confirmDeleteClass = (c: ClassEvent) => {
+    setClassToDelete(c);
     setShowDeleteModal(true);
   };
-
 
   const handleDeleteClassBySchedule = async (
     classTypeId: number,
@@ -230,16 +194,29 @@ export default function ClassScheduler() {
   };
 
   return (
-    <div className="container mt-4">
-      <h2 className="text-center text-3xl font-semibold mb-6">Calendario de Clases</h2>
-      <Button
-        variant="success"
-        className="bg-purple-700 mt-2 mb-9 hover:bg-purple-800 text-white px-6 py-2 rounded-2xl font-medium transition"
-        onClick={() => setShowModal(true)}
-      >
-        + Agregar Clase
-      </Button>
-      <div className="bg-gray-800 p-6 rounded-lg shadow-lg w-full max-w-5xl">
+    <div className="px-4 py-6">
+      <h2 className="text-center text-3xl font-semibold text-white mb-8">
+        Calendario de Clases
+      </h2>
+
+      {/* botón centrado */}
+      <div className="flex justify-center mb-6">
+        <Button
+          onClick={() => setShowModal(true)}
+          className="bg-purple-600 hover:bg-purple-700 font-semibold text-white px-5 py-2 rounded-full"
+        >
+          + Agregar Clase
+        </Button>
+      </div>
+
+      {/* rango de semana */}
+      {rangeLabel && (
+        <div className="text-center text-white text-xl mb-4 font-semibold">
+          {rangeLabel}
+        </div>
+      )}
+
+      <div className="bg-gray-800 rounded-lg shadow-lg overflow-auto">
         <FullCalendar
           plugins={[dayGridPlugin, timeGridPlugin, interactionPlugin]}
           initialView="timeGridWeek"
@@ -249,7 +226,7 @@ export default function ClassScheduler() {
           locale={esLocale}
           headerToolbar={{
             left: "prev,next today",
-            center: "title",
+            center: "",
             right: "dayGridMonth,timeGridWeek,timeGridDay",
           }}
           buttonText={{
@@ -259,17 +236,30 @@ export default function ClassScheduler() {
             day: "Día",
           }}
           height="auto"
+          datesSet={(arg: DatesSetArg) => {
+            const start = arg.start;
+            const end = new Date(arg.end.getTime() - 1);
+            const opts: Intl.DateTimeFormatOptions = {
+              day: "numeric",
+              month: "short",
+            };
+            const s = start.toLocaleDateString("es-AR", opts);
+            const e = end.toLocaleDateString("es-AR", opts);
+            setRangeLabel(`${s} — ${e}`);
+          }}
           eventClassNames={() =>
-            "bg-purple-600 text-white font-bold rounded-md px-2 py-1 shadow"
+            "bg-indigo-500 text-white font-medium rounded px-2 py-1"
           }
           dayHeaderClassNames={() =>
-            "bg-gray-700 text-white p-2 rounded-lg text-center"
+            "bg-gray-700 text-gray-200 p-2 text-center text-sm rounded"
           }
           slotLabelClassNames={() =>
-            "text-center text-white flex justify-center"
+            "text-gray-400 text-xs text-center"
           }
         />
       </div>
+
+      {/* Modales */}
       <EditClassModal
         show={showEditModal}
         handleClose={() => setShowEditModal(false)}
@@ -277,14 +267,12 @@ export default function ClassScheduler() {
         onSave={handleUpdateClass}
         confirmDeleteClass={confirmDeleteClass}
       />
-
       <AddClassModal
         show={showModal}
         handleClose={() => setShowModal(false)}
         onSave={handleSaveClass}
-        classTypes={classTypes} // 🔥 Pasamos los tipos de clases disponibles
+        classTypes={classTypes}
       />
-
       <ConfirmDeleteModal
         show={showDeleteModal}
         handleClose={() => setShowDeleteModal(false)}

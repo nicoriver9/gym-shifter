@@ -1,3 +1,4 @@
+// src/pages/user/AttendancePage.tsx
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { PackInfo } from "../../components/user/PackInfo";
@@ -6,6 +7,8 @@ import { findCurrentClass } from "../../utils/user/classUtils";
 import { CurrentClassSection } from "../../components/user/CurrentClassSection";
 import { confirmClassAttendance } from "../../services/user/userPackService";
 import { ConfirmationModal } from "../../components/user/ConfirmationModal";
+import { FaQrcode } from "react-icons/fa";
+import { FiCheckCircle } from "react-icons/fi";
 
 const AttendancePage = () => {
   const navigate = useNavigate();
@@ -20,7 +23,6 @@ const AttendancePage = () => {
   const [currentClass, setCurrentClass] = useState<any>(null);
 
   const userId = Number(localStorage.getItem("user_id"));
-
   const {
     userPack,
     userPackClassesIncluded,
@@ -47,9 +49,7 @@ const AttendancePage = () => {
       .then((res) => res.json())
       .then((data) => {
         setClasses(data);
-        const now = new Date();
-        const found = findCurrentClass(data, now);
-        setHasCurrentClass(!!found);
+        setHasCurrentClass(!!findCurrentClass(data, new Date()));
       });
   }, []);
 
@@ -60,13 +60,11 @@ const AttendancePage = () => {
       setError("No hay clases en curso en este momento.");
       return;
     }
-
     setCurrentClass({
       ...found,
-      classType: classTypes.find((type) => type.id === found.class_type_id),
-      teacher: teachers.find((teacher) => teacher.id === found.teacher_id),
+      classType: classTypes.find((t) => t.id === found.class_type_id),
+      teacher: teachers.find((t) => t.id === found.teacher_id),
     });
-
     setIsModalOpen(true);
   };
 
@@ -74,7 +72,6 @@ const AttendancePage = () => {
     setIsProcessing(true);
     setError(null);
     setSuccess(null);
-  
     try {
       const now = new Date();
       const result = await confirmClassAttendance(userId, now);
@@ -82,22 +79,20 @@ const AttendancePage = () => {
         setUserPack(result.data.pack_name);
         setUserPackClassesIncluded(result.data.classes_remaining);
         setPackExpirationDate(result.data.pack_expiration_date);
-  
         setSuccess(
-          `Asistencia confirmada a ${result.data.class_name} con ${result.data.teacher_name}. Clases restantes: ${result.data.classes_remaining}`
+          `✅ Asistencia confirmada: ${result.data.class_name} con ${result.data.teacher_name}. Clases restantes: ${result.data.classes_remaining}`
         );
       } else {
-        throw new Error(`${result.message}`);
+        throw new Error(result.message);
       }
     } catch (err: any) {
       setError(err.message || "Error al confirmar asistencia.");
     } finally {
       setIsProcessing(false);
-      setIsModalOpen(false); // ✅ cerrar el modal siempre
-      setCurrentClass(null); // ✅ limpiar info
+      setIsModalOpen(false);
+      setCurrentClass(null);
     }
   };
-  
 
   return (
     <div className="max-w-xl mx-auto mt-10 px-4">
@@ -108,7 +103,6 @@ const AttendancePage = () => {
         teachers={teachers}
       />
 
-      {/* Modal de confirmación */}
       <ConfirmationModal
         isOpen={isModalOpen}
         onCancel={() => {
@@ -120,7 +114,9 @@ const AttendancePage = () => {
           currentClass ? (
             <div>
               <p>¿Confirmar asistencia a:</p>
-              <p className="font-bold text-lg mt-2">{currentClass.classType?.name}</p>
+              <p className="font-bold text-lg mt-2">
+                {currentClass.classType?.name}
+              </p>
               <p>
                 Horario: {currentClass.start_time} - {currentClass.end_time}
               </p>
@@ -133,7 +129,6 @@ const AttendancePage = () => {
         }
       />
 
-      {/* Mensajes */}
       {error && (
         <div className="bg-red-100 text-red-800 px-4 py-2 my-4 rounded-md text-center">
           ❌ {error}
@@ -141,35 +136,34 @@ const AttendancePage = () => {
       )}
       {success && (
         <div className="bg-green-100 text-green-800 px-4 py-2 my-4 rounded-md text-center">
-          ✅ {success}
+          {success}
         </div>
       )}
 
-      {/* Botones si tiene pack válido y clase actual */}
       {hasValidPack && hasCurrentClass && (
         <div className="text-center mt-6 space-y-4">
           <button
             onClick={() => navigate("/dashboard/scan")}
             disabled={!!success}
-            className={`px-6 py-3 rounded-lg transition shadow-md text-white ${
-              success
+            className={`flex items-center justify-center gap-2 w-full text-white font-semibold px-6 py-3 rounded-lg shadow-md transition ${success
                 ? "bg-gray-500 cursor-not-allowed"
-                : "bg-green-600 hover:bg-green-700"
-            }`}
+                : "bg-teal-500 hover:bg-teal-600"
+              }`}
           >
-            Confirmar asistencia por QR
+            <FaQrcode className="text-xl" />
+            Confirmar por QR
           </button>
 
           <button
             onClick={showConfirmationModal}
             disabled={isProcessing || !!success}
-            className={`px-6 py-3 rounded-lg transition shadow-md text-white ${
-              success || isProcessing
+            className={`flex items-center justify-center gap-2 w-full text-white font-semibold px-6 py-3 rounded-lg shadow-md transition ${isProcessing || success
                 ? "bg-gray-500 cursor-not-allowed"
-                : "bg-purple-600 hover:bg-purple-700"
-            }`}
+                : "bg-orange-500 hover:bg-orange-600"
+              }`}
           >
-            {isProcessing ? "Procesando..." : "Confirmar asistencia manualmente"}
+            <FiCheckCircle className="text-xl" />
+            {isProcessing ? "Procesando..." : "Confirmar manual"}
           </button>
         </div>
       )}

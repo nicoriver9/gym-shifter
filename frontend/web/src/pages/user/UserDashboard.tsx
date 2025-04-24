@@ -1,4 +1,10 @@
-import { FiLogOut } from "react-icons/fi";
+import {
+  FiLogOut,
+  FiPackage,
+  FiCheckCircle,
+  FiClock,
+  FiSettings,
+} from "react-icons/fi";
 import { Link, Outlet } from "react-router-dom";
 import { useUserPackStore } from "../../store/packCounter";
 
@@ -15,66 +21,97 @@ const UserDashboard: React.FC<UserDashboardProps> = ({ onLogout }) => {
   const noClassesAvailable = userPackClassesIncluded === 0;
 
   return (
-    <div className="min-h-screen bg-gray-900 text-white flex flex-col items-center py-10">
-      <h1 className="text-4xl font-bold my-6 mb-10">
-        {firstName} {lastName}
-      </h1>
+    <div className="relative min-h-screen bg-gray-900 text-white flex flex-col items-center py-10 px-4 sm:px-6 lg:px-8">
+      {/* Header */}
+      <header className="w-full max-w-4xl grid grid-cols-3 items-center bg-gray-800 p-4 rounded-lg shadow mb-8">
+        {/* Columna vacía para empujar el título al centro */}
+        <div></div>
 
-      {/* Botón de Cerrar Sesión */}
-      <button
-        onClick={onLogout}
-        className="absolute top-4 right-4 flex items-center gap-2 bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-full transition"
-      >
-        <FiLogOut className="text-xl" /> Cerrar Sesión
-      </button>
+        {/* Título centrado */}
+        <h1 className="text-2xl font-bold text-center">
+          Hola!! {firstName} {lastName}
+        </h1>
 
-      {/* Navegación */}
-      <div className="flex justify-center gap-4 mb-6 flex-wrap">
+        {/* Logout a la derecha */}
+        <button
+          onClick={onLogout}
+          className="justify-self-end w-10 h-10 flex items-center justify-center bg-red-600 hover:bg-red-700 rounded-full transition"
+        >
+          <FiLogOut className="text-xl text-white" />
+          <span className="sr-only">Cerrar Sesión</span>
+        </button>
+      </header>
+
+      {/* Badge de clases restantes */}
+      <div className="mb-6 px-3 py-1 bg-gray-700 rounded-full text-sm flex items-center">
+        <span className="font-medium mr-2">Clases restantes:</span>
+        <span className="font-bold">{userPackClassesIncluded}</span>
+      </div>
+
+      {/* Navegación mobile-first */}
+      <nav className="w-full max-w-4xl flex flex-col sm:flex-row items-center gap-4 mb-10 justify-center">
+        {/* Packs */}
         <Link
           to="/dashboard/packs"
-          className="px-6 py-2 rounded-full bg-purple-600 hover:bg-purple-700 text-white font-medium transition"
+          data-aos="fade-up"
+          data-aos-duration="1000"
+          className="flex w-3/5 sm:w-auto items-center justify-center gap-2 px-6 py-3 bg-purple-600 hover:bg-purple-700 rounded-full text-base font-medium transition"
         >
-          Packs
+          <FiPackage /> <span>Packs</span>
         </Link>
 
-        {/* Botón "Confirmar asistencia" */}
+        {/* Confirmar asistencia (destacado en mobile) */}
         <Link
           to="/dashboard/confirm-attendance"
-          className={`px-6 py-2 rounded-full ${
-            noClassesAvailable
-              ? "bg-gray-500 cursor-not-allowed"
-              : "bg-purple-600 hover:bg-purple-700"
-          } text-white font-medium transition`}
+          data-aos="fade-up"
+          data-aos-duration="1500"
+          className={`
+            flex w-3/5 sm:w-auto items-center justify-center text-center gap-2 px-6 py-3
+            ${
+              noClassesAvailable
+                ? "bg-gray-500 cursor-not-allowed opacity-60"
+                : "bg-green-600 hover:bg-green-700"
+            }
+            rounded-full text-base font-semibold transition
+          `}
           onClick={(e) => noClassesAvailable && e.preventDefault()}
         >
-          Confirmar asistencia
+          <FiCheckCircle /> <span>Confirmar Asistencia</span>
         </Link>
 
-        {/* Botón "Clases de Hoy" */}
+        {/* Clases de Hoy */}
         <Link
           to="/dashboard/today-classes"
-          className={`px-6 py-2 rounded-full ${
-            noClassesAvailable
-              ? "bg-gray-500 cursor-not-allowed"
-              : "bg-purple-600 hover:bg-purple-700"
-          } text-white font-medium transition`}
+          data-aos="fade-up"
+          data-aos-duration="2000"
+          className={`
+            flex w-3/5 sm:w-auto items-center justify-center gap-2 px-6 py-3
+            ${
+              noClassesAvailable
+                ? "bg-gray-500 cursor-not-allowed opacity-60"
+                : "bg-purple-600 hover:bg-purple-700"
+            }
+            rounded-full text-base font-medium transition
+          `}
           onClick={(e) => noClassesAvailable && e.preventDefault()}
         >
-          Clases de Hoy
+          <FiClock /> <span>Clases de Hoy</span>
         </Link>
 
-        {/* Panel admin */}
+        {/* Admin */}
         {userRole === "Admin" && (
           <Link
             to="/dashboard/administration"
-            className="px-6 py-2 rounded-full bg-purple-600 hover:bg-purple-700 text-white font-medium transition"
+            data-aos="fade-up"
+            data-aos-duration="2500"
+            className="flex w-3/5 sm:w-auto items-center justify-center gap-2 px-6 py-3 bg-sky-900 hover:bg-sky-700 rounded-full text-base font-medium transition"
           >
-            Administración
+            <FiSettings /> <span>Administración</span>
           </Link>
         )}
-      </div>
+      </nav>
 
-      {/* Rutas anidadas */}
+      {/* Contenido anidado */}
       <div className="w-full max-w-4xl">
         <Outlet />
       </div>

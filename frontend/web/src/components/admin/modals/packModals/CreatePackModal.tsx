@@ -102,18 +102,18 @@ const CreatePackModal = ({ show, handleClose, refreshTable }: CreatePackModalPro
 
         <div className="flex justify-end gap-2 mt-6">
           <button
-            className="bg-gray-600 hover:bg-gray-700 px-4 py-2 rounded-lg transition"
-            onClick={handleClose}
-            disabled={loading}
-          >
-            Cancelar
-          </button>
-          <button
             className="bg-purple-700 hover:bg-purple-800 px-4 py-2 rounded-lg transition"
             onClick={handleSubmit}
             disabled={loading}
           >
             {loading ? 'Guardando...' : 'Guardar'}
+          </button>
+          <button
+            className="bg-gray-600 hover:bg-gray-700 px-4 py-2 rounded-lg transition"
+            onClick={handleClose}
+            disabled={loading}
+          >
+            Cancelar
           </button>
         </div>
       </div>

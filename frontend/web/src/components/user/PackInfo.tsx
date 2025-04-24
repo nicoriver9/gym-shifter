@@ -6,7 +6,7 @@ export const PackInfo = () => {
     userPack,
     userPackClassesIncluded,
     packExpirationDate,
-    weeklyCycleStartDate,
+    // weeklyCycleStartDate,
     setUserPack,
     setUserPackClassesIncluded,
     setPackExpirationDate,
@@ -72,16 +72,16 @@ export const PackInfo = () => {
     return diffDays > 0 ? diffDays : 0;
   };
 
-  const calculateWeeklyCycleDaysRemaining = (startDateStr: string, cycleLengthDays = 7) => {
-    const today = new Date();
-    const startDate = new Date(startDateStr);
-    const msInDay = 1000 * 60 * 60 * 24;
-    const diffMs = today.getTime() - startDate.getTime();
-    const daysSinceStart = Math.floor(diffMs / msInDay);
-    const daysPassedInCurrentCycle = daysSinceStart % cycleLengthDays;
-    const daysRemaining = cycleLengthDays - daysPassedInCurrentCycle;
-    return daysRemaining;
-  };
+  // const calculateWeeklyCycleDaysRemaining = (startDateStr: string, cycleLengthDays = 7) => {
+  //   const today = new Date();
+  //   const startDate = new Date(startDateStr);
+  //   const msInDay = 1000 * 60 * 60 * 24;
+  //   const diffMs = today.getTime() - startDate.getTime();
+  //   const daysSinceStart = Math.floor(diffMs / msInDay);
+  //   const daysPassedInCurrentCycle = daysSinceStart % cycleLengthDays;
+  //   const daysRemaining = cycleLengthDays - daysPassedInCurrentCycle;
+  //   return daysRemaining;
+  // };
 
   const renderPackInfo = () => {
     if (
@@ -96,9 +96,9 @@ export const PackInfo = () => {
       ? calculateDaysRemaining(packExpirationDate)
       : null;
 
-    const daysRemainingWeekly = weeklyCycleStartDate
-      ? calculateWeeklyCycleDaysRemaining(weeklyCycleStartDate)
-      : null;
+    // const daysRemainingWeekly = weeklyCycleStartDate
+    //   ? calculateWeeklyCycleDaysRemaining(weeklyCycleStartDate)
+    //   : null;
 
     const isUnlimited = userPackClassesIncluded === 9999;
 
@@ -130,7 +130,7 @@ export const PackInfo = () => {
             </p>
           </div>
 
-          <div className="text-center bg-purple-900 p-3 rounded-lg col-span-2">
+          {/* <div className="text-center bg-purple-900 p-3 rounded-lg col-span-2">
             <p className="text-sm text-purple-300 text-center">
               Días restantes del ciclo semanal
             </p>
@@ -155,7 +155,7 @@ export const PackInfo = () => {
                 </p>
               );
             })()}
-          </div>
+          </div> */}
         </div>
       </>
     );

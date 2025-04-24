@@ -1,16 +1,12 @@
 import { useState } from "react";
-import { FiLogOut } from "react-icons/fi";
-// import { useNavigate } from "react-router-dom";
-
 import ClassTypeTable from "./admin/ClassTypes";
+import { FiLogOut } from "react-icons/fi";
 import ClassScheduler from "./admin/ClassScheduler";
 import TeacherTable from "./admin/TeacherTable";
 import PackTable from "./admin/PackTable";
 import UserTable from "./admin/UserTable";
 import ReservationTable from "./admin/ReservationTable";
 import CurrentClassAttendance from "./admin/CurrentClassAttendance";
-// import PaymentTable from "./admin/PaymentTable";
-// import TeacherPaymentReport from "./admin/TeacherPaymentReport";
 
 interface MainPanelProps {
   onLogout: () => void;
@@ -18,13 +14,21 @@ interface MainPanelProps {
 
 const MainPanel: React.FC<MainPanelProps> = ({ onLogout }) => {
   const [currentView, setCurrentView] = useState<
-    "classTypes" | "scheduler" | "teachers" | "packs" | "users" | "attendances" 
-    // | "payments" | "TeacherPayments"
+    "classTypes" | "scheduler" | "teachers" | "packs" | "users" | "attendances"
   >("classTypes");
 
+  const tabs = [
+    { key: "classTypes", label: "Tipos de Clases" },
+    { key: "scheduler", label: "Calendario" },
+    { key: "packs", label: "Packs" },
+    { key: "teachers", label: "Profesores" },
+    { key: "users", label: "Usuarios" },
+    { key: "attendances", label: "Asistencias" },
+  ] as const;
+
   return (
-    <div className="min-h-screen bg-gray-900 text-white flex flex-col items-center py-10">
-      <h1 className="text-4xl font-bold my-6 mb-10">Gestión de Clases</h1>
+    <div className="min-h-screen bg-gray-900 text-white flex flex-col items-center py-10 px-4">
+      <h1 className="text-4xl font-bold mb-8">Gestión de Clases</h1>
 
       {/* Botón de Cerrar Sesión con ícono */}
       <button
@@ -34,45 +38,37 @@ const MainPanel: React.FC<MainPanelProps> = ({ onLogout }) => {
         <FiLogOut className="text-xl" /> Cerrar Sesión
       </button>
 
-      <div className="w-full max-w-4xl mb-6">
+      <div className="w-full max-w-4xl mb-10">
         <CurrentClassAttendance />
       </div>
 
-      {/* Botones de navegación */}
-      <div className="flex justify-center gap-4 mb-6 flex-wrap">
-        {[
-          { key: "classTypes", label: "Tipos de Clases" },
-          { key: "scheduler", label: "Calendario de Clases" },
-          { key: "packs", label: "Packs" },
-          { key: "teachers", label: "Profesores" },
-          { key: "users", label: "Usuarios" },
-          { key: "attendances", label: "Asistencias" },
-          // { key: "payments", label: "Registro de Pagos" }, 
-          // { key: "TeacherPayments", label: "Distribucion de Pagos" },
-        ].map(({ key, label }) => (
+      {/* NAV: grid responsivo */}
+      <div className="w-full max-w-4xl grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-4 mb-12">
+        {tabs.map(({ key, label }) => (
           <button
             key={key}
-            onClick={() => setCurrentView(key as any)}
-            className={`px-6 py-2 rounded-full font-medium transition ${currentView === key
-              ? "bg-purple-700 hover:bg-purple-800 text-white"
-              : "bg-purple-500 hover:bg-purple-600 text-gray-900"
-              }`}
+            onClick={() => setCurrentView(key)}
+            className={`
+              w-full px-4 py-2 rounded-xl text-center text-base font-medium transition-colors
+              ${currentView === key
+                ? "bg-indigo-700 hover:bg-indigo-800"
+                : "bg-indigo-500 hover:bg-indigo-600"
+              }
+            `}
           >
             {label}
           </button>
         ))}
       </div>
 
-      {/* Renderizar el componente correspondiente */}
-      <div className="mt-4 w-full max-w-4xl">
+      {/* Contenido según tab activo */}
+      <div className="w-full max-w-4xl">
         {currentView === "classTypes" && <ClassTypeTable />}
         {currentView === "scheduler" && <ClassScheduler />}
         {currentView === "teachers" && <TeacherTable />}
         {currentView === "packs" && <PackTable />}
         {currentView === "users" && <UserTable />}
         {currentView === "attendances" && <ReservationTable />}
-        {/* {currentView === "payments" && <PaymentTable />}  */}
-        {/* {currentView === "TeacherPayments" && <TeacherPaymentReport />}  */}
       </div>
     </div>
   );

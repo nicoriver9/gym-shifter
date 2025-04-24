@@ -1,8 +1,8 @@
-import { useEffect, useState } from 'react';
-import CreateClassTypeModal from './modals/classTypesModals/CreateClassTypeModal';
-import EditClassTypeModal from './modals/classTypesModals/EditClassTypeModal';
-import ConfirmDeleteClassTypeModal from './modals/classTypesModals/ConfirmDeleteClassTypeModal';
-import { getClassTypes, deleteClassType } from '../../services/admin/classTypeService';
+import { useEffect, useState } from "react";
+import CreateClassTypeModal from "./modals/classTypesModals/CreateClassTypeModal";
+import EditClassTypeModal from "./modals/classTypesModals/EditClassTypeModal";
+import ConfirmDeleteClassTypeModal from "./modals/classTypesModals/ConfirmDeleteClassTypeModal";
+import { getClassTypes, deleteClassType } from "../../services/admin/classTypeService";
 
 const ClassTypeTable = () => {
   const [classTypes, setClassTypes] = useState<any[]>([]);
@@ -39,24 +39,26 @@ const ClassTypeTable = () => {
   };
 
   return (
-    <div className="max-w-4xl mx-auto mt-8">
-      <h2 className="text-2xl font-semibold text-white text-center mb-4">
+    <div className="max-w-4xl mx-auto mt-8 px-4">
+      <h2 className="text-2xl md:text-3xl font-semibold text-white text-center mb-8">
         Gestión de Tipos de Clases
       </h2>
 
+      {/* Botón crear */}
       <div className="flex justify-center mb-6">
         <button
-          className="bg-purple-700 hover:bg-purple-800 px-6 py-3 font-semibold text-white rounded-lg shadow-md transition"
+          className="bg-purple-600 hover:bg-purple-700 text-white font-semibold text-sm md:text-base px-5 py-2 rounded-md shadow transition"
           onClick={() => setShowCreateModal(true)}
         >
           + Crear Tipo de Clase
         </button>
       </div>
 
-      <div className="overflow-x-auto">
-        <table className="min-w-full bg-gray-900 text-white rounded-lg shadow-md overflow-hidden">
+      {/* Tabla */}
+      <div className="overflow-x-auto bg-gray-800 rounded-lg shadow-lg">
+        <table className="w-full text-white">
           <thead>
-            <tr className="bg-gray-700 text-white text-left text-sm uppercase tracking-wider">
+            <tr className="bg-gray-700 text-sm md:text-base uppercase tracking-wide">
               <th className="px-6 py-3 text-center">ID</th>
               <th className="px-6 py-3 text-center">Nombre</th>
               <th className="px-6 py-3 text-center">Acciones</th>
@@ -64,32 +66,34 @@ const ClassTypeTable = () => {
           </thead>
           <tbody>
             {classTypes.length > 0 ? (
-              classTypes.map((classType) => (
+              classTypes.map((ct) => (
                 <tr
-                  key={classType.id}
-                  className="border-b border-gray-700 hover:bg-gray-800 transition"
+                  key={ct.id}
+                  className="border-b border-gray-700 hover:bg-gray-700 transition"
                 >
-                  <td className="px-6 py-4 text-center">{classType.id}</td>
-                  <td className="px-6 py-4 text-center">{classType.name}</td>
-                  <td className="px-6 py-4 text-center flex justify-center space-x-4">
-                    <button
-                      className="bg-yellow-500 hover:bg-yellow-600 text-white px-4 py-2 rounded-lg transition"
-                      onClick={() => handleEdit(classType)}
-                    >
-                      Editar
-                    </button>
-                    <button
-                      className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg transition"
-                      onClick={() => handleDelete(classType)}
-                    >
-                      Eliminar
-                    </button>
+                  <td className="px-6 py-4 text-center">{ct.id}</td>
+                  <td className="px-6 py-4 text-center">{ct.name}</td>
+                  <td className="px-6 py-4 text-center">
+                    <div className="inline-flex justify-center space-x-3">
+                      <button
+                        className="bg-green-600 hover:bg-green-700 font-semibold text-white text-xs md:text-sm px-3 py-1 rounded-md transition"
+                        onClick={() => handleEdit(ct)}
+                      >
+                        Editar
+                      </button>
+                      <button
+                        className="bg-red-600 hover:bg-red-700 font-semibold text-white text-xs md:text-sm px-3 py-1 rounded-md transition"
+                        onClick={() => handleDelete(ct)}
+                      >
+                        Eliminar
+                      </button>
+                    </div>
                   </td>
                 </tr>
               ))
             ) : (
               <tr>
-                <td colSpan={3} className="text-center py-4 text-gray-400">
+                <td colSpan={3} className="py-4 text-center text-gray-400">
                   No hay tipos de clase registrados.
                 </td>
               </tr>
@@ -98,25 +102,23 @@ const ClassTypeTable = () => {
         </table>
       </div>
 
+      {/* Modales */}
       <CreateClassTypeModal
         show={showCreateModal}
         handleClose={() => setShowCreateModal(false)}
         refreshTable={fetchClassTypes}
       />
-
       <EditClassTypeModal
         show={showEditModal}
         handleClose={() => setShowEditModal(false)}
         classType={selectedClassType}
         refreshTable={fetchClassTypes}
       />
-
       <ConfirmDeleteClassTypeModal
         show={showDeleteModal}
         handleClose={() => setShowDeleteModal(false)}
         handleConfirm={handleDeleteConfirm}
-        className={selectedClassType?.name} 
-        // refreshTable={fetchClassTypes}
+        className={selectedClassType?.name}
       />
     </div>
   );

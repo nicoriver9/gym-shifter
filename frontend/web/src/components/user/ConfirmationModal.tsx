@@ -2,18 +2,18 @@
 import { useEffect } from "react";
 
 interface ConfirmationModalProps {
-    isOpen: boolean;
-    onConfirm: () => void;
-    onCancel: () => void;
-    message: string | React.ReactNode; // Ahora acepta JSX
-  }
-  
-  export const ConfirmationModal = ({
-    isOpen,
-    onConfirm,
-    onCancel,
-    message,
-  }: ConfirmationModalProps) => {
+  isOpen: boolean;
+  onConfirm: () => void;
+  onCancel: () => void;
+  message: string | React.ReactNode; // Ahora acepta JSX
+}
+
+export const ConfirmationModal = ({
+  isOpen,
+  onConfirm,
+  onCancel,
+  message,
+}: ConfirmationModalProps) => {
   // Bloquear scroll cuando el modal está abierto
   useEffect(() => {
     if (isOpen) {

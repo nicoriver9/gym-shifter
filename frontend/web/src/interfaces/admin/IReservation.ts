@@ -15,6 +15,7 @@ export interface Reservation {
       start_time: string;
       end_time: string;
       teacherName: string;
+      created_at: Date;
     };
     status: string;
   }
