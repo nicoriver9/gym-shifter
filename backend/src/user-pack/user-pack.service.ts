@@ -15,7 +15,7 @@ export class UserPackService {
       // 1. Encontrar la clase actual
       const currentClass = await this.findCurrentClass(currentDateTime);
       if (!currentClass) {
-        throw new Error('No hay clases programadas en este horario');
+        throw new Error(`No hay clases programadas en este horario ${currentDateTime}`);
       }
 
       // 2. Obtener información de la clase
