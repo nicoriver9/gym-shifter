@@ -104,6 +104,9 @@ export class ClassesService {
    * Actualizar una clase en el calendario.
    */
   async updateClass(id: number, data: any) {
+    delete data.id;
+    delete data.title; 
+    
     return this.prisma.classSchedule.update({
       where: { id },
       data,
