@@ -38,15 +38,15 @@ const QRScannerPage = () => {
 
   // Cargar clases, tipos de clase y profesores
   useEffect(() => {
-    fetch(`${import.meta.env.VITE_API_URL}/class-types`)
+    fetch(`${import.meta.env.VITE_API_URL}/api/class-types`)
       .then((res) => res.json())
       .then(setClassTypes);
 
-    fetch(`${import.meta.env.VITE_API_URL}/teachers`)
+    fetch(`${import.meta.env.VITE_API_URL}/api/teachers`)
       .then((res) => res.json())
       .then(setTeachers);
 
-    fetch(`${import.meta.env.VITE_API_URL}/classes`)
+    fetch(`${import.meta.env.VITE_API_URL}/api/classes`)
       .then((res) => res.json())
       .then((data) => {
         setClasses(data);

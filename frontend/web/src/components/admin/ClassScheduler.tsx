@@ -28,7 +28,7 @@ export default function ClassScheduler() {
   // Carga tipos de clase
   useEffect(() => {
     const token = localStorage.getItem("access_token");
-    fetch(`${import.meta.env.VITE_API_URL}/class-types`, {
+    fetch(`${import.meta.env.VITE_API_URL}/api/class-types`, {
       headers: { Authorization: `Bearer ${token}` },
     })
       .then(r => r.json())
@@ -39,7 +39,7 @@ export default function ClassScheduler() {
   useEffect(() => {
     if (!classTypes.length) return;
     const token = localStorage.getItem("access_token");
-    fetch(`${import.meta.env.VITE_API_URL}/classes`, {
+    fetch(`${import.meta.env.VITE_API_URL}/api/classes`, {
       headers: { Authorization: `Bearer ${token}` },
     })
       .then(r => r.json())
@@ -60,7 +60,7 @@ export default function ClassScheduler() {
   // Función helper para recargar
   const fetchClasses = () => {
     const token = localStorage.getItem("access_token");
-    fetch(`${import.meta.env.VITE_API_URL}/classes`, {
+    fetch(`${import.meta.env.VITE_API_URL}/api/classes`, {
       headers: { Authorization: `Bearer ${token}` },
     })
       .then(r => r.json())
@@ -86,7 +86,7 @@ export default function ClassScheduler() {
       return;
     }
     const token = localStorage.getItem("access_token");
-    await fetch(`${import.meta.env.VITE_API_URL}/classes/bulk`, {
+    await fetch(`${import.meta.env.VITE_API_URL}/api/classes/bulk`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -102,7 +102,7 @@ export default function ClassScheduler() {
   const handleUpdateClass = async (updated: ClassEvent) => {
     const token = localStorage.getItem("access_token");
     const res = await fetch(
-      `${import.meta.env.VITE_API_URL}/classes/${updated.id}`,
+      `${import.meta.env.VITE_API_URL}/api/classes/${updated.id}`,
       {
         method: "PUT",
         headers: {
@@ -134,7 +134,7 @@ export default function ClassScheduler() {
     try {
       const accessToken = localStorage.getItem('access_token');
       const response = await fetch(
-        `${import.meta.env.VITE_API_URL}/class-types/${classTypeId}`,
+        `${import.meta.env.VITE_API_URL}/api/class-types/${classTypeId}`,
         {
           headers: { 
             'Authorization': `Bearer ${accessToken}`
@@ -154,7 +154,7 @@ export default function ClassScheduler() {
     try {
       const accessToken = localStorage.getItem('access_token');
       const response = await fetch(
-        `${import.meta.env.VITE_API_URL}/classes/delete-by-schedule?class_type_id=${encodeURIComponent(
+        `${import.meta.env.VITE_API_URL}/api/classes/delete-by-schedule?class_type_id=${encodeURIComponent(
           classTypeId
         )}&day_of_week=${dayOfWeek}&start_time=${startTime}&end_time=${endTime}`,
         {

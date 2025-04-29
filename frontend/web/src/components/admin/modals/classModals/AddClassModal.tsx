@@ -32,7 +32,7 @@ export default function AddClassModal({ show, handleClose, onSave, classTypes }:
         if (!accessToken) {
           throw new Error('No hay token de acceso');
         }
-        const response = await fetch(`${import.meta.env.VITE_API_URL}/teachers`, {
+        const response = await fetch(`${import.meta.env.VITE_API_URL}/api/teachers`, {
           headers: {
             'Authorization': `Bearer ${accessToken}`
           }

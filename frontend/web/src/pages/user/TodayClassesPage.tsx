@@ -25,7 +25,7 @@ const TodayClassesPage = () => {
 
   // Cargo tipos de clase
   useEffect(() => {
-    fetch(`${import.meta.env.VITE_API_URL}/class-types`)
+    fetch(`${import.meta.env.VITE_API_URL}/api/class-types`)
       .then(r => r.json())
       .then(data => setClassTypes(data))
       .catch(() => setError('Error al cargar los tipos de clases.'));
@@ -34,7 +34,7 @@ const TodayClassesPage = () => {
   // Cargo clases y formateo events
   useEffect(() => {
     if (!classTypes.length) return;
-    fetch(`${import.meta.env.VITE_API_URL}/classes`)
+    fetch(`${import.meta.env.VITE_API_URL}/api/classes`)
       .then(r => r.json())
       .then(data => {
         const ev = data.map((e: any) => ({

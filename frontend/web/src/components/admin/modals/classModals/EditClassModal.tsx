@@ -20,7 +20,7 @@ export default function EditClassModal({
     const fetchTeachers = async () => {
       try {
         const accessToken = localStorage.getItem("access_token");
-        const response = await fetch(`${import.meta.env.VITE_API_URL}/teachers`, {
+        const response = await fetch(`${import.meta.env.VITE_API_URL}/api/teachers`, {
           headers: { Authorization: `Bearer ${accessToken}` },
         });
         const data = await response.json();
@@ -46,7 +46,7 @@ export default function EditClassModal({
     const fetchClassTypes = async () => {
       try {
         const accessToken = localStorage.getItem("access_token");
-        const response = await fetch(`${import.meta.env.VITE_API_URL}/class-types`, {
+        const response = await fetch(`${import.meta.env.VITE_API_URL}/api/class-types`, {
           headers: { Authorization: `Bearer ${accessToken}` },
         });
         const data = await response.json();

@@ -27,7 +27,7 @@ const CurrentClassAttendance = () => {
           throw new Error("No hay token de acceso");
         }
         const response = await fetch(
-          `${import.meta.env.VITE_API_URL}/classes/current`,
+          `${import.meta.env.VITE_API_URL}/api/classes/current`,
           {
             headers: {
               Authorization: `Bearer ${accessToken}`,

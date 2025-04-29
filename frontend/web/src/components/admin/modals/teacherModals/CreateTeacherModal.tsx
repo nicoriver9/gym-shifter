@@ -23,7 +23,7 @@ const CreateTeacherModal = ({ show, handleClose, refreshTable }: CreateTeacherMo
         throw new Error('No hay token de acceso');
       }
 
-      const response = await fetch(`${import.meta.env.VITE_API_URL}/teachers`, {
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/api/teachers`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

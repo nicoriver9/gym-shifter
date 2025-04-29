@@ -13,7 +13,7 @@ const TeacherPaymentReport = () => {
     const fetchTeacherReport = async () => {
         try {
             const accessToken = localStorage.getItem('access_token');
-            const response = await fetch(`${import.meta.env.VITE_API_URL}/payments/teacher-report`, {
+            const response = await fetch(`${import.meta.env.VITE_API_URL}/api/payments/teacher-report`, {
                 headers: {
                     'Authorization': `Bearer ${accessToken}`
                 }

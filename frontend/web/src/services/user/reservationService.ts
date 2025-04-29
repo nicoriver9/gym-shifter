@@ -1,7 +1,7 @@
 import { Reservation } from "../../interfaces/admin/IReservation";
 
 // src/services/reservationService.ts
-const API_URL = `${import.meta.env.VITE_API_URL}/reservations`;
+const API_URL = `${import.meta.env.VITE_API_URL}/api/reservations`;
 
 // Función para obtener el token de acceso
 const getAccessToken = () => {

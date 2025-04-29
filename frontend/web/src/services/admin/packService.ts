@@ -1,5 +1,5 @@
 // src/services/packService.ts
-const API_URL = `${import.meta.env.VITE_API_URL}/packs`;
+const API_URL = `${import.meta.env.VITE_API_URL}/api/packs`;
 
 // Función para obtener el token de acceso
 const getAccessToken = () => {

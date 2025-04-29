@@ -26,7 +26,7 @@ export default function ConfirmDeleteModal({
           throw new Error('No hay token de acceso');
         }
         const response = await fetch(
-          `${import.meta.env.VITE_API_URL}/class-types/${classTypeId}`, {
+          `${import.meta.env.VITE_API_URL}/api/class-types/${classTypeId}`, {
             headers: {
               'Authorization': `Bearer ${accessToken}`
             }

@@ -1,5 +1,5 @@
 // src/services/classTypeService.ts
-const API_URL = `${import.meta.env.VITE_API_URL}/class-types`;
+const API_URL = `${import.meta.env.VITE_API_URL}/api/class-types`;
 
 // Función para obtener el token de acceso
 const getAccessToken = () => {

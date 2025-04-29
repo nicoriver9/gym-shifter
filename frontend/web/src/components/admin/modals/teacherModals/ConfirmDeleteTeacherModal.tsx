@@ -29,7 +29,7 @@ const ConfirmDeleteTeacherModal = ({
         throw new Error('No hay token de acceso');
       }
 
-      const response = await fetch(`${import.meta.env.VITE_API_URL}/teachers/${teacher.id}`, {
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/api/teachers/${teacher.id}`, {
         method: "DELETE",
         headers: {
           'Authorization': `Bearer ${accessToken}`

@@ -1,5 +1,5 @@
 // src/services/paymentService.ts
-const API_URL = `${import.meta.env.VITE_API_URL}/payments`;
+const API_URL = `${import.meta.env.VITE_API_URL}/api/payments`;
 
 // Función para obtener el token de acceso
 const getAccessToken = () => {
