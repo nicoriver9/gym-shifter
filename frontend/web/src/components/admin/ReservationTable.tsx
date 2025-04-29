@@ -25,8 +25,16 @@ const ReservationTable = () => {
   const fetchReservations = async () => {
     try {
       const data = await getReservations();
-      setReservations(data);
-      setFilteredReservations(data);
+  
+      // 🔽 Ordena por fecha de creación (más reciente primero)
+      const sortedData = [...data].sort((a, b) => {
+        const dateA = new Date(a.classSchedule.created_at).getTime();
+        const dateB = new Date(b.classSchedule.created_at).getTime();
+        return dateB - dateA; // Descendente
+      });
+  
+      setReservations(sortedData);
+      setFilteredReservations(sortedData);
     } catch (error) {
       console.error("Error al obtener reservaciones:", error);
     } finally {
@@ -93,7 +101,7 @@ const ReservationTable = () => {
   return (
     <div className="max-w-full mx-auto px-4 lg:px-8 mt-8">
       <h2 className="text-2xl font-semibold text-white text-center mb-6">
-        Gestión de Reservaciones
+        Control de Asistencias
       </h2>
 
       <div className="flex flex-col md:flex-row justify-between items-center gap-4 mb-6">
@@ -116,13 +124,13 @@ const ReservationTable = () => {
         <table className="w-full table-auto text-white">
           <thead>
             <tr className="bg-gray-700 text-xs uppercase tracking-wide">
-              <th className="px-3 py-2 text-center">ID</th>
+              {/* <th className="px-3 py-2 text-center">ID</th> */}
               <th className="px-3 py-2 text-center">Usuario</th>
               <th className="px-3 py-2 text-center">Clase</th>
-              <th className="px-3 py-2 text-center">Día</th>
+              {/* <th className="px-3 py-2 text-center">Día</th> */}
               <th className="px-3 py-2 text-center">Horario</th>
               <th className="px-3 py-2 text-center">Profesor</th>
-              <th className="px-3 py-2 text-center">Creado</th>
+              <th className="px-3 py-2 text-center">Confirmacion Asistencia</th>
               {/* <th className="px-3 py-2 text-center">Estado</th> */}
               <th className="px-3 py-2 text-center">Acciones</th>
             </tr>
@@ -134,12 +142,12 @@ const ReservationTable = () => {
                   key={r.id}
                   className="border-b border-gray-700 even:bg-gray-900 hover:bg-gray-700 transition text-sm"
                 >
-                  <td className="px-3 py-2 text-center">{r.id}</td>
+                  {/* <td className="px-3 py-2 text-center">{r.id}</td> */}
                   <td className="px-3 py-2 text-center whitespace-nowrap">
                     {r.user.firstName} {r.user.lastName}
                   </td>
                   <td className="px-3 py-2 text-center">{r.classSchedule.classType.name}</td>
-                  <td className="px-3 py-2 text-center">{r.classSchedule.day_of_week}</td>
+                  {/* <td className="px-3 py-2 text-center">{r.classSchedule.day_of_week}</td> */}
                   <td className="px-3 py-2 text-center whitespace-nowrap">
                     {r.classSchedule.start_time} - {r.classSchedule.end_time}
                   </td>
@@ -167,7 +175,7 @@ const ReservationTable = () => {
             ) : (
               <tr>
                 <td colSpan={9} className="py-4 text-center text-gray-400">
-                  No se encontraron reservaciones.
+                  No se encontraron asistencias.
                 </td>
               </tr>
             )}

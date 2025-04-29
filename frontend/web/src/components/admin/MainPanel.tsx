@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { FiLogOut } from "react-icons/fi";
+// import { FiLogOut } from "react-icons/fi";
 // import { useNavigate } from "react-router-dom";
 
 import ClassTypeTable from "./ClassTypes";
@@ -14,7 +14,7 @@ interface MainPanelProps {
   onLogout: () => void;
 }
 
-const MainPanel: React.FC<MainPanelProps> = ({ onLogout }) => {
+const MainPanel: React.FC<MainPanelProps> = () => {
   const [currentView, setCurrentView] = useState<
     "classTypes" | "scheduler" | "teachers" | "packs" | "users" | "reservations"
   >("classTypes");
@@ -24,12 +24,12 @@ const MainPanel: React.FC<MainPanelProps> = ({ onLogout }) => {
       <h1 className="text-4xl font-bold my-6 mb-10">Gestión de Clases</h1>
 
       {/* Botón de Cerrar Sesión con ícono */}
-      <button
+      {/* <button
         onClick={onLogout}
         className="absolute top-4 right-4 flex items-center gap-2 bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-full transition"
       >
         <FiLogOut className="text-xl" /> Cerrar Sesión
-      </button>
+      </button> */}
 
       <div className="w-full max-w-4xl mb-6">
         <CurrentClassAttendance />

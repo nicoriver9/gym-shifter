@@ -1,5 +1,6 @@
 export interface ClassEvent {
     id: number;
+    title: string;
     class_type_id: number;
     day_of_week: number;
     start_time: string;

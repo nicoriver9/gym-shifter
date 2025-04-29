@@ -129,8 +129,7 @@ export default function ClassScheduler() {
     dayOfWeek: number,
     startTime: string,
     endTime: string,
-  ) => {
-    console.log('classTypeId', classTypeId)
+  ) => {    
     let className = "";
     try {
       const accessToken = localStorage.getItem('access_token');
@@ -193,99 +192,111 @@ export default function ClassScheduler() {
     }
   };
 
-  return (
-    <div className="px-4 py-6">
-      <h2 className="text-center text-3xl font-semibold text-white mb-8">
-        Calendario de Clases
-      </h2>
+  const handleEventClick = (info: any) => {
+    const clickedEvent = info.event;
+    const classData: ClassEvent = {
+      id: Number(clickedEvent.id),
+      title: clickedEvent.title,
+      class_type_id: clickedEvent.extendedProps.class_type_id,
+      teacher_id: clickedEvent.extendedProps.teacher_id,
+      start_time: clickedEvent.start.toTimeString().slice(0, 5),
+      end_time: clickedEvent.end.toTimeString().slice(0, 5),
+      day_of_week: clickedEvent.start.getDay(),
+    };
+    setSelectedClass(classData);
+    setShowEditModal(true);
+  };
 
-      {/* botón centrado */}
-      <div className="flex justify-center mb-6">
-        <Button
-          onClick={() => setShowModal(true)}
-          className="bg-purple-600 hover:bg-purple-700 font-semibold text-white px-5 py-2 rounded-full"
-        >
-          + Agregar Clase
-        </Button>
-      </div>
-
-      {/* rango de semana */}
-      {rangeLabel && (
-        <div className="text-center text-white text-xl mb-4 font-semibold">
-          {rangeLabel}
+  return (    
+      <div className="px-4 py-6">
+        <h2 className="text-center text-3xl font-semibold text-white mb-8">
+          Calendario de Clases
+        </h2>
+  
+        <div className="flex justify-center mb-6">
+          <Button
+            onClick={() => setShowModal(true)}
+            className="bg-purple-600 hover:bg-purple-700 font-semibold text-white px-5 py-2 rounded-full"
+          >
+            + Agregar Clase
+          </Button>
         </div>
-      )}
-
-      <div className="bg-gray-800 rounded-lg shadow-lg overflow-auto">
-        <FullCalendar
-          plugins={[dayGridPlugin, timeGridPlugin, interactionPlugin]}
-          initialView="timeGridWeek"
-          events={events}
-          editable={true}
-          selectable={true}
-          locale={esLocale}
-          headerToolbar={{
-            left: "prev,next today",
-            center: "",
-            right: "dayGridMonth,timeGridWeek,timeGridDay",
-          }}
-          buttonText={{
-            today: "Hoy",
-            month: "Mes",
-            week: "Semana",
-            day: "Día",
-          }}
-          height="auto"
-          datesSet={(arg: DatesSetArg) => {
-            const start = arg.start;
-            const end = new Date(arg.end.getTime() - 1);
-            const opts: Intl.DateTimeFormatOptions = {
-              day: "numeric",
-              month: "short",
-            };
-            const s = start.toLocaleDateString("es-AR", opts);
-            const e = end.toLocaleDateString("es-AR", opts);
-            setRangeLabel(`${s} — ${e}`);
-          }}
-          eventClassNames={() =>
-            "bg-indigo-500 text-white font-medium rounded px-2 py-1"
+  
+        {rangeLabel && (
+          <div className="text-center text-white text-xl mb-4 font-semibold">
+            {rangeLabel}
+          </div>
+        )}
+  
+        <div className="bg-gray-800 rounded-lg shadow-lg overflow-auto">
+          <FullCalendar
+            plugins={[dayGridPlugin, timeGridPlugin, interactionPlugin]}
+            initialView="timeGridWeek"
+            events={events}
+            editable={true}
+            selectable={true}
+            locale={esLocale}
+            eventClick={handleEventClick} // ✅ Evento click agregado
+            headerToolbar={{
+              left: "prev,next today",
+              center: "",
+              right: "dayGridMonth,timeGridWeek,timeGridDay",
+            }}
+            buttonText={{
+              today: "Hoy",
+              month: "Mes",
+              week: "Semana",
+              day: "Día",
+            }}
+            height="auto"
+            datesSet={(arg: DatesSetArg) => {
+              const start = arg.start;
+              const end = new Date(arg.end.getTime() - 1);
+              const opts: Intl.DateTimeFormatOptions = {
+                day: "numeric",
+                month: "short",
+              };
+              const s = start.toLocaleDateString("es-AR", opts);
+              const e = end.toLocaleDateString("es-AR", opts);
+              setRangeLabel(`${s} — ${e}`);
+            }}
+            eventClassNames={() =>
+              "bg-indigo-500 text-white font-medium rounded px-2 py-1"
+            }
+            dayHeaderClassNames={() =>
+              "bg-gray-700 text-gray-200 p-2 text-center text-sm rounded"
+            }
+            slotLabelClassNames={() => "text-gray-400 text-xs text-center"}
+          />
+        </div>
+  
+        {/* Modales */}
+        <EditClassModal
+          show={showEditModal}
+          handleClose={() => setShowEditModal(false)}
+          classData={selectedClass}
+          onSave={handleUpdateClass}
+          confirmDeleteClass={confirmDeleteClass}
+        />
+        <AddClassModal
+          show={showModal}
+          handleClose={() => setShowModal(false)}
+          onSave={handleSaveClass}
+          classTypes={classTypes}
+        />
+        <ConfirmDeleteModal
+          show={showDeleteModal}
+          handleClose={() => setShowDeleteModal(false)}
+          handleConfirm={() =>
+            handleDeleteClassBySchedule(
+              classToDelete!.class_type_id,
+              classToDelete!.day_of_week,
+              classToDelete!.start_time,
+              classToDelete!.end_time
+            )
           }
-          dayHeaderClassNames={() =>
-            "bg-gray-700 text-gray-200 p-2 text-center text-sm rounded"
-          }
-          slotLabelClassNames={() =>
-            "text-gray-400 text-xs text-center"
-          }
+          classTypeId={classToDelete?.class_type_id}
         />
       </div>
-
-      {/* Modales */}
-      <EditClassModal
-        show={showEditModal}
-        handleClose={() => setShowEditModal(false)}
-        classData={selectedClass}
-        onSave={handleUpdateClass}
-        confirmDeleteClass={confirmDeleteClass}
-      />
-      <AddClassModal
-        show={showModal}
-        handleClose={() => setShowModal(false)}
-        onSave={handleSaveClass}
-        classTypes={classTypes}
-      />
-      <ConfirmDeleteModal
-        show={showDeleteModal}
-        handleClose={() => setShowDeleteModal(false)}
-        handleConfirm={() =>
-          handleDeleteClassBySchedule(
-            classToDelete!.class_type_id,
-            classToDelete!.day_of_week,
-            classToDelete!.start_time,
-            classToDelete!.end_time
-          )
-        }
-        classTypeId={classToDelete?.class_type_id}
-      />
-    </div>
-  );
+    );
 }

@@ -1,10 +1,4 @@
-import {
-  FiLogOut,
-  FiPackage,
-  FiCheckCircle,
-  FiClock,
-  FiSettings,
-} from "react-icons/fi";
+import { FiLogOut, FiPackage, FiCheckCircle, FiClock, FiSettings } from "react-icons/fi";
 import { Link, Outlet } from "react-router-dom";
 import { useUserPackStore } from "../../store/packCounter";
 
@@ -23,19 +17,13 @@ const UserDashboard: React.FC<UserDashboardProps> = ({ onLogout }) => {
   return (
     <div className="relative min-h-screen bg-gray-900 text-white flex flex-col items-center py-10 px-4 sm:px-6 lg:px-8">
       {/* Header */}
-      <header className="w-full max-w-4xl grid grid-cols-3 items-center bg-gray-800 p-4 rounded-lg shadow mb-8">
-        {/* Columna vacía para empujar el título al centro */}
-        <div></div>
-
-        {/* Título centrado */}
-        <h1 className="text-2xl font-bold text-center">
-          Hola!! {firstName} {lastName}
-        </h1>
-
-        {/* Logout a la derecha */}
+      <header className="w-full max-w-4xl flex items-center justify-between bg-gray-800 p-4 rounded-lg shadow mb-8">
+        <div className="flex-grow">
+          <h1 className="text-2xl font-bold text-center">Hola!! {firstName} {lastName}</h1>
+        </div>
         <button
           onClick={onLogout}
-          className="justify-self-end w-10 h-10 flex items-center justify-center bg-red-600 hover:bg-red-700 rounded-full transition"
+          className="w-10 h-10 flex items-center justify-center bg-red-600 hover:bg-red-700 rounded-full transition"
         >
           <FiLogOut className="text-xl text-white" />
           <span className="sr-only">Cerrar Sesión</span>
@@ -53,8 +41,7 @@ const UserDashboard: React.FC<UserDashboardProps> = ({ onLogout }) => {
         {/* Packs */}
         <Link
           to="/dashboard/packs"
-          data-aos="fade-up"
-          data-aos-duration="1000"
+          data-aos="fade-up" data-aos-duration="1000"
           className="flex w-3/5 sm:w-auto items-center justify-center gap-2 px-6 py-3 bg-purple-600 hover:bg-purple-700 rounded-full text-base font-medium transition"
         >
           <FiPackage /> <span>Packs</span>
@@ -63,15 +50,12 @@ const UserDashboard: React.FC<UserDashboardProps> = ({ onLogout }) => {
         {/* Confirmar asistencia (destacado en mobile) */}
         <Link
           to="/dashboard/confirm-attendance"
-          data-aos="fade-up"
-          data-aos-duration="1500"
+          data-aos="fade-up" data-aos-duration="1500"
           className={`
             flex w-3/5 sm:w-auto items-center justify-center text-center gap-2 px-6 py-3
-            ${
-              noClassesAvailable
-                ? "bg-gray-500 cursor-not-allowed opacity-60"
-                : "bg-green-600 hover:bg-green-700"
-            }
+            ${noClassesAvailable
+              ? "bg-gray-500 cursor-not-allowed opacity-60"
+              : "bg-green-600 hover:bg-green-700"}
             rounded-full text-base font-semibold transition
           `}
           onClick={(e) => noClassesAvailable && e.preventDefault()}
@@ -82,15 +66,12 @@ const UserDashboard: React.FC<UserDashboardProps> = ({ onLogout }) => {
         {/* Clases de Hoy */}
         <Link
           to="/dashboard/today-classes"
-          data-aos="fade-up"
-          data-aos-duration="2000"
+          data-aos="fade-up" data-aos-duration="2000"
           className={`
             flex w-3/5 sm:w-auto items-center justify-center gap-2 px-6 py-3
-            ${
-              noClassesAvailable
-                ? "bg-gray-500 cursor-not-allowed opacity-60"
-                : "bg-purple-600 hover:bg-purple-700"
-            }
+            ${noClassesAvailable
+              ? "bg-gray-500 cursor-not-allowed opacity-60"
+              : "bg-purple-600 hover:bg-purple-700"}
             rounded-full text-base font-medium transition
           `}
           onClick={(e) => noClassesAvailable && e.preventDefault()}
@@ -102,8 +83,7 @@ const UserDashboard: React.FC<UserDashboardProps> = ({ onLogout }) => {
         {userRole === "Admin" && (
           <Link
             to="/dashboard/administration"
-            data-aos="fade-up"
-            data-aos-duration="2500"
+            data-aos="fade-up" data-aos-duration="2500"
             className="flex w-3/5 sm:w-auto items-center justify-center gap-2 px-6 py-3 bg-sky-900 hover:bg-sky-700 rounded-full text-base font-medium transition"
           >
             <FiSettings /> <span>Administración</span>

@@ -75,7 +75,7 @@ const PackTable = () => {
               <th className="px-6 py-3 text-center">Clases Incluidas</th>
               <th className="px-6 py-3 text-center">Precio</th>
               <th className="px-6 py-3 text-center">Validez (Días)</th>
-              <th className="px-6 py-3 text-center">ID</th>
+              {/* <th className="px-6 py-3 text-center">ID</th> */}
               <th className="px-6 py-3 text-center">Acciones</th>
             </tr>
           </thead>
@@ -86,7 +86,7 @@ const PackTable = () => {
                   key={pack.id}
                   className="border-b border-gray-700 hover:bg-gray-800 transition"
                 >
-                  <td className="px-6 py-4 text-center">{pack.id}</td>
+                  {/* <td className="px-6 py-4 text-center">{pack.id}</td> */}
                   <td className="px-6 py-4 text-center">{pack.name}</td>
                   <td className="px-6 py-4 text-center">{pack.classes_included}</td>
                   <td className="px-6 py-4 text-center">${pack.price}</td>

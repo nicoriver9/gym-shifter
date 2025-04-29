@@ -1,6 +1,5 @@
 import { useState } from "react";
 import ClassTypeTable from "./admin/ClassTypes";
-import { FiLogOut } from "react-icons/fi";
 import ClassScheduler from "./admin/ClassScheduler";
 import TeacherTable from "./admin/TeacherTable";
 import PackTable from "./admin/PackTable";
@@ -12,7 +11,7 @@ interface MainPanelProps {
   onLogout: () => void;
 }
 
-const MainPanel: React.FC<MainPanelProps> = ({ onLogout }) => {
+const MainPanel: React.FC<MainPanelProps> = () => {
   const [currentView, setCurrentView] = useState<
     "classTypes" | "scheduler" | "teachers" | "packs" | "users" | "attendances"
   >("classTypes");
@@ -29,14 +28,6 @@ const MainPanel: React.FC<MainPanelProps> = ({ onLogout }) => {
   return (
     <div className="min-h-screen bg-gray-900 text-white flex flex-col items-center py-10 px-4">
       <h1 className="text-4xl font-bold mb-8">Gestión de Clases</h1>
-
-      {/* Botón de Cerrar Sesión con ícono */}
-      <button
-        onClick={onLogout}
-        className="absolute top-4 right-4 flex items-center gap-2 bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-full transition"
-      >
-        <FiLogOut className="text-xl" /> Cerrar Sesión
-      </button>
 
       <div className="w-full max-w-4xl mb-10">
         <CurrentClassAttendance />
