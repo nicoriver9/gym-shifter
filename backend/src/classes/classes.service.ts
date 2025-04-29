@@ -106,7 +106,7 @@ export class ClassesService {
   async updateClass(id: number, data: any) {
     delete data.id;
     delete data.title; 
-    
+
     return this.prisma.classSchedule.update({
       where: { id },
       data,

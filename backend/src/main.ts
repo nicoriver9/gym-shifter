@@ -30,7 +30,10 @@ async function bootstrap() {
   // Servir archivos estáticos
   server.use(express.static(join(__dirname, '../public')));
 
-  server.get('*', (req: Request, res: Response) => {
+  server.get('*', (req: Request, res: Response, next: NextFunction) => {
+    if (req.path.startsWith('/api')) {
+      return next(); // dejar que lo maneje NestJS normalmente
+    }
     res.sendFile(join(__dirname, '../public', 'index.html'));
   });
 

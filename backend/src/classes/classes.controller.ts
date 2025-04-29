@@ -12,7 +12,7 @@ import { ClassesService } from './classes.service';
 import { Roles } from '../auth/roles/roles.decorator';
 import { Role } from '@prisma/client';
 
-@Controller('classes')
+@Controller('api/classes')
 export class ClassesController {
   constructor(    
     private readonly classesService: ClassesService

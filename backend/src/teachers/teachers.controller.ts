@@ -13,7 +13,7 @@ import { TeachersService } from './teachers.service';
 import { Roles } from '../auth/roles/roles.decorator';
 import { Role } from '@prisma/client';
 
-@Controller('teachers')
+@Controller('api/teachers')
 export class TeachersController {
   constructor(private readonly teachersService: TeachersService) {}
 

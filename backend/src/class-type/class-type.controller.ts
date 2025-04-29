@@ -3,7 +3,7 @@ import { ClassTypeService } from './class-type.service';
 import { Roles } from '../auth/roles/roles.decorator';
 import { Role } from '@prisma/client';
 
-@Controller('class-types')
+@Controller('api/class-types')
 export class ClassTypeController {
   constructor(private readonly classTypeService: ClassTypeService) {}
 

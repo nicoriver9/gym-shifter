@@ -15,7 +15,7 @@ import { Roles } from '../auth/roles/roles.decorator';
 import { Role } from '@prisma/client';
 
 
-@Controller('packs')
+@Controller('api/packs')
 export class PacksController {
   constructor(private readonly packsService: PacksService) {}
 
