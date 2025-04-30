@@ -131,13 +131,27 @@ export class ClassesService {
     startTime: string,
     endTime: string,
   ) {
-    return this.prisma.classSchedule.deleteMany({
+    // 1. Buscar las clases a eliminar
+    const classes = await this.prisma.classSchedule.findMany({
       where: {
         class_type_id: classTypeId,
         day_of_week: dayOfWeek,
         start_time: startTime,
         end_time: endTime,
       },
+      select: { id: true },
+    });
+  
+    const classIds = classes.map((cls) => cls.id);
+  
+    // 2. Eliminar reservas asociadas
+    await this.prisma.reservation.deleteMany({
+      where: { class_id: { in: classIds } },
+    });
+  
+    // 3. Eliminar las clases
+    return this.prisma.classSchedule.deleteMany({
+      where: { id: { in: classIds } },
     });
   }
 }
