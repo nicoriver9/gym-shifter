@@ -4,6 +4,7 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
+import * as bcrypt from 'bcrypt';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
@@ -14,7 +15,30 @@ export class UsersService {
 
   // Crear un nuevo usuario
   async createUser(data: CreateUserDto) {
-    return this.prisma.user.create({ data });
+    // Verificar si ya existe el usuario por email o username
+    const existing = await this.prisma.user.findFirst({
+      where: {
+        OR: [{ email: data.email }, { username: data.firstName }],
+      },
+    });
+
+    if (existing) {
+      throw new BadRequestException('El usuario ya existe');
+    }
+
+    data.username = data.firstName;
+
+    // Hashear la contraseña si viene definida
+    const hashedPassword = data.password
+      ? await bcrypt.hash(data.password, 10)
+      : null;
+
+    return this.prisma.user.create({
+      data: {
+        ...data,
+        password: hashedPassword,
+      },
+    });
   }
 
   // Obtener todos los usuarios
@@ -54,6 +78,15 @@ export class UsersService {
 
   // Actualizar un usuario
   async updateUser(id: number, data: UpdateUserDto) {
+    // Si incluye password, la hasheamos
+    if (data.password) {
+      data.password = await bcrypt.hash(data.password, 10);
+    }
+
+    if (data.firstName) {
+      data.username = data.firstName;
+    }
+
     return this.prisma.user.update({
       where: { id },
       data,
