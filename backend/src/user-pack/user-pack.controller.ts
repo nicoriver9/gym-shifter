@@ -171,19 +171,19 @@ export class UserPackController {
     }
   }
 
-  @Post('force-reset-weekly-classes')
-  async forceResetWeeklyClasses() {
-    try {
-      const result = await this.userPackService.forceResetWeeklyClasses();
-      return {
-        success: true,
-        ...result,
-      };
-    } catch (error) {
-      return {
-        success: false,
-        message: error.message,
-      };
-    }
-  }
+  // @Post('force-reset-weekly-classes')
+  // async forceResetWeeklyClasses() {
+  //   try {
+  //     const result = await this.userPackService.forceResetWeeklyClasses();
+  //     return {
+  //       success: true,
+  //       ...result,
+  //     };
+  //   } catch (error) {
+  //     return {
+  //       success: false,
+  //       message: error.message,
+  //     };
+  //   }
+  // }
 }
