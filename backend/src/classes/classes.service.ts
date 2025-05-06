@@ -44,6 +44,9 @@ export class ClassesService {
       attendees_count: 0,
       room: null,
       is_active: false,
+      extraData: {
+        currentDay, currentTime
+      }
     };
 
     if (!currentClass) {
@@ -59,7 +62,9 @@ export class ClassesService {
       attendees_count: currentClass.Reservation.length,
       room: currentClass.room,
       is_active: true,
-    };
+      extraData: {
+        currentDay, currentTime
+      }
   }
 
   /**
