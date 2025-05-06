@@ -33,6 +33,7 @@ const QRScanOnlyPage = () => {
     fetch(`${import.meta.env.VITE_API_URL}/api/classes`)
       .then((res) => res.json())
       .then((data) => {
+        console.log(data)
         setClasses(data);
         const now = new Date();
         const found = findCurrentClass(data, now);
@@ -51,8 +52,7 @@ const QRScanOnlyPage = () => {
       }
 
       try {
-        const result = await confirmClassAttendance(userId, now);
-        console.log(result)
+        const result = await confirmClassAttendance(userId, now);        
         if (result.success && result.data) {
           setUserPack(result.data.pack_name);
           setUserPackClassesIncluded(result.data.classes_remaining);

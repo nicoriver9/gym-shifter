@@ -2,10 +2,11 @@ import { useEffect, useState } from 'react';
 import FullCalendar from '@fullcalendar/react';
 import dayGridPlugin from '@fullcalendar/daygrid';
 import timeGridPlugin from '@fullcalendar/timegrid';
-import timeGridWeekPlugin from '@fullcalendar/timegrid';
 import interactionPlugin from '@fullcalendar/interaction';
 import esLocale from '@fullcalendar/core/locales/es';
 import { PackInfo } from '../../components/user/PackInfo';
+import AOS from "aos";
+import "aos/dist/aos.css";
 
 const getDateForDay = (dayOfWeek: number, time: string): Date => {
   const today = new Date();
@@ -23,6 +24,10 @@ const TodayClassesPage = () => {
   const [error, setError] = useState<string | null>(null);
   const [classTypes, setClassTypes] = useState<{ id: number; name: string }[]>([]);
 
+  useEffect(() => {
+    AOS.init({ duration: 600 });
+  }, []);
+
   // Cargo tipos de clase
   useEffect(() => {
     fetch(`${import.meta.env.VITE_API_URL}/api/class-types`)
@@ -39,9 +44,7 @@ const TodayClassesPage = () => {
       .then(data => {
         const ev = data.map((e: any) => ({
           id: e.id,
-          title:
-            classTypes.find(t => t.id === e.class_type_id)?.name ||
-            'Sin nombre',
+          title: classTypes.find(t => t.id === e.class_type_id)?.name || 'Sin nombre',
           start: getDateForDay(e.day_of_week, e.start_time),
           end: getDateForDay(e.day_of_week, e.end_time),
         }));
@@ -51,22 +54,6 @@ const TodayClassesPage = () => {
       .finally(() => setLoading(false));
   }, [classTypes]);
 
-  if (loading)
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <span className="text-white text-xl">Cargando clases…</span>
-      </div>
-    );
-  if (error)
-    return (
-      <div className="flex items-center justify-center min-h-screen px-4">
-        <div className="bg-red-100 text-red-800 px-6 py-4 rounded-md shadow-md text-center max-w-md w-full">
-          ❌ {error}
-        </div>
-      </div>
-    );
-
-  // Formateo manual de la fecha de hoy
   const today = new Date();
   const formattedDate = today.toLocaleDateString('es-AR', {
     weekday: 'long',
@@ -74,11 +61,31 @@ const TodayClassesPage = () => {
     month: 'long',
   });
 
+  if (loading) {
+    return (
+      <div className="flex justify-center items-center min-h-screen" data-aos="fade-up">
+        <div className="text-center">
+          <p className="text-white text-lg mb-3">Cargando clases del día...</p>
+          <div className="w-10 h-10 border-4 border-purple-500 border-t-transparent rounded-full animate-spin mx-auto"></div>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="flex items-center justify-center min-h-screen px-4">
+        <div className="bg-red-800 text-white px-6 py-4 rounded-md shadow-md text-center max-w-md w-full">
+          {error}
+        </div>
+      </div>
+    );
+  }
+
   return (
-    <div className="max-w-4xl mx-auto mt-8 px-4 sm:px-6">
+    <div className="max-w-4xl mx-auto mt-10 px-4 sm:px-6">
       <PackInfo />
 
-      {/* Título y fecha */}
       <h2 className="text-3xl sm:text-4xl font-semibold text-white text-center mb-3">
         Clases de Hoy
       </h2>
@@ -86,15 +93,9 @@ const TodayClassesPage = () => {
         {formattedDate}
       </div>
 
-      {/* Calendario */}
-      <div className="bg-gray-800 rounded-xl shadow-lg p-2 sm:p-6">
+      <div className="bg-gray-800 rounded-xl shadow-lg p-2 sm:p-6" data-aos="fade-up">
         <FullCalendar
-          plugins={[
-            dayGridPlugin,
-            timeGridPlugin,
-            timeGridWeekPlugin,
-            interactionPlugin,
-          ]}
+          plugins={[dayGridPlugin, timeGridPlugin, interactionPlugin]}
           locale={esLocale}
           initialView="timeGridDay"
           events={events}
@@ -103,6 +104,11 @@ const TodayClassesPage = () => {
           height="auto"
           slotMinTime="06:00:00"
           slotMaxTime="22:00:00"
+          slotLabelFormat={{
+            hour: '2-digit',
+            minute: '2-digit',
+            hour12: false
+          }}
           headerToolbar={{
             left: 'prev,next today',
             center: '',

@@ -1,75 +1,84 @@
 import { useEffect, useState } from "react";
-import { Modal, Button } from "react-bootstrap";
 
 interface ConfirmDeleteModalProps {
   show: boolean;
   handleClose: () => void;
-  handleConfirm: () => void;  
+  handleConfirm: () => void;
   classTypeId: number | undefined;
 }
 
 export default function ConfirmDeleteModal({
   show,
   handleClose,
-  handleConfirm,  
+  handleConfirm,
   classTypeId,
 }: ConfirmDeleteModalProps) {
-  // 🔥 Buscar el nombre de la clase basado en `class_type_id`
-  
   const [className, setClassName] = useState("");
 
   const fetchClass = async () => {
-    if(classTypeId){
+    if (classTypeId) {
       try {
-        const accessToken = localStorage.getItem('access_token');
-        if (!accessToken) {
-          throw new Error('No hay token de acceso');
-        }
+        const accessToken = localStorage.getItem("access_token");
+        if (!accessToken) throw new Error("No hay token de acceso");
+
         const response = await fetch(
-          `${import.meta.env.VITE_API_URL}/api/class-types/${classTypeId}`, {
+          `${import.meta.env.VITE_API_URL}/api/class-types/${classTypeId}`,
+          {
             headers: {
-              'Authorization': `Bearer ${accessToken}`
-            }
+              Authorization: `Bearer ${accessToken}`,
+            },
           }
         );
+
         if (!response.ok) {
           throw new Error("Error al obtener el nombre de la clase");
         }
-        const data = await response.json();              
+
+        const data = await response.json();
         setClassName(data.name);
       } catch (error) {
         console.error("Error al obtener el nombre de la clase:", error);
-        // return; // Salir de la función si hay un error
-      }  
+      }
     }
+  };
 
-  }
-  
   useEffect(() => {
-    fetchClass()
-  }, [classTypeId])
-  
+    fetchClass();
+  }, [classTypeId]);
 
+  if (!show) return null;
 
   return (
-    <Modal show={show} onHide={handleClose} centered>
-      <Modal.Header closeButton>
-        <Modal.Title>Confirmar Eliminación</Modal.Title>
-      </Modal.Header>
-      <Modal.Body>
-        <p>
+    <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-60 z-50">
+      <div
+        className="bg-gray-900 text-white p-6 rounded-lg shadow-lg w-full max-w-md animate-fade-in"
+        data-aos="zoom-in"
+      >
+        <h2 className="text-xl font-bold text-red-500 mb-4">
+          Confirmar Eliminación
+        </h2>
+
+        <p className="mb-6">
           ¿Estás seguro de que deseas eliminar la clase{" "}
-          <strong>{className}</strong>? Esta acción no se puede deshacer.
+          <strong className="text-red-400">{className}</strong>? Esta acción no
+          se puede deshacer.
         </p>
-      </Modal.Body>
-      <Modal.Footer>
-        <Button variant="secondary" onClick={handleClose}>
-          Cancelar
-        </Button>
-        <Button variant="danger" onClick={handleConfirm}>
-          Eliminar
-        </Button>
-      </Modal.Footer>
-    </Modal>
+
+        <div className="flex justify-end gap-3">
+          <button
+            onClick={handleClose}
+            className="bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded-lg transition"
+          >
+            Cancelar
+          </button>
+          <button
+            onClick={handleConfirm}
+            className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg transition"
+          >
+            Eliminar
+          </button>
+        </div>
+      </div>
+    </div>
   );
 }

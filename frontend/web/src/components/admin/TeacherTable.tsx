@@ -1,4 +1,7 @@
 import { useEffect, useState } from "react";
+import AOS from "aos";
+import "aos/dist/aos.css";
+
 import CreateTeacherModal from "./modals/teacherModals/CreateTeacherModal";
 import EditTeacherModal from "./modals/teacherModals/EditTeacherModal";
 import ConfirmDeleteTeacherModal from "./modals/teacherModals/ConfirmDeleteTeacherModal";
@@ -13,6 +16,7 @@ const TeacherTable = () => {
   const [selectedTeacher, setSelectedTeacher] = useState<any>(null);
 
   useEffect(() => {
+    AOS.init({ duration: 600 });
     fetchTeachers();
   }, []);
 
@@ -39,8 +43,11 @@ const TeacherTable = () => {
 
   if (loading) {
     return (
-      <div className="flex justify-center items-center min-h-screen">
-        <div className="text-white text-xl">Cargando...</div>
+      <div className="flex justify-center items-center min-h-screen" data-aos="fade-up">
+        <div className="text-center text-white">
+          <p className="text-lg">Cargando profesores...</p>
+          <div className="w-12 h-12 border-4 border-purple-500 border-t-transparent rounded-full animate-spin mx-auto mt-4"></div>
+        </div>
       </div>
     );
   }
@@ -62,8 +69,8 @@ const TeacherTable = () => {
       </div>
 
       {/* Tabla */}
-      <div className="overflow-x-auto">
-        <table className="min-w-full bg-gray-900 text-white rounded-lg shadow-md overflow-hidden">
+      <div className="overflow-x-auto bg-gray-900 rounded-lg shadow-lg">
+        <table className="min-w-full text-white">
           <thead>
             <tr className="bg-gray-700 text-white text-sm uppercase tracking-wider">
               <th className="px-6 py-3 text-center">ID</th>

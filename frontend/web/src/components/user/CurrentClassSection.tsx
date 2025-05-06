@@ -46,10 +46,10 @@ export const CurrentClassSection = ({ classes, classTypes, teachers }: CurrentCl
     const [endHours, endMinutes] = classItem.end_time.split(':').map(Number);
     const classEnd = new Date(currentTime);
     classEnd.setHours(endHours, endMinutes, 0, 0);
-    
+
     const diffMs = classEnd.getTime() - currentTime.getTime();
     const diffMins = Math.round(diffMs / 60000);
-    
+
     if (diffMins > 0) {
       setTimeLeft(`${diffMins} min restantes`);
     } else {
@@ -68,28 +68,28 @@ export const CurrentClassSection = ({ classes, classTypes, teachers }: CurrentCl
 
   return (
     <div className="bg-purple-900 border border-purple-600 rounded-lg p-4 mb-6">
-      <h3 className="text-xl text-center font-bold text-white mb-4">Clase en Curso</h3>
-      
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-white">
+      <h3 className="text-xl text-center font-bold text-white mb-5">Clase en Curso</h3>
+
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-white text-center">
         <div>
           <p className="font-semibold">Clase:</p>
           <p className="text-lg">{currentClass.classType?.name || 'Clase sin nombre'}</p>
         </div>
-        
+
         <div>
           <p className="font-semibold">Profesor:</p>
           <p className="text-lg">{currentClass.teacher?.name || 'Profesor no asignado'}</p>
         </div>
-        
+
         <div>
           <p className="font-semibold">Horario:</p>
           <p className="text-lg">
-            {currentClass.start_time} - {currentClass.end_time} 
+            {currentClass.start_time} - {currentClass.end_time}
             <span className="block text-sm text-purple-300">{timeLeft}</span>
           </p>
         </div>
       </div>
-      
+
       {currentClass.room && (
         <div className="mt-3 text-center">
           <span className="inline-block bg-gray-700 text-white px-3 py-1 rounded-full text-sm">

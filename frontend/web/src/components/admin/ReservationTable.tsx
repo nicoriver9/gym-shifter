@@ -1,4 +1,7 @@
 import { useEffect, useState } from "react";
+import AOS from "aos";
+import "aos/dist/aos.css";
+
 import CreateReservationModal from "./modals/reservationModals/CreateReservationModal";
 import EditReservationModal from "./modals/reservationModals/EditReservationModal";
 import ConfirmDeleteReservationModal from "./modals/reservationModals/ConfirmDeleteReservationModal";
@@ -19,20 +22,21 @@ const ReservationTable = () => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    AOS.init({ duration: 600 });
     fetchReservations();
   }, []);
 
   const fetchReservations = async () => {
     try {
       const data = await getReservations();
-  
+
       // 🔽 Ordena por fecha de creación (más reciente primero)
       const sortedData = [...data].sort((a, b) => {
         const dateA = new Date(a.classSchedule.created_at).getTime();
         const dateB = new Date(b.classSchedule.created_at).getTime();
-        return dateB - dateA; // Descendente
+        return dateB - dateA;
       });
-  
+
       setReservations(sortedData);
       setFilteredReservations(sortedData);
     } catch (error) {
@@ -78,7 +82,6 @@ const ReservationTable = () => {
     );
   };
 
-  // Formatea un string ISO o instancia Date a 'dd MMM yyyy, HH:mm'
   const formatDateTime = (input: string | Date) => {
     const d = typeof input === "string" ? new Date(input) : input;
     return d.toLocaleString("es-AR", {
@@ -92,8 +95,11 @@ const ReservationTable = () => {
 
   if (loading) {
     return (
-      <div className="flex justify-center items-center min-h-screen">
-        <span className="text-white text-xl">Cargando reservaciones…</span>
+      <div className="flex justify-center items-center min-h-screen" data-aos="fade-up">
+        <div className="text-center">
+          <p className="text-white text-lg mb-4">Cargando reservaciones…</p>
+          <div className="w-12 h-12 border-4 border-purple-500 border-t-transparent rounded-full animate-spin mx-auto"></div>
+        </div>
       </div>
     );
   }
@@ -130,7 +136,7 @@ const ReservationTable = () => {
               {/* <th className="px-3 py-2 text-center">Día</th> */}
               <th className="px-3 py-2 text-center">Horario</th>
               <th className="px-3 py-2 text-center">Profesor</th>
-              <th className="px-3 py-2 text-center">Confirmacion Asistencia</th>
+              <th className="px-3 py-2 text-center">Confirmación Asistencia</th>
               {/* <th className="px-3 py-2 text-center">Estado</th> */}
               <th className="px-3 py-2 text-center">Acciones</th>
             </tr>
@@ -153,22 +159,24 @@ const ReservationTable = () => {
                   </td>
                   <td className="px-3 py-2 text-center">{r.classSchedule.teacherName}</td>
                   <td className="px-3 py-2 text-center whitespace-nowrap text-xs">
-                    {formatDateTime(r.classSchedule.created_at)}
+                    {formatDateTime(r.created_at)}
                   </td>
                   {/* <td className="px-3 py-2 text-center">{r.status}</td> */}
-                  <td className="px-3 py-2 text-center space-x-1">
-                    <button
-                      className="bg-green-500 hover:bg-green-600 px-2 py-1 my-2 rounded-md text-xs transition"
-                      onClick={() => handleEdit(r)}
-                    >
-                      Editar
-                    </button>
-                    <button
-                      className="bg-red-600 hover:bg-red-700 px-2 py-1 rounded-md text-xs transition"
-                      onClick={() => handleDelete(r)}
-                    >
-                      Eliminar
-                    </button>
+                  <td className="px-3 py-2 text-center">
+                    <div className="flex justify-center gap-2">
+                      <button
+                        className="bg-green-500 hover:bg-green-600 px-3 py-1 rounded-md text-xs font-semibold transition"
+                        onClick={() => handleEdit(r)}
+                      >
+                        Editar
+                      </button>
+                      <button
+                        className="bg-red-600 hover:bg-red-700 px-3 py-1 rounded-md text-xs font-semibold transition"
+                        onClick={() => handleDelete(r)}
+                      >
+                        Eliminar
+                      </button>
+                    </div>
                   </td>
                 </tr>
               ))

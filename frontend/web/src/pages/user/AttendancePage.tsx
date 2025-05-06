@@ -1,4 +1,3 @@
-// src/pages/user/AttendancePage.tsx
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { PackInfo } from "../../components/user/PackInfo";
@@ -9,6 +8,8 @@ import { confirmClassAttendance } from "../../services/user/userPackService";
 import { ConfirmationModal } from "../../components/user/ConfirmationModal";
 import { FaQrcode } from "react-icons/fa";
 import { FiCheckCircle } from "react-icons/fi";
+import AOS from "aos";
+import "aos/dist/aos.css";
 
 const AttendancePage = () => {
   const navigate = useNavigate();
@@ -21,6 +22,7 @@ const AttendancePage = () => {
   const [isProcessing, setIsProcessing] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [currentClass, setCurrentClass] = useState<any>(null);
+  const [loading, setLoading] = useState(true); // Nuevo estado de carga
 
   const userId = Number(localStorage.getItem("user_id"));
   const {
@@ -37,20 +39,32 @@ const AttendancePage = () => {
     userPackClassesIncluded !== null;
 
   useEffect(() => {
-    fetch(`${import.meta.env.VITE_API_URL}/api/class-types`)
-      .then((res) => res.json())
-      .then(setClassTypes);
+    AOS.init({ duration: 600 });
+    const fetchData = async () => {
+      try {
+        const [classTypesRes, teachersRes, classesRes] = await Promise.all([
+          fetch(`${import.meta.env.VITE_API_URL}/api/class-types`).then((r) =>
+            r.json()
+          ),
+          fetch(`${import.meta.env.VITE_API_URL}/api/teachers`).then((r) =>
+            r.json()
+          ),
+          fetch(`${import.meta.env.VITE_API_URL}/api/classes`).then((r) =>
+            r.json()
+          ),
+        ]);
+        setClassTypes(classTypesRes);
+        setTeachers(teachersRes);
+        setClasses(classesRes);
+        setHasCurrentClass(!!findCurrentClass(classesRes, new Date()));
+      } catch (err) {
+        console.error("Error al cargar datos:", err);
+      } finally {
+        setLoading(false);
+      }
+    };
 
-    fetch(`${import.meta.env.VITE_API_URL}/api/teachers`)
-      .then((res) => res.json())
-      .then(setTeachers);
-
-    fetch(`${import.meta.env.VITE_API_URL}/api/classes`)
-      .then((res) => res.json())
-      .then((data) => {
-        setClasses(data);
-        setHasCurrentClass(!!findCurrentClass(data, new Date()));
-      });
+    fetchData();
   }, []);
 
   const showConfirmationModal = () => {
@@ -93,6 +107,17 @@ const AttendancePage = () => {
       setCurrentClass(null);
     }
   };
+
+  if (loading) {
+    return (
+      <div className="flex justify-center items-center min-h-screen" data-aos="fade-up">
+        <div className="text-center">
+          <p className="text-white text-lg mb-3">Cargando datos de clase...</p>
+          <div className="w-10 h-10 border-4 border-purple-500 border-t-transparent rounded-full animate-spin mx-auto"></div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="max-w-xl mx-auto mt-10 px-4">
@@ -146,8 +171,8 @@ const AttendancePage = () => {
             onClick={() => navigate("/dashboard/scan")}
             disabled={!!success}
             className={`flex items-center justify-center gap-2 w-full text-white font-semibold px-6 py-3 rounded-lg shadow-md transition ${success
-                ? "bg-gray-500 cursor-not-allowed"
-                : "bg-teal-500 hover:bg-teal-600"
+              ? "bg-gray-500 cursor-not-allowed"
+              : "bg-teal-500 hover:bg-teal-600"
               }`}
           >
             <FaQrcode className="text-xl" />
@@ -158,8 +183,8 @@ const AttendancePage = () => {
             onClick={showConfirmationModal}
             disabled={isProcessing || !!success}
             className={`flex items-center justify-center gap-2 w-full text-white font-semibold px-6 py-3 rounded-lg shadow-md transition ${isProcessing || success
-                ? "bg-gray-500 cursor-not-allowed"
-                : "bg-orange-500 hover:bg-orange-600"
+              ? "bg-gray-500 cursor-not-allowed"
+              : "bg-orange-500 hover:bg-orange-600"
               }`}
           >
             <FiCheckCircle className="text-xl" />

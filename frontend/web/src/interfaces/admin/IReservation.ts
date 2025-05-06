@@ -18,4 +18,5 @@ export interface Reservation {
       created_at: Date;
     };
     status: string;
+    created_at: Date
   }

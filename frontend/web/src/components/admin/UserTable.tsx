@@ -1,4 +1,7 @@
 import { useEffect, useState } from "react";
+import AOS from "aos";
+import "aos/dist/aos.css";
+
 import CreateUserModal from "./modals/userModals/CreateUserModal";
 import EditUserModal from "./modals/userModals/EditUserModal";
 import ConfirmDeleteUserModal from "./modals/userModals/ConfirmDeleteUserModal";
@@ -21,8 +24,10 @@ const UserTable = () => {
   const [selectedUser, setSelectedUser] = useState<any>(null);
   const [, setPacks] = useState<Pack[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    AOS.init({ duration: 600 });
     fetchUsers();
     fetchPacks();
   }, []);
@@ -45,9 +50,15 @@ const UserTable = () => {
   };
 
   const fetchUsers = async () => {
-    const data = await getUsers();
-    setUsers(data);
-    setFilteredUsers(data);
+    try {
+      const data = await getUsers();
+      setUsers(data);
+      setFilteredUsers(data);
+    } catch (error) {
+      console.error("Error al obtener usuarios:", error);
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleEdit = (user: any) => { setSelectedUser(user); setShowEditModal(true); };
@@ -58,6 +69,17 @@ const UserTable = () => {
     const diff = new Date(exp).getTime() - Date.now();
     return Math.max(0, Math.ceil(diff / (1000 * 60 * 60 * 24)));
   };
+
+  if (loading) {
+    return (
+      <div className="flex justify-center items-center min-h-screen" data-aos="fade-up">
+        <div className="text-center text-white">
+          <p className="text-lg">Cargando usuarios...</p>
+          <div className="w-12 h-12 border-4 border-purple-500 border-t-transparent rounded-full animate-spin mx-auto mt-4"></div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="max-w-screen-lg mx-auto mt-8 px-4 md:px-8">

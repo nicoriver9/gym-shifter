@@ -3,17 +3,18 @@ import { getPacks } from "../../services/admin/packService";
 // import { getPaymentLink } from "../../services/admin/paymentService";
 import { PackInfo } from "../../components/user/PackInfo";
 import { useUserPackStore } from "../../store/packCounter";
-import { useNavigate } from "react-router-dom"; // 👈 Importar navigate
+import { useNavigate } from "react-router-dom";
+import AOS from "aos";
+import "aos/dist/aos.css";
 
 const PacksPage = () => {
   const [packs, setPacks] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const { userPackClassesIncluded, userPack } = useUserPackStore();
-  const navigate = useNavigate(); // 👈 Instancia de navegación
-
-  // const userId = Number(localStorage.getItem("user_id"));
+  const navigate = useNavigate();
 
   useEffect(() => {
+    AOS.init({ duration: 600 });
     fetchPacks();
   }, []);
 
@@ -50,26 +51,29 @@ const PacksPage = () => {
 
   if (loading) {
     return (
-      <div className="flex justify-center items-center min-h-screen">
-        <div className="text-white text-xl">Cargando...</div>
+      <div className="flex justify-center items-center min-h-screen" data-aos="fade-up">
+        <div className="text-center">
+          <p className="text-white text-lg mb-3">Cargando packs...</p>
+          <div className="w-10 h-10 border-4 border-purple-500 border-t-transparent rounded-full animate-spin mx-auto"></div>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="max-w-4xl mx-3 mt-8">
+    <div className="max-w-4xl mx-auto mt-10 px-4">
       <PackInfo />
 
       {canBuyMorePacks() ? (
         <>
-          <h2 className="text-2xl font-semibold text-white text-center mb-4">
+          <h2 className="text-2xl md:text-3xl font-semibold text-white text-center mb-6">
             Packs Disponibles
           </h2>
 
-          <div className="overflow-x-auto">
-            <table className="min-w-full bg-gray-900 text-white rounded-lg shadow-md overflow-hidden">
+          <div className="overflow-x-auto bg-gray-900 rounded-lg shadow-lg" data-aos="fade-up">
+            <table className="min-w-full text-white">
               <thead>
-                <tr className="bg-gray-700 text-white text-left text-sm uppercase tracking-wider">
+                <tr className="bg-gray-700 text-sm uppercase tracking-wide">
                   <th className="px-6 py-3 text-center">ID</th>
                   <th className="px-6 py-3 text-center">Precio</th>
                   <th className="px-6 py-3 text-center">Clases Incluidas</th>
@@ -87,29 +91,30 @@ const PacksPage = () => {
                       <td className="px-6 py-4 text-center">{i + 1}</td>
                       <td className="px-6 py-4 text-center">${pack.price}</td>
                       <td className="px-6 py-4 text-center">{pack.name}</td>
-                      <td className="px-6 py-4 text-center">
-                        {pack.validity_days}
-                      </td>
-                      <td className="px-6 py-4 text-center flex flex-col gap-2 justify-center items-center">
-                        {/* <button
-                          className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg transition"
-                          onClick={() => handleBuyPack(pack.id)}
-                        >
-                          Comprar
-                        </button> */}
-
-                        <button
-                          className="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-lg transition"
-                          onClick={() => navigate("/payment/alias")}
-                        >
-                          Comprar Pack
-                        </button>
+                      <td className="px-6 py-4 text-center">{pack.validity_days}</td>
+                      <td className="px-6 py-4 text-center flex justify-center">
+                        <div className="flex flex-col items-center gap-2 sm:flex-row">
+                          {/* 
+                          <button
+                            className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-md transition"
+                            onClick={() => handleBuyPack(pack.id)}
+                          >
+                            Comprar
+                          </button>
+                          */}
+                          <button
+                            className="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-md transition"
+                            onClick={() => navigate("/payment/alias")}
+                          >
+                            Comprar Pack
+                          </button>
+                        </div>
                       </td>
                     </tr>
                   ))
                 ) : (
                   <tr>
-                    <td colSpan={6} className="text-center py-4 text-gray-400">
+                    <td colSpan={5} className="text-center py-6 text-gray-400">
                       No hay packs disponibles.
                     </td>
                   </tr>
@@ -119,10 +124,8 @@ const PacksPage = () => {
           </div>
         </>
       ) : (
-        <div className="bg-blue-900 text-white p-6 rounded-lg shadow-md text-center mt-6">
-          <h3 className="text-xl font-semibold mb-2">
-            Ya tienes un pack activo
-          </h3>
+        <div className="bg-blue-900 text-white p-6 rounded-lg shadow-md text-center mt-6" data-aos="fade-up">
+          <h3 className="text-xl font-semibold mb-2">Ya tienes un pack activo</h3>
           <p>
             Actualmente tienes clases disponibles en tu pack. Podrás comprar un
             nuevo pack cuando tu actual esté agotado o próximo a vencer.

@@ -1,4 +1,7 @@
 import { useEffect, useState } from "react";
+import AOS from "aos";
+import "aos/dist/aos.css";
+
 import CreateClassTypeModal from "./modals/classTypesModals/CreateClassTypeModal";
 import EditClassTypeModal from "./modals/classTypesModals/EditClassTypeModal";
 import ConfirmDeleteClassTypeModal from "./modals/classTypesModals/ConfirmDeleteClassTypeModal";
@@ -10,14 +13,22 @@ const ClassTypeTable = () => {
   const [showEditModal, setShowEditModal] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [selectedClassType, setSelectedClassType] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    AOS.init({ duration: 600 });
     fetchClassTypes();
   }, []);
 
   const fetchClassTypes = async () => {
-    const data = await getClassTypes();
-    setClassTypes(data);
+    try {
+      const data = await getClassTypes();
+      setClassTypes(data);
+    } catch (error) {
+      console.error("Error al obtener tipos de clases:", error);
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleEdit = (classType: any) => {
@@ -54,53 +65,60 @@ const ClassTypeTable = () => {
         </button>
       </div>
 
-      {/* Tabla */}
-      <div className="overflow-x-auto bg-gray-800 rounded-lg shadow-lg">
-        <table className="w-full text-white">
-          <thead>
-            <tr className="bg-gray-700 text-sm md:text-base uppercase tracking-wide">
-              <th className="px-6 py-3 text-center">ID</th>
-              <th className="px-6 py-3 text-center">Nombre</th>
-              <th className="px-6 py-3 text-center">Acciones</th>
-            </tr>
-          </thead>
-          <tbody>
-            {classTypes.length > 0 ? (
-              classTypes.map((ct) => (
-                <tr
-                  key={ct.id}
-                  className="border-b border-gray-700 hover:bg-gray-700 transition"
-                >
-                  <td className="px-6 py-4 text-center">{ct.id}</td>
-                  <td className="px-6 py-4 text-center">{ct.name}</td>
-                  <td className="px-6 py-4 text-center">
-                    <div className="inline-flex justify-center space-x-3">
-                      <button
-                        className="bg-green-600 hover:bg-green-700 font-semibold text-white text-xs md:text-sm px-3 py-1 rounded-md transition"
-                        onClick={() => handleEdit(ct)}
-                      >
-                        Editar
-                      </button>
-                      <button
-                        className="bg-red-600 hover:bg-red-700 font-semibold text-white text-xs md:text-sm px-3 py-1 rounded-md transition"
-                        onClick={() => handleDelete(ct)}
-                      >
-                        Eliminar
-                      </button>
-                    </div>
+      {/* Spinner */}
+      {loading ? (
+        <div className="text-center text-white mt-20" data-aos="fade-up">
+          <p className="text-lg">Cargando tipos de clases...</p>
+          <div className="w-12 h-12 border-4 border-purple-500 border-t-transparent rounded-full animate-spin mx-auto mt-4"></div>
+        </div>
+      ) : (
+        <div className="overflow-x-auto bg-gray-800 rounded-lg shadow-lg">
+          <table className="w-full text-white">
+            <thead>
+              <tr className="bg-gray-700 text-sm md:text-base uppercase tracking-wide">
+                <th className="px-6 py-3 text-center">ID</th>
+                <th className="px-6 py-3 text-center">Nombre</th>
+                <th className="px-6 py-3 text-center">Acciones</th>
+              </tr>
+            </thead>
+            <tbody>
+              {classTypes.length > 0 ? (
+                classTypes.map((ct) => (
+                  <tr
+                    key={ct.id}
+                    className="border-b border-gray-700 hover:bg-gray-700 transition"
+                  >
+                    <td className="px-6 py-4 text-center">{ct.id}</td>
+                    <td className="px-6 py-4 text-center">{ct.name}</td>
+                    <td className="px-6 py-4 text-center">
+                      <div className="inline-flex justify-center space-x-3">
+                        <button
+                          className="bg-green-600 hover:bg-green-700 font-semibold text-white text-xs md:text-sm px-3 py-1 rounded-md transition"
+                          onClick={() => handleEdit(ct)}
+                        >
+                          Editar
+                        </button>
+                        <button
+                          className="bg-red-600 hover:bg-red-700 font-semibold text-white text-xs md:text-sm px-3 py-1 rounded-md transition"
+                          onClick={() => handleDelete(ct)}
+                        >
+                          Eliminar
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))
+              ) : (
+                <tr>
+                  <td colSpan={3} className="py-4 text-center text-gray-400">
+                    No hay tipos de clase registrados.
                   </td>
                 </tr>
-              ))
-            ) : (
-              <tr>
-                <td colSpan={3} className="py-4 text-center text-gray-400">
-                  No hay tipos de clase registrados.
-                </td>
-              </tr>
-            )}
-          </tbody>
-        </table>
-      </div>
+              )}
+            </tbody>
+          </table>
+        </div>
+      )}
 
       {/* Modales */}
       <CreateClassTypeModal

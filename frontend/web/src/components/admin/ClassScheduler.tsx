@@ -21,11 +21,9 @@ export default function ClassScheduler() {
   const [showEditModal, setShowEditModal] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [classToDelete, setClassToDelete] = useState<ClassEvent | null>(null);
-
-  // Para la cabecera de fecha:
   const [rangeLabel, setRangeLabel] = useState<string>("");
+  const [loadingCalendar, setLoadingCalendar] = useState(true); // 🔄
 
-  // Carga tipos de clase
   useEffect(() => {
     const token = localStorage.getItem("access_token");
     fetch(`${import.meta.env.VITE_API_URL}/api/class-types`, {
@@ -35,7 +33,6 @@ export default function ClassScheduler() {
       .then(data => setClassTypes(data));
   }, []);
 
-  // Carga eventos
   useEffect(() => {
     if (!classTypes.length) return;
     const token = localStorage.getItem("access_token");
@@ -54,10 +51,10 @@ export default function ClassScheduler() {
           teacher_id: e.teacher_id,
         }));
         setEvents(ev);
+        setLoadingCalendar(false); // ✅ Ocultar spinner al terminar
       });
   }, [classTypes]);
 
-  // Función helper para recargar
   const fetchClasses = () => {
     const token = localStorage.getItem("access_token");
     fetch(`${import.meta.env.VITE_API_URL}/api/classes`, {
@@ -78,7 +75,6 @@ export default function ClassScheduler() {
       });
   };
 
-  // Guardar nuevas clases
   const handleSaveClass = async (newClasses: any[]) => {
     const valid = newClasses.filter((c) => c.start_time < c.end_time);
     if (valid.length !== newClasses.length) {
@@ -98,7 +94,6 @@ export default function ClassScheduler() {
     setShowModal(false);
   };
 
-  // Actualizar
   const handleUpdateClass = async (updated: ClassEvent) => {
     const token = localStorage.getItem("access_token");
     const res = await fetch(
@@ -118,7 +113,6 @@ export default function ClassScheduler() {
     }
   };
 
-  // Eliminar
   const confirmDeleteClass = (c: ClassEvent) => {
     setClassToDelete(c);
     setShowDeleteModal(true);
@@ -207,27 +201,33 @@ export default function ClassScheduler() {
     setShowEditModal(true);
   };
 
-  return (    
-      <div className="px-4 py-6">
-        <h2 className="text-center text-3xl font-semibold text-white mb-8">
-          Calendario de Clases
-        </h2>
-  
-        <div className="flex justify-center mb-6">
-          <Button
-            onClick={() => setShowModal(true)}
-            className="bg-purple-600 hover:bg-purple-700 font-semibold text-white px-5 py-2 rounded-full"
-          >
-            + Agregar Clase
-          </Button>
+  return (
+    <div className="px-4 py-6 min-h-screen">
+      <h2 className="text-center text-3xl font-semibold text-white mb-8">
+        Calendario de Clases
+      </h2>
+
+      <div className="flex justify-center mb-6">
+        <Button
+          onClick={() => setShowModal(true)}
+          className="bg-purple-600 hover:bg-purple-700 font-semibold text-white px-5 py-2 rounded-full"
+        >
+          + Agregar Clase
+        </Button>
+      </div>
+
+      {rangeLabel && !loadingCalendar && (
+        <div className="text-center text-white text-xl mb-4 font-semibold">
+          {rangeLabel}
         </div>
-  
-        {rangeLabel && (
-          <div className="text-center text-white text-xl mb-4 font-semibold">
-            {rangeLabel}
-          </div>
-        )}
-  
+      )}
+
+      {loadingCalendar ? (
+        <div className="text-center text-white mt-20" data-aos="fade-up">
+          <p className="text-lg">Cargando calendario...</p>
+          <div className="w-12 h-12 border-4 border-purple-500 border-t-transparent rounded-full animate-spin mx-auto mt-4"></div>
+        </div>
+      ) : (
         <div className="bg-gray-800 rounded-lg shadow-lg overflow-auto">
           <FullCalendar
             plugins={[dayGridPlugin, timeGridPlugin, interactionPlugin]}
@@ -236,7 +236,14 @@ export default function ClassScheduler() {
             editable={true}
             selectable={true}
             locale={esLocale}
-            eventClick={handleEventClick} // ✅ Evento click agregado
+            eventClick={handleEventClick}
+            slotMinTime="06:00:00" // ✅ Empieza a las 06:00
+            slotMaxTime="22:00:00"
+            slotLabelFormat={{
+              hour: "2-digit",
+              minute: "2-digit",
+              hour12: false,       // ✅ Muestra 06:00, 07:00...
+            }}
             headerToolbar={{
               left: "prev,next today",
               center: "",
@@ -268,35 +275,36 @@ export default function ClassScheduler() {
             }
             slotLabelClassNames={() => "text-gray-400 text-xs text-center"}
           />
+
         </div>
-  
-        {/* Modales */}
-        <EditClassModal
-          show={showEditModal}
-          handleClose={() => setShowEditModal(false)}
-          classData={selectedClass}
-          onSave={handleUpdateClass}
-          confirmDeleteClass={confirmDeleteClass}
-        />
-        <AddClassModal
-          show={showModal}
-          handleClose={() => setShowModal(false)}
-          onSave={handleSaveClass}
-          classTypes={classTypes}
-        />
-        <ConfirmDeleteModal
-          show={showDeleteModal}
-          handleClose={() => setShowDeleteModal(false)}
-          handleConfirm={() =>
-            handleDeleteClassBySchedule(
-              classToDelete!.class_type_id,
-              classToDelete!.day_of_week,
-              classToDelete!.start_time,
-              classToDelete!.end_time
-            )
-          }
-          classTypeId={classToDelete?.class_type_id}
-        />
-      </div>
-    );
+      )}
+
+      <EditClassModal
+        show={showEditModal}
+        handleClose={() => setShowEditModal(false)}
+        classData={selectedClass}
+        onSave={handleUpdateClass}
+        confirmDeleteClass={confirmDeleteClass}
+      />
+      <AddClassModal
+        show={showModal}
+        handleClose={() => setShowModal(false)}
+        onSave={handleSaveClass}
+        classTypes={classTypes}
+      />
+      <ConfirmDeleteModal
+        show={showDeleteModal}
+        handleClose={() => setShowDeleteModal(false)}
+        handleConfirm={() =>
+          handleDeleteClassBySchedule(
+            classToDelete!.class_type_id,
+            classToDelete!.day_of_week,
+            classToDelete!.start_time,
+            classToDelete!.end_time
+          )
+        }
+        classTypeId={classToDelete?.class_type_id}
+      />
+    </div>
+  );
 }

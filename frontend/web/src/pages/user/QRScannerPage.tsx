@@ -56,9 +56,41 @@ const QRScannerPage = () => {
   }, []);
 
   const checkCurrentClass = (classList: any[]) => {
-    const now = new Date();
-    const foundClass = findCurrentClass(classList, now);
+    const foundClass = findCurrentClass(classList, new Date());
     setHasCurrentClass(!!foundClass);
+  };
+
+  const handleClassSelection = (foundClass: any) => {
+    setCurrentClass({
+      ...foundClass,
+      classType: classTypes.find((type) => type.id === foundClass.class_type_id),
+      teacher: teachers.find((teacher) => teacher.id === foundClass.teacher_id),
+    });
+    setIsModalOpen(true);
+  };
+
+  const handleScan = (data: any) => {
+    if (data && hasCurrentClass) {
+      const foundClass = findCurrentClass(classes, new Date());
+      if (!foundClass) {
+        setError("No hay clases programadas en este momento");
+        setHasCurrentClass(false);
+        return;
+      }
+      handleClassSelection(foundClass);
+    }
+  };
+
+  const handleManualCheckIn = async () => {
+    if (!hasCurrentClass) return;
+
+    const foundClass = findCurrentClass(classes, new Date());
+    if (!foundClass) {
+      setError("No hay clases programadas en este momento");
+      setHasCurrentClass(false);
+      return;
+    }
+    handleClassSelection(foundClass);
   };
 
   const handleSuccess = (result: any) => {
@@ -77,54 +109,6 @@ const QRScannerPage = () => {
     } else {
       throw new Error("Respuesta inesperada del servidor");
     }
-  };
-
-  const handleScan = (data: any) => {
-    if (data && hasCurrentClass) {
-      const now = new Date();
-      const foundClass = findCurrentClass(classes, now);
-
-      if (!foundClass) {
-        setError("No hay clases programadas en este momento");
-        setHasCurrentClass(false);
-        return;
-      }
-
-      setCurrentClass({
-        ...foundClass,
-        classType: classTypes.find(
-          (type) => type.id === foundClass.class_type_id
-        ),
-        teacher: teachers.find(
-          (teacher) => teacher.id === foundClass.teacher_id
-        ),
-      });
-
-      setIsModalOpen(true);
-    }
-  };
-
-  const handleManualCheckIn = async () => {
-    if (!hasCurrentClass) return;
-
-    const now = new Date();
-    const foundClass = findCurrentClass(classes, now);
-
-    if (!foundClass) {
-      setError("No hay clases programadas en este momento");
-      setHasCurrentClass(false);
-      return;
-    }
-
-    setCurrentClass({
-      ...foundClass,
-      classType: classTypes.find(
-        (type) => type.id === foundClass.class_type_id
-      ),
-      teacher: teachers.find((teacher) => teacher.id === foundClass.teacher_id),
-    });
-
-    setIsModalOpen(true);
   };
 
   const confirmAttendance = async () => {
