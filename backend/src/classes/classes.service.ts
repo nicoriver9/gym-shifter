@@ -19,6 +19,8 @@ export class ClassesService {
     const currentDay = now.isoWeekday();
     const currentTime = now.format('HH:mm');
 
+    // console.log(currentDay, currentTime)
+
     const currentClass = await this.prisma.classSchedule.findFirst({
       where: {
         day_of_week: currentDay,
@@ -65,6 +67,7 @@ export class ClassesService {
       extraData: {
         currentDay, currentTime
       }
+    };
   }
 
   /**
@@ -159,4 +162,5 @@ export class ClassesService {
       where: { id: { in: classIds } },
     });
   }
+  
 }
