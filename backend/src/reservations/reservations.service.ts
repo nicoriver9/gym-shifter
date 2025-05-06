@@ -60,6 +60,7 @@ export class ReservationsService {
         teacherName: `${reservation.classSchedule.teacher.name}`, // Nombre del profesor
       },
       status: reservation.status,
+      created_at: reservation.created_at
     }));
   }
 
