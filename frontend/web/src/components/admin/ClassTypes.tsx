@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { FaPen, FaTrashAlt } from "react-icons/fa";
 import AOS from "aos";
 import "aos/dist/aos.css";
 
@@ -95,14 +96,16 @@ const ClassTypeTable = () => {
                         <button
                           className="bg-green-600 hover:bg-green-700 font-semibold text-white text-xs md:text-sm px-3 py-1 rounded-md transition"
                           onClick={() => handleEdit(ct)}
+                          title="Editar Tipo de Clase"
                         >
-                          Editar
+                          <FaPen />
                         </button>
                         <button
                           className="bg-red-600 hover:bg-red-700 font-semibold text-white text-xs md:text-sm px-3 py-1 rounded-md transition"
                           onClick={() => handleDelete(ct)}
+                          title="Eliminar Tipo de Clase"
                         >
-                          Eliminar
+                          <FaTrashAlt />
                         </button>
                       </div>
                     </td>

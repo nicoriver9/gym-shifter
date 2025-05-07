@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { FaPen, FaTrashAlt } from "react-icons/fa";
 import AOS from "aos";
 import "aos/dist/aos.css";
 
@@ -116,14 +117,16 @@ const PackTable = () => {
                         <button
                           className="bg-green-600 hover:bg-green-700 font-semibold text-white px-4 py-2 rounded-md transition"
                           onClick={() => handleEdit(pack)}
+                          title="Editar Pack"
                         >
-                          Editar
+                          <FaPen />
                         </button>
                         <button
                           className="bg-red-600 hover:bg-red-700 font-semibold text-white px-4 py-2 rounded-md transition"
                           onClick={() => handleDelete(pack)}
+                          title="Eliminar Pack"
                         >
-                          Eliminar
+                          <FaTrashAlt />
                         </button>
                         {/* 
                         <button

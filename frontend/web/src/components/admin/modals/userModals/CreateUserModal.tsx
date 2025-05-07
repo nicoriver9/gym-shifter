@@ -12,10 +12,11 @@ const CreateUserModal = ({ show, handleClose, refreshTable }: CreateUserModalPro
   const [lastName, setLastName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [username, setUsername] = useState('');
   const [loading, setLoading] = useState(false);
 
   const handleSubmit = async () => {
-    if (!firstName.trim() || !lastName.trim() || !email.trim() || !password.trim()) {
+    if (!firstName.trim() || !lastName.trim() || !email.trim() || !password.trim() || !username.trim()) {
       alert('Todos los campos son obligatorios.');
       return;
     }
@@ -23,7 +24,7 @@ const CreateUserModal = ({ show, handleClose, refreshTable }: CreateUserModalPro
     setLoading(true);
 
     try {
-      await createUser({ firstName, lastName, email, password });
+      await createUser({ firstName, lastName, username, email, password });
       refreshTable();
       handleClose();
     } catch (error) {
@@ -68,7 +69,7 @@ const CreateUserModal = ({ show, handleClose, refreshTable }: CreateUserModalPro
               type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className="w-full px-3 py-2 text-gray-900 rounded-lg focus:ring-2 focus:ring-purple-500 outline-none"
+              className="w-full px-3 py-2 text-gray-900 rounded-lg focus:ring-2 focus:ring-purple-500 outline-none"              
             />
           </div>
 
@@ -78,6 +79,16 @@ const CreateUserModal = ({ show, handleClose, refreshTable }: CreateUserModalPro
               type="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
+              className="w-full px-3 py-2 text-gray-900 rounded-lg focus:ring-2 focus:ring-purple-500 outline-none"
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium mb-1">Username</label>
+            <input
+              type="text"
+              value={username}
+              onChange={(e) => setUsername(e.target.value)}
               className="w-full px-3 py-2 text-gray-900 rounded-lg focus:ring-2 focus:ring-purple-500 outline-none"
             />
           </div>

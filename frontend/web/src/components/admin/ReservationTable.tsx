@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { FaEdit, FaTrash } from "react-icons/fa";
 import AOS from "aos";
 import "aos/dist/aos.css";
 
@@ -167,14 +168,16 @@ const ReservationTable = () => {
                       <button
                         className="bg-green-500 hover:bg-green-600 px-3 py-1 rounded-md text-xs font-semibold transition"
                         onClick={() => handleEdit(r)}
+                        title="Editar"
                       >
-                        Editar
+                        <FaEdit className="inline mr-1" /> 
                       </button>
                       <button
                         className="bg-red-600 hover:bg-red-700 px-3 py-1 rounded-md text-xs font-semibold transition"
                         onClick={() => handleDelete(r)}
+                        title="Eliminar"
                       >
-                        Eliminar
+                        <FaTrash className="inline mr-1" /> 
                       </button>
                     </div>
                   </td>

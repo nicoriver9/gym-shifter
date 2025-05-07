@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { FaPen, FaTrashAlt } from "react-icons/fa";
 import { getAllClasses, deleteClass } from "../../services/admin/classService";
 import { Button, Table } from "react-bootstrap";
 
@@ -47,8 +48,12 @@ export default function ClassTable({ onEdit }: { onEdit: (classData: Class) => v
             <td>{clase.start_time}</td>
             <td>{clase.end_time}</td>
             <td>
-              <Button variant="warning" onClick={() => onEdit(clase)}>Editar</Button>
-              <Button variant="danger" className="ms-2" onClick={() => handleDelete(clase.id)}>Eliminar</Button>
+              <Button variant="warning" onClick={() => onEdit(clase)}>
+                <FaPen />
+              </Button>
+              <Button variant="danger" className="ms-2" onClick={() => handleDelete(clase.id)}>
+                <FaTrashAlt />
+              </Button>
             </td>
           </tr>
         ))}

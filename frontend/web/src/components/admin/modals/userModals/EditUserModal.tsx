@@ -37,6 +37,7 @@ const EditUserModal = ({
   const [selectedPackId, setSelectedPackId] = useState<number | null>(null);
   const [loading, setLoading] = useState(false);
   const [userInfo, setUserInfo] = useState<any>(user);
+  const [username, setUsername] = useState("");
 
   const fetchUserInfo = async () => {
     try {
@@ -53,6 +54,7 @@ const EditUserModal = ({
       setLastName(user.lastName || "");
       setEmail(user.email || "");
       setPassword("");
+      setUsername(user.username || "");
       fetchPacks();
       setUserInfo(user);
     }
@@ -76,6 +78,7 @@ const EditUserModal = ({
         firstName,
         lastName,
         email,
+        username,
         ...(password && { password }),
       });
       refreshTable();
@@ -153,6 +156,16 @@ const EditUserModal = ({
               type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
+              className="w-full p-2 rounded bg-gray-800 text-white"
+            />
+          </div>
+
+          <div>
+            <label className="text-white block mb-1">Username</label>
+            <input
+              type="text"
+              value={username}
+              onChange={(e) => setUsername(e.target.value)}
               className="w-full p-2 rounded bg-gray-800 text-white"
             />
           </div>

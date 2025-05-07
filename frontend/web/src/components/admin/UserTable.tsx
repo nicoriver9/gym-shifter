@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { FaEdit, FaTrash } from "react-icons/fa";
 import AOS from "aos";
 import "aos/dist/aos.css";
 
@@ -36,7 +37,7 @@ const UserTable = () => {
     const lower = searchTerm.toLowerCase();
     setFilteredUsers(
       users.filter(
-        u =>
+        (u) =>
           u.firstName.toLowerCase().includes(lower) ||
           u.lastName.toLowerCase().includes(lower) ||
           u.email.toLowerCase().includes(lower)
@@ -52,6 +53,7 @@ const UserTable = () => {
   const fetchUsers = async () => {
     try {
       const data = await getUsers();
+      console.log(data);
       setUsers(data);
       setFilteredUsers(data);
     } catch (error) {
@@ -61,9 +63,21 @@ const UserTable = () => {
     }
   };
 
-  const handleEdit = (user: any) => { setSelectedUser(user); setShowEditModal(true); };
-  const handleDelete = (user: any) => { setSelectedUser(user); setShowDeleteModal(true); };
-  const handleDeleteConfirm = async () => { if (selectedUser) { await deleteUser(selectedUser.id); fetchUsers(); setShowDeleteModal(false); } };
+  const handleEdit = (user: any) => {
+    setSelectedUser(user);
+    setShowEditModal(true);
+  };
+  const handleDelete = (user: any) => {
+    setSelectedUser(user);
+    setShowDeleteModal(true);
+  };
+  const handleDeleteConfirm = async () => {
+    if (selectedUser) {
+      await deleteUser(selectedUser.id);
+      fetchUsers();
+      setShowDeleteModal(false);
+    }
+  };
 
   const daysRemaining = (exp: Date | string): number => {
     const diff = new Date(exp).getTime() - Date.now();
@@ -72,7 +86,10 @@ const UserTable = () => {
 
   if (loading) {
     return (
-      <div className="flex justify-center items-center min-h-screen" data-aos="fade-up">
+      <div
+        className="flex justify-center items-center min-h-screen"
+        data-aos="fade-up"
+      >
         <div className="text-center text-white">
           <p className="text-lg">Cargando usuarios...</p>
           <div className="w-12 h-12 border-4 border-purple-500 border-t-transparent rounded-full animate-spin mx-auto mt-4"></div>
@@ -101,60 +118,88 @@ const UserTable = () => {
           placeholder="Buscar por nombre, apellido o email"
           className="w-full md:w-80 text-sm md:text-base px-3 py-2 rounded-md border border-gray-600 bg-gray-700 text-white placeholder-gray-400 transition"
           value={searchTerm}
-          onChange={e => setSearchTerm(e.target.value)}
+          onChange={(e) => setSearchTerm(e.target.value)}
         />
       </div>
 
       {/* Table/container */}
-      <div className="overflow-x-auto bg-gray-800 rounded-lg shadow-lg">
+      {/* Tabla más angosta y centrada */}
+      <div className="overflow-x-auto bg-gray-800 rounded-lg shadow-lg max-w-4xl mx-auto">
         <table className="w-full table-auto text-white">
           <thead>
-            <tr className="bg-gray-700 text-left text-sm md:text-base uppercase tracking-wide">
-              <th className="px-4 py-3">ID</th>
-              <th className="px-4 py-3">Nombre</th>
-              <th className="px-4 py-3">Email</th>
-              <th className="px-4 py-3">Packs</th>
-              <th className="px-4 py-3">Acciones</th>
+            <tr className="bg-gray-700 text-center text-sm md:text-base uppercase tracking-wide">
+              <th className="px-1 py-3">Username</th>
+              <th className="px-2 py-3">Nombre</th>
+              <th className="px-2 py-3">Email</th>
+              <th className="px-2 py-3">Packs</th>
+              <th className="px-2 py-3">Acciones</th>
             </tr>
           </thead>
           <tbody>
             {filteredUsers.length ? (
-              filteredUsers.map(u => (
-                <tr key={u.id} className="border-b border-gray-700 even:bg-gray-900 hover:bg-gray-700 transition">
-                  <td className="px-4 py-3 text-sm md:text-base">{u.id}</td>
-                  <td className="px-4 py-3 text-sm md:text-base">{u.firstName} {u.lastName}</td>
-                  <td className="px-4 py-3 text-sm md:text-base">{u.email}</td>
-                  <td className="px-4 py-3 text-sm md:text-base">
+              filteredUsers.map((u) => (
+                <tr
+                  key={u.id}
+                  className="border-b border-gray-700 even:bg-gray-900 hover:bg-gray-700 transition text-center"
+                >
+                  <td className="px-1 py-3 font-bold">{u.username}</td>
+                  <td className="px-2 py-3">
+                    {u.firstName} {u.lastName}
+                  </td>
+                  <td className="px-2 py-3">{u.email}</td>
+                  <td className="px-2 py-3 text-sm">
                     {u.current_pack ? (
-                      <div className="space-y-1 text-sm md:text-base">
-                        <div><strong>{u.current_pack.name}</strong></div>
-                        <div>Fecha: {new Date(u.current_pack.created_at).toLocaleDateString()}</div>
+                      <div className="space-y-1">
                         <div>
-                          {daysRemaining(u.pack_expiration_date) === 0
-                            ? <span className="text-red-400">Pack vencido</span>
-                            : `Días restantes: ${daysRemaining(u.pack_expiration_date)}`}
+                          <strong>{u.current_pack.name}</strong>
+                        </div>
+                        <div>
+                          Fecha:{" "}
+                          {new Date(
+                            u.current_pack.created_at
+                          ).toLocaleDateString()}
+                        </div>
+                        <div>
+                          {daysRemaining(u.pack_expiration_date) === 0 ? (
+                            <span className="text-red-400">Pack vencido</span>
+                          ) : (
+                            `Días restantes: ${daysRemaining(
+                              u.pack_expiration_date
+                            )}`
+                          )}
                         </div>
                         <div>Clases restantes: {u.classes_remaining ?? 0}</div>
                       </div>
                     ) : (
-                      <span className="text-sm md:text-base">Sin Pack Asignado</span>
+                      <span>Sin Pack Asignado</span>
                     )}
                   </td>
-                  <td className="px-4 py-3 flex items-center justify-center space-x-2">
-                    <button
-                      className="bg-green-500 hover:bg-green-600 font-semibold text-white text-xs md:text-sm px-2 md:px-3 py-1 md:py-2 rounded-md transition"
-                      onClick={() => handleEdit(u)}
-                    >Editar</button>
-                    <button
-                      className="bg-red-600 hover:bg-red-700 font-semibold text-white text-xs md:text-sm px-2 md:px-3 py-1 md:py-2 rounded-md transition"
-                      onClick={() => handleDelete(u)}
-                    >Eliminar</button>
+                  <td className="px-2 py-3">
+                    <div className="flex justify-center gap-2">
+                      <button
+                        className="bg-green-500 hover:bg-green-600 text-white p-2 rounded-md transition"
+                        onClick={() => handleEdit(u)}
+                        title="Editar"
+                      >
+                        <FaEdit className="text-sm" />
+                      </button>
+                      <button
+                        className="bg-red-600 hover:bg-red-700 text-white p-2 rounded-md transition"
+                        onClick={() => handleDelete(u)}
+                        title="Eliminar"
+                      >
+                        <FaTrash className="text-sm" />
+                      </button>
+                    </div>
                   </td>
                 </tr>
               ))
             ) : (
               <tr>
-                <td colSpan={5} className="py-4 text-center text-gray-400 text-sm md:text-base">
+                <td
+                  colSpan={5}
+                  className="py-4 text-center text-gray-400 text-sm md:text-base"
+                >
                   No hay usuarios registrados.
                 </td>
               </tr>
@@ -164,9 +209,23 @@ const UserTable = () => {
       </div>
 
       {/* Modals */}
-      <CreateUserModal show={showCreateModal} handleClose={() => setShowCreateModal(false)} refreshTable={fetchUsers} />
-      <EditUserModal show={showEditModal} handleClose={() => setShowEditModal(false)} user={selectedUser} refreshTable={fetchUsers} />
-      <ConfirmDeleteUserModal show={showDeleteModal} handleClose={() => setShowDeleteModal(false)} handleConfirm={handleDeleteConfirm} user={selectedUser} />
+      <CreateUserModal
+        show={showCreateModal}
+        handleClose={() => setShowCreateModal(false)}
+        refreshTable={fetchUsers}
+      />
+      <EditUserModal
+        show={showEditModal}
+        handleClose={() => setShowEditModal(false)}
+        user={selectedUser}
+        refreshTable={fetchUsers}
+      />
+      <ConfirmDeleteUserModal
+        show={showDeleteModal}
+        handleClose={() => setShowDeleteModal(false)}
+        handleConfirm={handleDeleteConfirm}
+        user={selectedUser}
+      />
     </div>
   );
 };
