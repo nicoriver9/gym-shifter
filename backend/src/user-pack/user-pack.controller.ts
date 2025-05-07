@@ -40,6 +40,7 @@ export class UserPackController {
   async confirmAttendance(@Body() confirmDto: ConfirmAttendanceDto) {
     try {
       const currentDateTime = new Date(confirmDto.currentDateTime);
+      currentDateTime.setHours(currentDateTime.getHours() - 3);
       const result = await this.userPackService.confirmClassAttendance(
         confirmDto.userId,
         currentDateTime,
