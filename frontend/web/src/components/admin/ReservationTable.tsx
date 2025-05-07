@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { FaEdit, FaTrash } from "react-icons/fa";
 import AOS from "aos";
 import "aos/dist/aos.css";
+import * as XLSX from "xlsx";
 
 import CreateReservationModal from "./modals/reservationModals/CreateReservationModal";
 import EditReservationModal from "./modals/reservationModals/EditReservationModal";
@@ -30,14 +31,11 @@ const ReservationTable = () => {
   const fetchReservations = async () => {
     try {
       const data = await getReservations();
-
-      // 🔽 Ordena por fecha de creación (más reciente primero)
       const sortedData = [...data].sort((a, b) => {
         const dateA = new Date(a.classSchedule.created_at).getTime();
         const dateB = new Date(b.classSchedule.created_at).getTime();
         return dateB - dateA;
       });
-
       setReservations(sortedData);
       setFilteredReservations(sortedData);
     } catch (error) {
@@ -94,6 +92,23 @@ const ReservationTable = () => {
     });
   };
 
+  const exportToExcel = () => {
+    const dataToExport = filteredReservations.map((r) => ({
+      Usuario: `${r.user.firstName} ${r.user.lastName}`,
+      Email: r.user.email,
+      Clase: r.classSchedule.classType.name,
+      Horario: `${r.classSchedule.start_time} - ${r.classSchedule.end_time}`,
+      Profesor: r.classSchedule.teacherName,
+      "Fecha de Confirmación": formatDateTime(r.created_at),
+    }));
+
+    const worksheet = XLSX.utils.json_to_sheet(dataToExport);
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, "Asistencias");
+
+    XLSX.writeFile(workbook, "asistencias.xlsx");
+  };
+
   if (loading) {
     return (
       <div className="flex justify-center items-center min-h-screen" data-aos="fade-up">
@@ -119,26 +134,23 @@ const ReservationTable = () => {
           value={searchTerm}
           onChange={handleSearch}
         />
-        {/* <button
-          className="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-md shadow transition text-sm"
-          onClick={() => setShowCreateModal(true)}
+        <button
+          onClick={exportToExcel}
+          className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md shadow text-sm"
         >
-          + Crear Reservación
-        </button> */}
+          Descargar Excel
+        </button>
       </div>
 
       <div className="overflow-x-auto bg-gray-800 rounded-lg shadow-md">
         <table className="w-full table-auto text-white">
           <thead>
             <tr className="bg-gray-700 text-xs uppercase tracking-wide">
-              {/* <th className="px-3 py-2 text-center">ID</th> */}
               <th className="px-3 py-2 text-center">Usuario</th>
               <th className="px-3 py-2 text-center">Clase</th>
-              {/* <th className="px-3 py-2 text-center">Día</th> */}
               <th className="px-3 py-2 text-center">Horario</th>
               <th className="px-3 py-2 text-center">Profesor</th>
               <th className="px-3 py-2 text-center">Confirmación Asistencia</th>
-              {/* <th className="px-3 py-2 text-center">Estado</th> */}
               <th className="px-3 py-2 text-center">Acciones</th>
             </tr>
           </thead>
@@ -149,12 +161,10 @@ const ReservationTable = () => {
                   key={r.id}
                   className="border-b border-gray-700 even:bg-gray-900 hover:bg-gray-700 transition text-sm"
                 >
-                  {/* <td className="px-3 py-2 text-center">{r.id}</td> */}
                   <td className="px-3 py-2 text-center whitespace-nowrap">
                     {r.user.firstName} {r.user.lastName}
                   </td>
                   <td className="px-3 py-2 text-center">{r.classSchedule.classType.name}</td>
-                  {/* <td className="px-3 py-2 text-center">{r.classSchedule.day_of_week}</td> */}
                   <td className="px-3 py-2 text-center whitespace-nowrap">
                     {r.classSchedule.start_time} - {r.classSchedule.end_time}
                   </td>
@@ -162,7 +172,6 @@ const ReservationTable = () => {
                   <td className="px-3 py-2 text-center whitespace-nowrap text-xs">
                     {formatDateTime(r.created_at)}
                   </td>
-                  {/* <td className="px-3 py-2 text-center">{r.status}</td> */}
                   <td className="px-3 py-2 text-center">
                     <div className="flex justify-center gap-2">
                       <button
@@ -170,14 +179,14 @@ const ReservationTable = () => {
                         onClick={() => handleEdit(r)}
                         title="Editar"
                       >
-                        <FaEdit className="inline mr-1" /> 
+                        <FaEdit className="inline mr-1" />
                       </button>
                       <button
                         className="bg-red-600 hover:bg-red-700 px-3 py-1 rounded-md text-xs font-semibold transition"
                         onClick={() => handleDelete(r)}
                         title="Eliminar"
                       >
-                        <FaTrash className="inline mr-1" /> 
+                        <FaTrash className="inline mr-1" />
                       </button>
                     </div>
                   </td>
