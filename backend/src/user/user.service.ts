@@ -18,10 +18,13 @@ export class UsersService {
     // Verificar si ya existe el usuario por email o username
     const existing = await this.prisma.user.findFirst({
       where: {
-        OR: [{ username: data.username }, { firstName: data.firstName }, { lastName: data.lastName }],
+        username: data.username,
+        firstName: data.firstName,
+        lastName: data.lastName,
+        email: data.email
       },
     });
-
+    
     if (existing) {
       throw new BadRequestException('El usuario ya existe');
     }
