@@ -18,15 +18,13 @@ export class UsersService {
     // Verificar si ya existe el usuario por email o username
     const existing = await this.prisma.user.findFirst({
       where: {
-        OR: [{ email: data.email }, { username: data.firstName }],
+        OR: [{ username: data.username }, { firstName: data.firstName }, { lastName: data.lastName }],
       },
     });
 
     if (existing) {
       throw new BadRequestException('El usuario ya existe');
     }
-
-    data.username = data.firstName;
 
     // Hashear la contraseña si viene definida
     const hashedPassword = data.password
