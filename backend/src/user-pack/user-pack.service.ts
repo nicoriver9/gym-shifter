@@ -56,14 +56,13 @@ export class UserPackService {
 
       // 4. Descontar clase y registrar asistencia
       const user = await this.decrementUserClasses(userId, 1);
-      const threeHoursAgo = new Date();
-      threeHoursAgo.setHours(threeHoursAgo.getHours() - 3);
+      const createdAt = new Date();      
       await prisma.reservation.create({
         data: {
           user_id: userId,
           class_id: currentClass.id,
           status: 'confirmed',
-          created_at: threeHoursAgo,
+          created_at: createdAt
         },
       });
 
