@@ -13,9 +13,13 @@ import {
 } from "../../services/admin/reservationService";
 import { Reservation } from "../../interfaces/admin/IReservation";
 
+const RESERVATIONS_PER_PAGE = 10;
+
 const ReservationTable = () => {
   const [reservations, setReservations] = useState<Reservation[]>([]);
   const [filteredReservations, setFilteredReservations] = useState<Reservation[]>([]);
+  const [paginatedReservations, setPaginatedReservations] = useState<Reservation[]>([]);
+  const [currentPage, setCurrentPage] = useState(1);
   const [searchTerm, setSearchTerm] = useState("");
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
@@ -28,6 +32,12 @@ const ReservationTable = () => {
     fetchReservations();
   }, []);
 
+  useEffect(() => {
+    const start = (currentPage - 1) * RESERVATIONS_PER_PAGE;
+    const end = start + RESERVATIONS_PER_PAGE;
+    setPaginatedReservations(filteredReservations.slice(start, end));
+  }, [filteredReservations, currentPage]);
+
   const fetchReservations = async () => {
     try {
       const data = await getReservations();
@@ -39,7 +49,7 @@ const ReservationTable = () => {
       setReservations(sortedData);
       setFilteredReservations(sortedData);
     } catch (error) {
-      console.error("Error al obtener reservaciones:", error);
+      console.error("Error al obtener asistencias:", error);
     } finally {
       setLoading(false);
     }
@@ -63,22 +73,22 @@ const ReservationTable = () => {
   const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
     const term = e.target.value.toLowerCase();
     setSearchTerm(term);
-    setFilteredReservations(
-      reservations.filter((r) => {
-        const fullName = `${r.user.firstName} ${r.user.lastName}`.toLowerCase();
-        const type = r.classSchedule.classType.name.toLowerCase();
-        const day = r.classSchedule.day_of_week.toLowerCase();
-        const teacher = r.classSchedule.teacherName.toLowerCase();
-        const email = (r.user.email || "").toLowerCase();
-        return (
-          fullName.includes(term) ||
-          email.includes(term) ||
-          type.includes(term) ||
-          day.includes(term) ||
-          teacher.includes(term)
-        );
-      })
-    );
+    const filtered = reservations.filter((r) => {
+      const fullName = `${r.user.firstName} ${r.user.lastName}`.toLowerCase();
+      const type = r.classSchedule.classType.name.toLowerCase();
+      const day = r.classSchedule.day_of_week.toLowerCase();
+      const teacher = r.classSchedule.teacherName.toLowerCase();
+      const email = (r.user.email || "").toLowerCase();
+      return (
+        fullName.includes(term) ||
+        email.includes(term) ||
+        type.includes(term) ||
+        day.includes(term) ||
+        teacher.includes(term)
+      );
+    });
+    setFilteredReservations(filtered);
+    setCurrentPage(1);
   };
 
   const formatDateTime = (input: string | Date) => {
@@ -109,11 +119,30 @@ const ReservationTable = () => {
     XLSX.writeFile(workbook, "asistencias.xlsx");
   };
 
+  const totalPages = Math.ceil(filteredReservations.length / RESERVATIONS_PER_PAGE);
+  const renderPagination = () => (
+    <div className="flex justify-center my-4 gap-2 flex-wrap">
+      {Array.from({ length: totalPages }, (_, index) => (
+        <button
+          key={index}
+          onClick={() => setCurrentPage(index + 1)}
+          className={`px-3 py-1 rounded-md text-sm font-semibold transition ${
+            currentPage === index + 1
+              ? "bg-purple-600 text-white"
+              : "bg-gray-700 text-gray-300 hover:bg-purple-700"
+          }`}
+        >
+          {index + 1}
+        </button>
+      ))}
+    </div>
+  );
+
   if (loading) {
     return (
       <div className="flex justify-center items-center min-h-screen" data-aos="fade-up">
         <div className="text-center">
-          <p className="text-white text-lg mb-4">Cargando reservaciones…</p>
+          <p className="text-white text-lg mb-4">Cargando asistencias…</p>
           <div className="w-12 h-12 border-4 border-purple-500 border-t-transparent rounded-full animate-spin mx-auto"></div>
         </div>
       </div>
@@ -142,6 +171,8 @@ const ReservationTable = () => {
         </button>
       </div>
 
+      {renderPagination()}
+
       <div className="overflow-x-auto bg-gray-800 rounded-lg shadow-md">
         <table className="w-full table-auto text-white">
           <thead>
@@ -155,8 +186,8 @@ const ReservationTable = () => {
             </tr>
           </thead>
           <tbody>
-            {filteredReservations.length > 0 ? (
-              filteredReservations.map((r) => (
+            {paginatedReservations.length > 0 ? (
+              paginatedReservations.map((r) => (
                 <tr
                   key={r.id}
                   className="border-b border-gray-700 even:bg-gray-900 hover:bg-gray-700 transition text-sm"
@@ -202,6 +233,8 @@ const ReservationTable = () => {
           </tbody>
         </table>
       </div>
+
+      {renderPagination()}
 
       <CreateReservationModal
         show={showCreateModal}
