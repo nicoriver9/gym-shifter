@@ -1,0 +1,43 @@
+name: 🚀 Deploy Gym-Shifter to VPS
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    name: Despliegue en VPS
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: 📦 Clonar código
+        uses: actions/checkout@v3
+
+      - name: 🔐 Configurar clave SSH
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.VPS_SSH_KEY }}" > ~/.ssh/id_rsa
+          chmod 600 ~/.ssh/id_rsa
+          ssh-keyscan -H ${{ secrets.VPS_HOST }} >> ~/.ssh/known_hosts
+
+      - name: 🚀 Ejecutar despliegue remoto
+        run: |
+          ssh ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }} << 'EOF'
+            # Navegar a la carpeta del proyecto
+            cd ${{ secrets.VPS_PROJECT_PATH }}
+
+            # Hacer pull del último código
+            git pull origin main
+
+            # Instalar dependencias y compilar el backend
+            npm install
+            npm run build
+
+            # Reiniciar la app con PM2 (o iniciarla si no existe)
+            pm2 delete gym-shifter || true
+            pm2 start dist/main.js --name gym-shifter
+
+            # (Opcional) Guardar procesos de PM2 para reinicio automático
+            pm2 save
+          EOF
