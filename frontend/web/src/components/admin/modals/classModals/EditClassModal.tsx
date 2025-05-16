@@ -1,4 +1,6 @@
 import { useEffect, useState } from "react";
+import { FaTimes } from "react-icons/fa";
+import Swal from "sweetalert2";
 import { EditClassModalProps, Teacher } from "../../../../interfaces/admin/IEditClassModal";
 
 export default function EditClassModal({
@@ -15,6 +17,16 @@ export default function EditClassModal({
   const [teacherId, setTeacherId] = useState(classData?.teacher_id || null);
   const [teachers, setTeachers] = useState<Teacher[]>([]);
   const [classTypes, setClassTypes] = useState<Array<{ id: number; name: string }>>([]);
+  const [loading, setLoading] = useState(false);
+  const [visible, setVisible] = useState(false);
+
+  useEffect(() => {
+    if (show) {
+      setTimeout(() => setVisible(true), 10);
+    } else {
+      setVisible(false);
+    }
+  }, [show]);
 
   useEffect(() => {
     const fetchTeachers = async () => {
@@ -58,24 +70,65 @@ export default function EditClassModal({
     fetchClassTypes();
   }, []);
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     if (!onSave || !classData) return;
-    onSave({
-      ...classData,
-      id: classId,
-      class_type_id: classTypeId,
-      start_time: startTime,
-      end_time: endTime,
-      teacher_id: teacherId,
-    });
+    setLoading(true);
+    try {
+      await onSave({
+        ...classData,
+        id: classId,
+        class_type_id: classTypeId,
+        start_time: startTime,
+        end_time: endTime,
+        teacher_id: teacherId,
+      });
+
+      handleClose();
+
+      setTimeout(() => {
+        Swal.fire({
+          title: "Clase actualizada",
+          icon: "success",
+          background: "#111827",
+          color: "#f9fafb",
+          confirmButtonColor: "#10b981",
+          timer: 2000,
+          timerProgressBar: true,
+        });
+      }, 300);
+    } catch (error) {
+      console.error("❌ Error al guardar clase:", error);
+      await Swal.fire({
+        title: "Error",
+        text: "No se pudo actualizar la clase.",
+        icon: "error",
+        background: "#111827",
+        color: "#f9fafb",
+        confirmButtonColor: "#ef4444",
+      });
+    } finally {
+      setLoading(false);
+    }
   };
 
   if (!show || !classData) return null;
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
-      <div className="bg-gray-900 text-white p-6 rounded-xl shadow-lg w-full max-w-xl animate-fade-in" data-aos="zoom-in">
-        <h3 className="text-2xl font-bold mb-4 text-center">Editar Clase</h3>
+    <div className="fixed inset-0 bg-black bg-opacity-60 z-50 flex items-center justify-center transition-opacity">
+      <div
+        className={`bg-gray-900 text-white p-6 rounded-xl shadow-lg w-full max-w-xl relative transform transition-all duration-300 ${visible ? "scale-100 opacity-100" : "scale-75 opacity-0"
+          }`}
+      >
+        {/* Botón de cierre */}
+        <button
+          className="absolute top-3 right-3 text-white hover:text-red-500 text-xl"
+          onClick={handleClose}
+          disabled={loading}
+        >
+          <FaTimes />
+        </button>
+
+        <h3 className="text-2xl font-bold mb-4 text-center text-purple-500">Editar Clase</h3>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
@@ -135,22 +188,32 @@ export default function EditClassModal({
           <button
             onClick={handleClose}
             className="px-5 py-2 bg-gray-600 hover:bg-gray-700 rounded-lg text-white transition"
+            disabled={loading}
           >
             Cancelar
           </button>
           <button
             onClick={handleSubmit}
             className="px-5 py-2 bg-purple-600 hover:bg-purple-700 rounded-lg text-white transition"
+            disabled={loading}
           >
-            Guardar Cambios
+            {loading ? "Guardando..." : "Guardar Cambios"}
           </button>
           <button
             onClick={() => confirmDeleteClass && classData && confirmDeleteClass(classData)}
             className="px-5 py-2 bg-red-600 hover:bg-red-700 rounded-lg text-white transition"
+            disabled={loading}
           >
             Eliminar
           </button>
         </div>
+
+        {/* Spinner de carga */}
+        {loading && (
+          <div className="absolute inset-0 bg-black bg-opacity-60 flex items-center justify-center rounded-xl">
+            <div className="w-10 h-10 border-4 border-white border-t-transparent rounded-full animate-spin"></div>
+          </div>
+        )}
       </div>
     </div>
   );

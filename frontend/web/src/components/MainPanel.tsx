@@ -26,15 +26,17 @@ const MainPanel: React.FC<MainPanelProps> = () => {
   ] as const;
 
   return (
-    <div className="min-h-screen bg-gray-900 text-white flex flex-col items-center py-10 px-4">
-      <h1 className="text-4xl font-bold mb-8">Gestión de Clases</h1>
+    <div className="w-full min-h-screen bg-gray-900 text-white flex flex-col py-10 px-4">
 
-      <div className="w-full max-w-4xl mb-10">
+      <h1 className="text-4xl font-bold mb-8 text-center">Gestión de Clases</h1>
+
+      {/* Panel de clases actuales */}
+      <div className="w-full mb-10 px-4">
         <CurrentClassAttendance />
       </div>
 
       {/* NAV: grid responsivo */}
-      <div className="w-full max-w-4xl grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-4 mb-12">
+      <div className="w-full grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-4 mb-12 px-4">
         {tabs.map(({ key, label }) => (
           <button
             key={key}
@@ -52,8 +54,8 @@ const MainPanel: React.FC<MainPanelProps> = () => {
         ))}
       </div>
 
-      {/* Contenido según tab activo */}
-      <div className="w-full max-w-4xl">
+      {/* Contenido dinámico según vista activa */}
+      <div className="w-full px-4">
         {currentView === "classTypes" && <ClassTypeTable />}
         {currentView === "scheduler" && <ClassScheduler />}
         {currentView === "teachers" && <TeacherTable />}

@@ -3,6 +3,8 @@ import { FaEdit, FaTrash } from "react-icons/fa";
 import AOS from "aos";
 import "aos/dist/aos.css";
 import * as XLSX from "xlsx";
+import { FaSortUp, FaSortDown } from "react-icons/fa";
+
 
 import CreateReservationModal from "./modals/reservationModals/CreateReservationModal";
 import EditReservationModal from "./modals/reservationModals/EditReservationModal";
@@ -26,6 +28,12 @@ const ReservationTable = () => {
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [selectedReservation, setSelectedReservation] = useState<Reservation | null>(null);
   const [loading, setLoading] = useState(true);
+  const [sortDescending, setSortDescending] = useState(true);
+  const [classTypes, setClassTypes] = useState<string[]>([]);
+  const [selectedClassType, setSelectedClassType] = useState<string>("Todos");
+  const [selectedTeacher, setSelectedTeacher] = useState<string>("Todos");
+  const [teachers, setTeachers] = useState<string[]>([]);
+
 
   useEffect(() => {
     AOS.init({ duration: 600 });
@@ -38,22 +46,71 @@ const ReservationTable = () => {
     setPaginatedReservations(filteredReservations.slice(start, end));
   }, [filteredReservations, currentPage]);
 
+  useEffect(() => {
+    let filtered = [...reservations];
+
+    if (selectedClassType !== "Todos") {
+      filtered = filtered.filter(r => r.classSchedule.classType.name === selectedClassType);
+    }
+
+    if (selectedTeacher !== "Todos") {
+      filtered = filtered.filter(r => r.classSchedule.teacherName === selectedTeacher);
+    }
+
+    if (searchTerm) {
+      const term = searchTerm.toLowerCase();
+      filtered = filtered.filter((r) => {
+        const fullName = `${r.user.firstName} ${r.user.lastName}`.toLowerCase();
+        const type = r.classSchedule.classType.name.toLowerCase();
+        const day = r.classSchedule.day_of_week.toLowerCase();
+        const teacher = r.classSchedule.teacherName.toLowerCase();
+        const email = (r.user.email || "").toLowerCase();
+        return (
+          fullName.includes(term) ||
+          email.includes(term) ||
+          type.includes(term) ||
+          day.includes(term) ||
+          teacher.includes(term)
+        );
+      });
+    }
+
+    setFilteredReservations(filtered);
+    setCurrentPage(1);
+  }, [searchTerm, selectedClassType, selectedTeacher, reservations]);
+
+
   const fetchReservations = async () => {
     try {
       const data = await getReservations();
-      const sortedData = [...data].sort((a, b) => {
-        const dateA = new Date(a.classSchedule.created_at).getTime();
-        const dateB = new Date(b.classSchedule.created_at).getTime();
-        return dateB - dateA;
+
+      const cleanData = data.filter(r => r.created_at);
+
+      const sortedData = [...cleanData].sort((a, b) => {
+        const dateA = !isNaN(new Date(a.created_at).getTime())
+          ? new Date(a.created_at).getTime()
+          : 0;
+        const dateB = !isNaN(new Date(b.created_at).getTime())
+          ? new Date(b.created_at).getTime()
+          : 0;
+        return sortDescending ? dateB - dateA : dateA - dateB;
       });
+
+      const uniqueClassTypes = [...new Set(sortedData.map(r => r.classSchedule.classType.name))];
+      const uniqueTeachers = [...new Set(sortedData.map(r => r.classSchedule.teacherName))];
+
       setReservations(sortedData);
       setFilteredReservations(sortedData);
+      setClassTypes(uniqueClassTypes);
+      setTeachers(uniqueTeachers);
+
     } catch (error) {
       console.error("Error al obtener asistencias:", error);
     } finally {
       setLoading(false);
     }
   };
+
 
   const handleEdit = (r: Reservation) => {
     setSelectedReservation(r);
@@ -126,11 +183,10 @@ const ReservationTable = () => {
         <button
           key={index}
           onClick={() => setCurrentPage(index + 1)}
-          className={`px-3 py-1 rounded-md text-sm font-semibold transition ${
-            currentPage === index + 1
-              ? "bg-purple-600 text-white"
-              : "bg-gray-700 text-gray-300 hover:bg-purple-700"
-          }`}
+          className={`px-3 py-1 rounded-md text-sm font-semibold transition ${currentPage === index + 1
+            ? "bg-purple-600 text-white"
+            : "bg-gray-700 text-gray-300 hover:bg-purple-700"
+            }`}
         >
           {index + 1}
         </button>
@@ -155,25 +211,64 @@ const ReservationTable = () => {
         Control de Asistencias
       </h2>
 
-      <div className="flex flex-col md:flex-row justify-between items-center gap-4 mb-6">
+      {/* Filtros y buscador */}
+      <div className="flex flex-col md:flex-row flex-wrap justify-between items-center gap-4 mb-6">
         <input
           type="text"
           placeholder="Buscar por nombre, apellido, clase…"
-          className="w-full md:w-80 text-sm px-3 py-2 rounded-md border border-gray-600 bg-gray-700 text-white placeholder-gray-400 transition"
+          className="w-full md:w-72 text-sm px-3 py-2 rounded-md border border-gray-600 bg-gray-700 text-white placeholder-gray-400 transition"
           value={searchTerm}
           onChange={handleSearch}
         />
-        <button
-          onClick={exportToExcel}
-          className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md shadow text-sm"
+
+        <select
+          value={selectedClassType}
+          onChange={(e) => setSelectedClassType(e.target.value)}
+          className="bg-gray-700 text-white px-3 py-2 rounded-md text-sm w-full md:w-60"
         >
-          Descargar Excel
-        </button>
+          <option value="Todos">Todas las clases</option>
+          {classTypes.map((type) => (
+            <option key={type} value={type}>{type}</option>
+          ))}
+        </select>
+
+        <select
+          value={selectedTeacher}
+          onChange={(e) => setSelectedTeacher(e.target.value)}
+          className="bg-gray-700 text-white px-3 py-2 rounded-md text-sm w-full md:w-60"
+        >
+          <option value="Todos">Todos los profesores</option>
+          {teachers.map((t) => (
+            <option key={t} value={t}>{t}</option>
+          ))}
+        </select>
+
+        <div className="flex gap-2">
+          <button
+            onClick={() => {
+              setSortDescending((prev) => !prev);
+              fetchReservations();
+            }}
+            className="text-sm text-white bg-gray-700 px-3 py-2 rounded-md hover:bg-gray-600 flex items-center gap-1"
+            title="Ordenar por fecha"
+          >
+            Orden:
+            {sortDescending ? <FaSortDown /> : <FaSortUp />}
+          </button>
+
+          <button
+            onClick={exportToExcel}
+            className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md shadow text-sm"
+          >
+            Descargar Excel
+          </button>
+        </div>
       </div>
 
       {renderPagination()}
 
-      <div className="overflow-x-auto bg-gray-800 rounded-lg shadow-md">
+      {/* Tabla para escritorio */}
+      <div className="hidden md:block overflow-x-auto bg-gray-800 rounded-lg shadow-md">
         <table className="w-full table-auto text-white">
           <thead>
             <tr className="bg-gray-700 text-xs uppercase tracking-wide">
@@ -192,8 +287,8 @@ const ReservationTable = () => {
                   key={r.id}
                   className="border-b border-gray-700 even:bg-gray-900 hover:bg-gray-700 transition text-sm"
                 >
-                  <td className="px-3 py-2 text-center whitespace-nowrap">
-                    {r.user.firstName} {r.user.lastName}
+                  <td className="px-3 py-2 text-center whitespace-pre-line break-words max-w-[180px]">
+                    {r.user.firstName + "\n" + r.user.lastName}
                   </td>
                   <td className="px-3 py-2 text-center">{r.classSchedule.classType.name}</td>
                   <td className="px-3 py-2 text-center whitespace-nowrap">
@@ -234,8 +329,52 @@ const ReservationTable = () => {
         </table>
       </div>
 
+      {/* Tarjetas móviles */}
+      <div className="md:hidden flex flex-col gap-4 px-2">
+        {paginatedReservations.map((r, index) => (
+          <div
+            key={r.id}
+            className="bg-gray-800 p-4 rounded-lg shadow-md text-white text-sm space-y-2"
+            data-aos="fade-up"
+            data-aos-delay={index * 100}
+          >
+            <div className="text-lg font-bold text-purple-400">
+              {r.user.firstName} {r.user.lastName}
+            </div>
+            <div><strong>📧 Email:</strong> {r.user.email}</div>
+            <div>
+              <strong>📚 Clase:</strong>{" "}
+              <span className="inline-block bg-purple-600 text-white text-xs px-2 py-1 rounded-full">
+                {r.classSchedule.classType.name}
+              </span>
+            </div>
+            <div><strong>🕓 Horario:</strong> {r.classSchedule.start_time} - {r.classSchedule.end_time}</div>
+            <div><strong>👨‍🏫 Profesor:</strong> {r.classSchedule.teacherName}</div>
+            <div><strong>🗓️ Confirmación:</strong> {formatDateTime(r.created_at)}</div>
+
+            <div className="flex justify-end gap-4 pt-2">
+              <button
+                className="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-lg transition text-base"
+                onClick={() => handleEdit(r)}
+                title="Editar asistencia"
+              >
+                <FaEdit />
+              </button>
+              <button
+                className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg transition text-base"
+                onClick={() => handleDelete(r)}
+                title="Eliminar asistencia"
+              >
+                <FaTrash />
+              </button>
+            </div>
+          </div>
+        ))}
+      </div>
+
       {renderPagination()}
 
+      {/* Modales */}
       <CreateReservationModal
         show={showCreateModal}
         handleClose={() => setShowCreateModal(false)}

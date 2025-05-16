@@ -1,5 +1,7 @@
 import { useState } from 'react';
 import { createPack } from '../../../../services/admin/packService';
+import { FaTimes } from 'react-icons/fa';
+import Swal from 'sweetalert2';
 
 interface CreatePackModalProps {
   show: boolean;
@@ -17,7 +19,14 @@ const CreatePackModal = ({ show, handleClose, refreshTable }: CreatePackModalPro
 
   const handleSubmit = async () => {
     if (!name.trim()) {
-      alert('El nombre no puede estar vacío.');
+      await Swal.fire({
+        title: 'Campo vacío',
+        text: 'El nombre no puede estar vacío.',
+        icon: 'warning',
+        background: '#111827',
+        color: '#f9fafb',
+        confirmButtonColor: '#f59e0b',
+      });
       return;
     }
 
@@ -31,11 +40,31 @@ const CreatePackModal = ({ show, handleClose, refreshTable }: CreatePackModalPro
         validity_days: validityDays,
         unlimited_classes: unlimitedClasses,
       });
+
       refreshTable();
       handleClose();
+
+      setTimeout(() => {
+        Swal.fire({
+          title: 'Pack creado correctamente',
+          icon: 'success',
+          background: '#111827',
+          color: '#f9fafb',
+          confirmButtonColor: '#10b981',
+          timer: 2000,
+          timerProgressBar: true,
+        });
+      }, 300);
     } catch (error) {
       console.error('❌ Error al crear pack:', error);
-      alert('Hubo un error al crear el pack.');
+      await Swal.fire({
+        title: 'Error',
+        text: 'Hubo un error al crear el pack.',
+        icon: 'error',
+        background: '#111827',
+        color: '#f9fafb',
+        confirmButtonColor: '#ef4444',
+      });
     } finally {
       setLoading(false);
     }
@@ -45,8 +74,16 @@ const CreatePackModal = ({ show, handleClose, refreshTable }: CreatePackModalPro
 
   return (
     <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
-      <div className="bg-gray-900 text-white p-6 rounded-lg shadow-lg w-96" data-aos="zoom-in">
-        <h2 className="text-xl font-semibold mb-4">Crear Pack</h2>
+      <div className="bg-gray-900 text-white p-6 rounded-lg shadow-lg w-96 relative" data-aos="zoom-in">
+        {/* Botón cerrar */}
+        <button
+          className="absolute top-3 right-3 text-white hover:text-red-500 text-xl"
+          onClick={handleClose}
+        >
+          <FaTimes />
+        </button>
+
+        <h2 className="text-xl font-semibold mb-4 text-purple-500">Crear Pack</h2>
 
         <div className="space-y-4">
           <div>
@@ -116,6 +153,13 @@ const CreatePackModal = ({ show, handleClose, refreshTable }: CreatePackModalPro
             Cancelar
           </button>
         </div>
+
+        {/* Spinner mientras se guarda */}
+        {loading && (
+          <div className="absolute inset-0 bg-black bg-opacity-60 flex items-center justify-center rounded-lg">
+            <div className="w-10 h-10 border-4 border-white border-t-transparent rounded-full animate-spin"></div>
+          </div>
+        )}
       </div>
     </div>
   );

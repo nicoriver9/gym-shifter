@@ -20,7 +20,7 @@ const MainPanel: React.FC<MainPanelProps> = () => {
   >("classTypes");
 
   return (
-    <div className="min-h-screen bg-gray-900 text-white flex flex-col items-center py-10">
+    <div className="min-h-screen bg-red-900 text-white flex flex-col items-center py-10">
       <h1 className="text-4xl font-bold my-6 mb-10">Gestión de Clases</h1>
 
       {/* Botón de Cerrar Sesión con ícono */}
@@ -31,7 +31,7 @@ const MainPanel: React.FC<MainPanelProps> = () => {
         <FiLogOut className="text-xl" /> Cerrar Sesión
       </button> */}
 
-      <div className="w-full max-w-4xl mb-6">
+      <div className="mt-4 w-full">
         <CurrentClassAttendance />
       </div>
 
@@ -59,7 +59,7 @@ const MainPanel: React.FC<MainPanelProps> = () => {
       </div>
 
       {/* Renderizar el componente correspondiente */}
-      <div className="mt-4 w-full max-w-4xl">
+      <div className="mt-4 w-full">
         {currentView === "classTypes" && <ClassTypeTable />}
         {currentView === "scheduler" && <ClassScheduler />}
         {currentView === "teachers" && <TeacherTable />}

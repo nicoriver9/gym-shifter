@@ -6,6 +6,9 @@ import timeGridPlugin from "@fullcalendar/timegrid";
 import interactionPlugin from "@fullcalendar/interaction";
 import esLocale from "@fullcalendar/core/locales/es";
 import { Button } from "react-bootstrap";
+import "tippy.js/dist/tippy.css";
+// import Tippy from "@tippyjs/react";
+
 
 import ConfirmDeleteModal from "./modals/classModals/ConfirmDeleteClassModal";
 import AddClassModal from "./modals/classModals/AddClassModal";
@@ -22,7 +25,22 @@ export default function ClassScheduler() {
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [classToDelete, setClassToDelete] = useState<ClassEvent | null>(null);
   const [rangeLabel, setRangeLabel] = useState<string>("");
-  const [loadingCalendar, setLoadingCalendar] = useState(true); // 🔄
+  const [loadingCalendar, setLoadingCalendar] = useState(true);
+
+  const colorPalette = [
+    "bg-purple-600",
+    "bg-indigo-600",
+    "bg-blue-500",
+    "bg-blue-400",
+    "bg-slate-500",
+    "bg-gray-500",
+    "bg-gray-400"
+  ];
+
+  const getEventColorClass = (classTypeId: number) => {
+    const index = classTypeId % colorPalette.length;
+    return `${colorPalette[index]} text-white font-medium rounded px-2 py-1`;
+  };
 
   useEffect(() => {
     const token = localStorage.getItem("access_token");
@@ -43,15 +61,14 @@ export default function ClassScheduler() {
       .then(data => {
         const ev = data.map((e: any) => ({
           id: e.id,
-          title:
-            classTypes.find((t) => t.id === e.class_type_id)?.name || "Sin nombre",
+          title: classTypes.find((t) => t.id === e.class_type_id)?.name || "Sin nombre",
           start: getDateForDay(e.day_of_week, e.start_time),
           end: getDateForDay(e.day_of_week, e.end_time),
           class_type_id: e.class_type_id,
           teacher_id: e.teacher_id,
         }));
         setEvents(ev);
-        setLoadingCalendar(false); // ✅ Ocultar spinner al terminar
+        setLoadingCalendar(false);
       });
   }, [classTypes]);
 
@@ -64,8 +81,7 @@ export default function ClassScheduler() {
       .then(data => {
         const ev = data.map((e: any) => ({
           id: e.id,
-          title:
-            classTypes.find((t) => t.id === e.class_type_id)?.name || "Sin nombre",
+          title: classTypes.find((t) => t.id === e.class_type_id)?.name || "Sin nombre",
           start: getDateForDay(e.day_of_week, e.start_time),
           end: getDateForDay(e.day_of_week, e.end_time),
           class_type_id: e.class_type_id,
@@ -96,17 +112,14 @@ export default function ClassScheduler() {
 
   const handleUpdateClass = async (updated: ClassEvent) => {
     const token = localStorage.getItem("access_token");
-    const res = await fetch(
-      `${import.meta.env.VITE_API_URL}/api/classes/${updated.id}`,
-      {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify(updated),
-      }
-    );
+    const res = await fetch(`${import.meta.env.VITE_API_URL}/api/classes/${updated.id}`, {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify(updated),
+    });
     if (res.ok) {
       fetchClasses();
       setShowEditModal(false);
@@ -118,69 +131,17 @@ export default function ClassScheduler() {
     setShowDeleteModal(true);
   };
 
-  const handleDeleteClassBySchedule = async (
-    classTypeId: number,
-    dayOfWeek: number,
-    startTime: string,
-    endTime: string,
-  ) => {    
-    let className = "";
+  const handleDeleteClassBySchedule = async (classTypeId: number, dayOfWeek: number, startTime: string, endTime: string) => {
     try {
       const accessToken = localStorage.getItem('access_token');
-      const response = await fetch(
-        `${import.meta.env.VITE_API_URL}/api/class-types/${classTypeId}`,
-        {
-          headers: { 
-            'Authorization': `Bearer ${accessToken}`
-          }
-        }
-      );
-      if (!response.ok) {
-        throw new Error("Error al obtener el nombre de la clase");
-      }
-      const data = await response.json();
-      className = data.name;
-    } catch (error) {
-      console.error("Error al obtener el nombre de la clase:", error);
-      return; // Salir de la función si hay un error
-    }
-
-    try {
-      const accessToken = localStorage.getItem('access_token');
-      const response = await fetch(
-        `${import.meta.env.VITE_API_URL}/api/classes/delete-by-schedule?class_type_id=${encodeURIComponent(
-          classTypeId
-        )}&day_of_week=${dayOfWeek}&start_time=${startTime}&end_time=${endTime}`,
-        {
-          method: "DELETE",
-          headers: { 
-            'Authorization': `Bearer ${accessToken}`
-          }
-        }
-      );
-
-      if (!response.ok) {
-        throw new Error("Error al eliminar la clase específica");
-      }
-
-      // Cerrar los modales
+      await fetch(`${import.meta.env.VITE_API_URL}/api/classes/delete-by-schedule?class_type_id=${encodeURIComponent(classTypeId)}&day_of_week=${dayOfWeek}&start_time=${startTime}&end_time=${endTime}`, {
+        method: "DELETE",
+        headers: { Authorization: `Bearer ${accessToken}` },
+      });
       setShowDeleteModal(false);
       setShowEditModal(false);
       setSelectedClass(null);
-
-      // Filtrar la clase eliminada del estado
-      setEvents((prev) =>
-        prev.filter(
-          (event) =>
-            !(
-              event.title === className &&
-              event.start === getDateForDay(dayOfWeek, startTime)
-            )
-        )
-      );
-
       fetchClasses();
-
     } catch (error) {
       console.error("Error al eliminar la clase específica:", error);
     }
@@ -237,45 +198,47 @@ export default function ClassScheduler() {
             selectable={true}
             locale={esLocale}
             eventClick={handleEventClick}
-            slotMinTime="06:00:00" // ✅ Empieza a las 06:00
+            slotMinTime="06:00:00"
             slotMaxTime="22:00:00"
-            slotLabelFormat={{
-              hour: "2-digit",
-              minute: "2-digit",
-              hour12: false,       // ✅ Muestra 06:00, 07:00...
-            }}
-            headerToolbar={{
-              left: "prev,next today",
-              center: "",
-              right: "dayGridMonth,timeGridWeek,timeGridDay",
-            }}
-            buttonText={{
-              today: "Hoy",
-              month: "Mes",
-              week: "Semana",
-              day: "Día",
-            }}
+            slotLabelFormat={{ hour: "2-digit", minute: "2-digit", hour12: false }}
+            contentHeight="auto"
+            aspectRatio={window.innerWidth < 768 ? 0.6 : 1.3}
+            handleWindowResize={true}
+            headerToolbar={{ left: "prev,next today", center: "", right: "dayGridMonth,timeGridWeek,timeGridDay" }}
+            buttonText={{ today: "Hoy", month: "Mes", week: "Semana", day: "Día" }}
             height="auto"
             datesSet={(arg: DatesSetArg) => {
               const start = arg.start;
               const end = new Date(arg.end.getTime() - 1);
-              const opts: Intl.DateTimeFormatOptions = {
-                day: "numeric",
-                month: "short",
-              };
+              const opts: Intl.DateTimeFormatOptions = { day: "numeric", month: "short" };
               const s = start.toLocaleDateString("es-AR", opts);
               const e = end.toLocaleDateString("es-AR", opts);
               setRangeLabel(`${s} — ${e}`);
             }}
-            eventClassNames={() =>
-              "bg-indigo-500 text-white font-medium rounded px-2 py-1"
-            }
-            dayHeaderClassNames={() =>
-              "bg-gray-700 text-gray-200 p-2 text-center text-sm rounded"
-            }
+            eventClassNames={(arg) => getEventColorClass(arg.event.extendedProps.class_type_id)}
+            dayHeaderClassNames={() => "bg-gray-700 text-gray-200 p-2 text-center text-sm rounded"}
             slotLabelClassNames={() => "text-gray-400 text-xs text-center"}
-          />
+            eventDidMount={(info) => {
+              const tooltip = document.createElement("div");
+              tooltip.innerHTML = `
+    <strong>${info.event.title}</strong><br/>
+    <span>👨‍🏫 Profesor: ${info.event.extendedProps.teacherName || "Sin asignar"}</span><br/>
+    <span>🕓 ${info.event.start?.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} - 
+          ${info.event.end?.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
+  `;
 
+              import("tippy.js").then(({ default: tippy }) => {
+                tippy(info.el, {
+                  content: tooltip,
+                  allowHTML: true,
+                  placement: "top",
+                  theme: "light",
+                  delay: [100, 50],
+                });
+              });
+            }}
+
+          />
         </div>
       )}
 

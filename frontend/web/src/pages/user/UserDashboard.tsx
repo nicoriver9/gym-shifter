@@ -15,7 +15,7 @@ const UserDashboard: React.FC<UserDashboardProps> = ({ onLogout }) => {
   const noClassesAvailable = userPackClassesIncluded === 0;
 
   return (
-    <div className="relative min-h-screen bg-gray-900 text-white flex flex-col items-center py-10 px-4 sm:px-6 lg:px-8">
+    <div className="relative min-h-screen w-full bg-gray-900 text-white flex flex-col items-center py-10 px-4 sm:px-6 lg:px-8">
       {/* Header */}
       <header className="w-full max-w-4xl flex items-center justify-between bg-gray-800 p-4 rounded-lg shadow mb-8">
         <div className="flex-grow">

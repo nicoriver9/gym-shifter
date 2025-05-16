@@ -1,5 +1,7 @@
 import { useState } from 'react';
 import { createClassType } from '../../../../services/admin/classTypeService';
+import { FaTimes } from 'react-icons/fa';
+import Swal from 'sweetalert2';
 
 interface CreateClassTypeModalProps {
   show: boolean;
@@ -17,7 +19,14 @@ const CreateClassTypeModal = ({
 
   const handleSubmit = async () => {
     if (!name.trim()) {
-      alert('El nombre no puede estar vacío.');
+      await Swal.fire({
+        title: 'Campo vacío',
+        text: 'El nombre no puede estar vacío.',
+        icon: 'warning',
+        background: '#111827',
+        color: '#f9fafb',
+        confirmButtonColor: '#f59e0b',
+      });
       return;
     }
 
@@ -27,9 +36,28 @@ const CreateClassTypeModal = ({
       await createClassType({ name });
       refreshTable();
       handleClose();
+
+      setTimeout(() => {
+        Swal.fire({
+          title: 'Tipo de clase creado',
+          icon: 'success',
+          background: '#111827',
+          color: '#f9fafb',
+          confirmButtonColor: '#10b981',
+          timer: 2000,
+          timerProgressBar: true,
+        });
+      }, 300);
     } catch (error) {
       console.error('❌ Error al crear tipo de clase:', error);
-      alert('Hubo un error al crear el tipo de clase.');
+      await Swal.fire({
+        title: 'Error',
+        text: 'Hubo un error al crear el tipo de clase.',
+        icon: 'error',
+        background: '#111827',
+        color: '#f9fafb',
+        confirmButtonColor: '#ef4444',
+      });
     } finally {
       setLoading(false);
     }
@@ -39,7 +67,16 @@ const CreateClassTypeModal = ({
 
   return (
     <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
-      <div className="bg-gray-900 text-white p-6 rounded-lg shadow-lg w-96" data-aos="zoom-in">
+      <div className="bg-gray-900 text-white p-6 rounded-lg shadow-lg w-96 relative" data-aos="zoom-in">
+
+        {/* Botón de cerrar */}
+        <button
+          className="absolute top-3 right-3 text-white hover:text-red-500 text-xl"
+          onClick={handleClose}
+        >
+          <FaTimes />
+        </button>
+
         <h2 className="text-xl font-semibold mb-4">Crear Tipo de Clase</h2>
 
         <div className="mb-4">
@@ -68,6 +105,13 @@ const CreateClassTypeModal = ({
             Cancelar
           </button>
         </div>
+
+        {/* Spinner mientras se procesa */}
+        {loading && (
+          <div className="absolute inset-0 bg-black bg-opacity-60 flex items-center justify-center rounded-lg">
+            <div className="w-10 h-10 border-4 border-white border-t-transparent rounded-full animate-spin"></div>
+          </div>
+        )}
       </div>
     </div>
   );

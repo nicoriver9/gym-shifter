@@ -1,6 +1,7 @@
-// src/components/EditTeacherModal.tsx
 import { useState, useEffect } from "react";
 import { updateTeacher } from "../../../../services/admin/teacherService";
+import Swal from "sweetalert2";
+import { FaTimes } from "react-icons/fa";
 
 interface EditTeacherModalProps {
   show: boolean;
@@ -20,27 +21,63 @@ const EditTeacherModal = ({ show, handleClose, teacher, refreshTable }: EditTeac
   }, [teacher]);
 
   const handleSubmit = async () => {
-    if (!name.trim()) return;
+    if (!name.trim()) {
+      await Swal.fire({
+        title: "Campo vacío",
+        text: "Por favor, ingresa el nombre del profesor.",
+        icon: "warning",
+        background: "#111827",
+        color: "#f9fafb",
+        confirmButtonColor: "#d97706",
+      });
+      return;
+    }
+
     setLoading(true);
 
     try {
       await updateTeacher(teacher.id, { name });
       refreshTable();
+      await Swal.fire({
+        title: "¡Profesor actualizado!",
+        icon: "success",
+        background: "#111827",
+        color: "#f9fafb",
+        confirmButtonColor: "#10b981",
+        timer: 2000,
+        timerProgressBar: true,
+      });
       handleClose();
     } catch (error) {
       console.error("❌ Error al actualizar profesor:", error);
-      alert("Hubo un error al actualizar el profesor.");
+      await Swal.fire({
+        title: "Error",
+        text: "Hubo un error al actualizar el profesor.",
+        icon: "error",
+        background: "#111827",
+        color: "#f9fafb",
+        confirmButtonColor: "#ef4444",
+      });
     } finally {
       setLoading(false);
     }
   };
 
-  if (!show) return null; // No renderizar si el modal está cerrado
+  if (!show) return null;
 
   return (
     <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
-      <div className="bg-gray-900 text-white p-6 rounded-lg shadow-lg w-96" data-aos="zoom-in">
-        <h2 className="text-xl font-semibold mb-4 text-purple-500">Editar Profesor</h2>
+      <div className="bg-gray-900 text-white p-6 rounded-lg shadow-lg w-full max-w-md relative" data-aos="zoom-in">
+
+        {/* Botón de cerrar */}
+        <button
+          className="absolute top-3 right-3 text-white hover:text-red-500 text-xl"
+          onClick={handleClose}
+        >
+          <FaTimes />
+        </button>
+
+        <h2 className="text-xl font-semibold mb-6 text-purple-500 text-center">Editar Profesor</h2>
 
         {/* Formulario */}
         <div className="mb-4">
@@ -70,6 +107,13 @@ const EditTeacherModal = ({ show, handleClose, teacher, refreshTable }: EditTeac
             Cancelar
           </button>
         </div>
+
+        {/* Overlay de carga */}
+        {loading && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center">
+            <div className="w-16 h-16 border-4 border-white border-t-transparent rounded-full animate-spin"></div>
+          </div>
+        )}
       </div>
     </div>
   );

@@ -1,7 +1,12 @@
 import { useState, useEffect } from "react";
+import { toast, ToastContainer } from "react-toastify";
+import Swal from 'sweetalert2';
+import { FaTimes, FaTrash } from "react-icons/fa";
+
 import {
   updateUser,
   getUserById,
+  // deleteUser
 } from "../../../../services/admin/userService";
 import { getPacks } from "../../../../services/admin/packService";
 import {
@@ -36,6 +41,7 @@ const EditUserModal = ({
   const [packs, setPacks] = useState<Pack[]>([]);
   const [selectedPackId, setSelectedPackId] = useState<number | null>(null);
   const [loading, setLoading] = useState(false);
+  const [processing, setProcessing] = useState(false);
   const [userInfo, setUserInfo] = useState<any>(user);
   const [username, setUsername] = useState("");
 
@@ -93,38 +99,194 @@ const EditUserModal = ({
 
   const handleAssignPack = async () => {
     if (selectedPackId === null) {
-      alert("Por favor, selecciona un pack.");
+      await Swal.fire({
+        title: "Pack no seleccionado",
+        text: "Por favor, selecciona un pack antes de asignar.",
+        icon: "warning",
+        background: "#111827",
+        color: "#f9fafb",
+        confirmButtonColor: "#d97706",
+      });
       return;
     }
 
+    const result = await Swal.fire({
+      title: "¿Asignar este pack?",
+      icon: "question",
+      background: "#111827",
+      color: "#f9fafb",
+      showCancelButton: true,
+      confirmButtonColor: "#10b981",
+      cancelButtonColor: "#6b7280",
+      confirmButtonText: "Sí, asignar",
+      cancelButtonText: "Cancelar",
+    });
+
+    if (!result.isConfirmed) return;
+
     try {
+      setProcessing(true);
       await assignSinglePackToUser(user.id, selectedPackId);
-      refreshTable();
       await fetchUserInfo();
-      alert("Pack asignado correctamente.");
+      refreshTable();
+
+      await Swal.fire({
+        title: "Pack asignado",
+        icon: "success",
+        background: "#111827",
+        color: "#f9fafb",
+        confirmButtonColor: "#10b981",
+        confirmButtonText: "Aceptar",
+        timer: 2000,
+        timerProgressBar: true,
+      });
     } catch (error) {
       console.error("Error al asignar pack:", error);
-      alert("Hubo un error al asignar el pack.");
+      await Swal.fire({
+        title: "Error",
+        text: "Hubo un error al asignar el pack.",
+        icon: "error",
+        background: "#111827",
+        color: "#f9fafb",
+        confirmButtonColor: "#ef4444",
+      });
+    } finally {
+      setProcessing(false);
     }
   };
+
+
 
   const handleUnassignPack = async () => {
+    const result = await Swal.fire({
+      title: "¿Eliminar el pack?",
+      text: "Esta acción no se puede deshacer.",
+      icon: "warning",
+      background: "#111827",
+      color: "#f9fafb",
+      showCancelButton: true,
+      confirmButtonColor: "#ef4444",
+      cancelButtonColor: "#6b7280",
+      confirmButtonText: "Sí, eliminar",
+      cancelButtonText: "Cancelar",
+    });
+
+    if (!result.isConfirmed) return;
+
     try {
+      setProcessing(true);
       await unassignPackFromUser(user.id);
-      refreshTable();
       await fetchUserInfo();
-      alert("Pack desasignado correctamente.");
+      refreshTable();
+
+      await Swal.fire({
+        title: "Pack eliminado",
+        icon: "success",
+        background: "#111827",
+        color: "#f9fafb",
+        confirmButtonColor: "#10b981",
+        confirmButtonText: "Aceptar",
+        timer: 2000,
+        timerProgressBar: true,
+      });
     } catch (error) {
       console.error("Error al desasignar pack:", error);
-      alert("Hubo un error al desasignar el pack.");
+      await Swal.fire({
+        title: "Error",
+        text: "Hubo un problema al eliminar el pack.",
+        icon: "error",
+        background: "#111827",
+        color: "#f9fafb",
+        confirmButtonColor: "#ef4444",
+      });
+    } finally {
+      setProcessing(false);
     }
   };
 
+  const handleSubtractClass = async () => {
+    const result = await Swal.fire({
+      title: "¿Restar una clase?",
+      text: "Esta acción no se puede deshacer.",
+      icon: "warning",
+      background: "#111827",
+      color: "#f9fafb",
+      showCancelButton: true,
+      confirmButtonColor: "#d97706", // naranja
+      cancelButtonColor: "#6b7280", // gris
+      confirmButtonText: "Sí, restar",
+      cancelButtonText: "Cancelar",
+    });
+  
+    if (!result.isConfirmed) return;
+  
+    const token = localStorage.getItem("access_token");
+    if (!token) {
+      toast.error("No hay token de autenticación");
+      return;
+    }
+  
+    try {
+      const response = await fetch(
+        `${import.meta.env.VITE_API_URL}/api/user-pack/decrement-classes`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({
+            userId: user.id,
+            decrementBy: 1,
+          }),
+        }
+      );
+  
+      const data = await response.json();
+  
+      if (!data.success) {
+        throw new Error(data.message || "Error al restar clase");
+      }
+  
+      await fetchUserInfo(); // refresca info del usuario en el modal
+      refreshTable(); // refresca la tabla de usuarios
+  
+      await Swal.fire({
+        title: "Clase restada",
+        text: `Clases restantes: ${data.data.classes_remaining}`,
+        icon: "success",
+        background: "#111827",
+        color: "#f9fafb",
+        confirmButtonColor: "#10b981",
+        confirmButtonText: "Aceptar",
+        timer: 2000,
+        timerProgressBar: true,
+      });
+    } catch (error: any) {
+      console.error("Error:", error);
+      await Swal.fire({
+        title: "Error",
+        text: error.message || "Error al restar la clase.",
+        icon: "error",
+        background: "#111827",
+        color: "#f9fafb",
+        confirmButtonColor: "#ef4444",
+      });
+    }
+  };
   if (!show) return null;
+
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50 px-4">
-      <div className="bg-gray-900 rounded-lg shadow-lg w-full max-w-lg max-h-[90vh] overflow-y-auto p-6">
+      <div className="bg-gray-900 rounded-lg shadow-lg w-full max-w-lg max-h-[90vh] overflow-y-auto p-6 relative">
+        <button
+          className="absolute top-3 right-3 text-white hover:text-red-500 text-xl"
+          onClick={handleClose}
+        >
+          <FaTimes />
+        </button>
+
         <h2 className="text-2xl font-bold text-white text-center mb-6">
           Editar Usuario
         </h2>
@@ -232,18 +394,25 @@ const EditUserModal = ({
                   {userInfo.pack_expiration_date && (
                     <div className="flex justify-between">
                       <span className="font-medium">Expira:</span>
-                      <span>
-                        {new Date(
-                          userInfo.pack_expiration_date
-                        ).toLocaleDateString()}
-                      </span>
+                      <span>{new Date(userInfo.pack_expiration_date).toLocaleDateString()}</span>
                     </div>
                   )}
                   <button
-                    onClick={handleUnassignPack}
-                    className="w-full mt-3 font-semibold bg-red-600 hover:bg-red-700 px-4 py-2 rounded-lg transition"
+                    onClick={handleSubtractClass}
+                    disabled={userInfo?.classes_remaining <= 0}
+                    className={`w-full mt-2 font-semibold px-4 py-2 rounded-lg transition ${userInfo?.classes_remaining <= 0
+                      ? "bg-gray-700 cursor-not-allowed text-gray-400"
+                      : "bg-yellow-600 hover:bg-yellow-700 text-white"
+                      }`}
                   >
-                    Eliminar Pack
+                    Restar Clase
+                  </button>
+
+                  <button
+                    onClick={handleUnassignPack}
+                    className="w-full mt-3 font-semibold bg-red-600 hover:bg-red-700 px-4 py-2 rounded-lg transition flex items-center justify-center gap-2"
+                  >
+                    <FaTrash /> Eliminar Pack
                   </button>
                 </div>
               ) : (
@@ -272,6 +441,13 @@ const EditUserModal = ({
           </div>
         </div>
       </div>
+      <ToastContainer position="bottom-right" autoClose={3000} hideProgressBar />
+      {processing && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center">
+          <div className="w-16 h-16 border-4 border-white border-t-transparent rounded-full animate-spin"></div>
+        </div>
+      )}
+
     </div>
   );
 };

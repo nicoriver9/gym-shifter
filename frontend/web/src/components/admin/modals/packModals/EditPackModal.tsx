@@ -1,5 +1,7 @@
 import { useState, useEffect } from 'react';
 import { updatePack } from '../../../../services/admin/packService';
+import { FaTimes } from 'react-icons/fa';
+import Swal from 'sweetalert2';
 
 interface EditPackModalProps {
   show: boolean;
@@ -15,6 +17,7 @@ const EditPackModal = ({ show, handleClose, pack, refreshTable }: EditPackModalP
   const [validityDays, setValidityDays] = useState(0);
   const [unlimitedClasses, setUnlimitedClasses] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [wasUpdated, setWasUpdated] = useState(false);
 
   useEffect(() => {
     if (pack) {
@@ -26,9 +29,31 @@ const EditPackModal = ({ show, handleClose, pack, refreshTable }: EditPackModalP
     }
   }, [pack]);
 
+  useEffect(() => {
+    if (wasUpdated) {
+      Swal.fire({
+        title: "Pack actualizado",
+        icon: "success",
+        background: "#111827",
+        color: "#f9fafb",
+        confirmButtonColor: "#10b981",
+        timer: 2000,
+        timerProgressBar: true,
+      });
+      setWasUpdated(false);
+    }
+  }, [wasUpdated]);
+
   const handleSubmit = async () => {
     if (!name.trim()) {
-      alert('El nombre del pack no puede estar vacío.');
+      await Swal.fire({
+        title: 'Campo vacío',
+        text: 'El nombre del pack no puede estar vacío.',
+        icon: 'warning',
+        background: '#111827',
+        color: '#f9fafb',
+        confirmButtonColor: '#f59e0b',
+      });
       return;
     }
 
@@ -42,11 +67,21 @@ const EditPackModal = ({ show, handleClose, pack, refreshTable }: EditPackModalP
         validity_days: validityDays,
         unlimited_classes: unlimitedClasses,
       });
+
       refreshTable();
       handleClose();
+      setWasUpdated(true);
+
     } catch (error) {
-      console.error('❌ Error al actualizar pack:', error);
-      alert('Hubo un error al actualizar el pack.');
+      console.error("❌ Error al actualizar pack:", error);
+      await Swal.fire({
+        title: 'Error',
+        text: 'Hubo un error al actualizar el pack.',
+        icon: 'error',
+        background: '#111827',
+        color: '#f9fafb',
+        confirmButtonColor: '#ef4444',
+      });
     } finally {
       setLoading(false);
     }
@@ -56,7 +91,16 @@ const EditPackModal = ({ show, handleClose, pack, refreshTable }: EditPackModalP
 
   return (
     <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
-      <div className="bg-gray-900 text-white p-6 rounded-lg shadow-lg w-full max-w-md" data-aos="zoom-in">
+      <div className="bg-gray-900 text-white p-6 rounded-lg shadow-lg w-full max-w-md relative" data-aos="zoom-in">
+
+        {/* Botón cerrar */}
+        <button
+          className="absolute top-3 right-3 text-white hover:text-red-500 text-xl"
+          onClick={handleClose}
+        >
+          <FaTimes />
+        </button>
+
         <h2 className="text-xl font-semibold mb-4 text-purple-500">Editar Pack</h2>
 
         <div className="space-y-4">
@@ -127,6 +171,13 @@ const EditPackModal = ({ show, handleClose, pack, refreshTable }: EditPackModalP
             </button>
           </div>
         </div>
+
+        {/* Spinner mientras se guarda */}
+        {loading && (
+          <div className="absolute inset-0 bg-black bg-opacity-60 flex items-center justify-center rounded-lg">
+            <div className="w-10 h-10 border-4 border-white border-t-transparent rounded-full animate-spin"></div>
+          </div>
+        )}
       </div>
     </div>
   );
