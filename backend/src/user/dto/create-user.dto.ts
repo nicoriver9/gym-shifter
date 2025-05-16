@@ -3,7 +3,7 @@ import { Role } from '@prisma/client'; // Importa el Enum desde Prisma
 
 export interface CreateUserDto {
   username?: string;
-  password?: string;
+  password: string;
   email: string;
   firstName: string;
   lastName: string;

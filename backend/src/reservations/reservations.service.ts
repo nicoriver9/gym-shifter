@@ -53,14 +53,14 @@ export class ReservationsService {
     // Formatear la respuesta
     return reservations.map((reservation) => ({
       id: reservation.id,
-      user: reservation.user,
+      user: { ...reservation.user, password: undefined },
       classSchedule: {
         ...reservation.classSchedule,
         day_of_week: this.getDayOfWeekName(reservation.classSchedule.day_of_week), // Nombre del día de la semana
         teacherName: `${reservation.classSchedule.teacher.name}`, // Nombre del profesor
       },
       status: reservation.status,
-      created_at: reservation.created_at
+      created_at: reservation.created_at,      
     }));
   }
 

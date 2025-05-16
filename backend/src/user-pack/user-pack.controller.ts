@@ -4,6 +4,8 @@ import { PrismaService } from '../prisma/prisma.service';
 import { UserPackService } from './user-pack.service';
 import { UpdateClassesIncludedDto } from './dto/update-classes-included.dto';
 import { ConfirmAttendanceDto } from './dto/confirm-attendance.dto';
+import { Roles } from 'src/auth/roles/roles.decorator';
+import { Role } from '@prisma/client';
 
 @Controller('api/user-pack')
 export class UserPackController {
@@ -12,6 +14,7 @@ export class UserPackController {
     private readonly userPackService: UserPackService,
   ) {}
 
+  @Roles(Role.Admin)
   @Post('decrement-classes')
   async decrementClasses(@Body() updateDto: UpdateClassesIncludedDto) {
     try {
@@ -38,9 +41,10 @@ export class UserPackController {
 
   @Post('confirm-attendance')
   async confirmAttendance(@Body() confirmDto: ConfirmAttendanceDto) {
-    try {
+    try {      
       const currentDateTime = new Date(confirmDto.currentDateTime);
       currentDateTime.setHours(currentDateTime.getHours() - 3);
+
       const result = await this.userPackService.confirmClassAttendance(
         confirmDto.userId,
         currentDateTime,
@@ -76,6 +80,7 @@ export class UserPackController {
     }
   }
 
+  @Roles(Role.Admin)
   @Post('single/:userId/pack')
   async assignSinglePack(
     @Param('userId') userId: string,
@@ -99,6 +104,7 @@ export class UserPackController {
     }
   }
 
+  @Roles(Role.Admin)
   @Post('assign-pack/:userId/:packId')
   async assignPack(
     @Param('userId') userId: string,
@@ -153,6 +159,7 @@ export class UserPackController {
     }
   }
 
+  @Roles(Role.Admin)
   @Post('remove-pack/:userId')
   async removePack(@Param('userId') userId: string) {
     try {
