@@ -14,9 +14,7 @@ import { Role } from '@prisma/client';
 
 @Controller('api/classes')
 export class ClassesController {
-  constructor(    
-    private readonly classesService: ClassesService
-  ) {}
+  constructor(private readonly classesService: ClassesService) {}
 
   /**
    * Crear una nueva clase en el calendario.
@@ -33,29 +31,50 @@ export class ClassesController {
   async getCurrentClass() {
     try {
       const currentClass = await this.classesService.getCurrentClass();
-      // console.log(currentClass)      
+      // console.log(currentClass)
       return {
         success: true,
         data: currentClass,
-        message: currentClass.is_active 
-          ? 'Clase en curso encontrada' 
-          : 'No hay clases en curso'
+        message: currentClass.is_active
+          ? 'Clase en curso encontrada'
+          : 'No hay clases en curso',
       };
     } catch (error) {
       return {
         success: false,
         data: null,
-        message: error.message
+        message: error.message,
       };
     }
   }
-  
+
+  @Roles(Role.Admin, Role.User)
+  @Get('next')
+  async getNextClass() {
+    try {
+      const nextClass = await this.classesService.getNextClass();
+      return {
+        success: true,
+        data: nextClass,
+        message: nextClass.is_upcoming
+          ? 'Próxima clase encontrada'
+          : 'No hay clases próximas',
+      };
+    } catch (error) {
+      return {
+        success: false,
+        data: null,
+        message: error.message,
+      };
+    }
+  }
+
   @Roles(Role.Admin)
   @Get()
   getAll() {
     return this.classesService.getAllClasses();
   }
-  
+
   @Roles(Role.Admin)
   @Get('by-day/:day')
   getByDay(@Param('day') day: number) {
@@ -64,7 +83,7 @@ export class ClassesController {
 
   @Roles(Role.Admin)
   @Post('bulk')
-  async createMultipleClasses(@Body() classes: any[]) {    
+  async createMultipleClasses(@Body() classes: any[]) {
     return this.classesService.createMultipleClasses(classes);
   }
 

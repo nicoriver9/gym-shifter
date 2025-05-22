@@ -70,6 +70,59 @@ export class ClassesService {
     };
   }
 
+  async getNextClass(userId?: number) {
+    const now = moment().tz('America/Argentina/Buenos_Aires');
+    const currentDay = now.isoWeekday(); // 1–7
+    const currentTime = now.format('HH:mm');
+
+    // Traer la siguiente clase (hoy > hora o días futuros)
+    const candidates = await this.prisma.classSchedule.findMany({
+      where: {
+        OR: [
+          { day_of_week: currentDay, start_time: { gt: currentTime } },
+          { day_of_week: { gt: currentDay } },
+        ],
+      },
+      include: { classType: true, teacher: true },
+      orderBy: [
+        { day_of_week: 'asc' },
+        { start_time: 'asc' },
+      ],
+      take: 1,
+    });
+
+    const next = candidates[0];
+    if (!next) {
+      return { is_upcoming: false, message: 'No hay próximas clases' };
+    }
+
+    // Verificar si el user ya confirmó asistencia
+    let hasConfirmed = false;
+    if (userId) {
+      const existing = await this.prisma.reservation.findFirst({
+        where: {
+          user_id: userId,
+          class_id: next.id,
+          status: 'confirmed',
+        },
+      });
+      hasConfirmed = !!existing;
+    }
+
+    return {
+      id: next.id,
+      name: next.classType.name,
+      day_of_week: next.day_of_week,
+      start_time: next.start_time,
+      end_time: next.end_time,
+      teacher: next.teacher.name,
+      room: next.room,
+      is_upcoming: true,
+      has_confirmed: hasConfirmed,   // ← flag nuevo
+    };
+  }
+  
+
   /**
    * Obtener todas las clases con información del tipo de clase y el profesor.
    */

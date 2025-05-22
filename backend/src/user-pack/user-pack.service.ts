@@ -75,28 +75,33 @@ export class UserPackService {
   }
 
   private async findCurrentClass(currentTime: Date) {
-    const currentDay = currentTime.getDay(); // 0 (Domingo) a 6 (Sábado)
-    const currentHour = currentTime.getHours();
-    const currentMinute = currentTime.getMinutes();
-
-    // Formatear hora actual para comparación
-    const currentTimeStr = `${currentHour.toString().padStart(2, '0')}:${currentMinute.toString().padStart(2, '0')}`;
-
-    // Buscar clases que coincidan con el día y horario
+    const currentDay = currentTime.getDay(); // 0 (Dom) a 6 (Sáb)
+    const currentMinutes = currentTime.getHours() * 60 + currentTime.getMinutes();
+  
+    // Buscar clases del día actual
     const classes = await this.prisma.classSchedule.findMany({
       where: {
         day_of_week: currentDay,
-        start_time: { lte: currentTimeStr },
-        end_time: { gte: currentTimeStr },
       },
       include: {
         classType: true,
         teacher: true,
       },
     });
-
-    return classes[0]; // Devolver la primera coincidencia (asumiendo que no hay superposición)
+  
+    // Filtrar clases que empiezan dentro de los próximos 60 minutos
+    const upcomingClass = classes.find((cls) => {
+      const [startHour, startMin] = cls.start_time.split(':').map(Number);
+      const classStartMinutes = startHour * 60 + startMin;
+  
+      const diffMinutes = classStartMinutes - currentMinutes;
+  
+      return diffMinutes > 0 && diffMinutes <= 60;
+    });
+  
+    return upcomingClass || null;
   }
+  
 
   async decrementUserClasses(userId: number, decrementBy: number = 1) {
     return await this.prisma.$transaction(async (prisma) => {
@@ -231,6 +236,67 @@ export class UserPackService {
       },
     });
   }
+
+    /**
+   * Cancela la asistencia de un usuario a una clase
+   * Solo si faltan al menos 10 minutos antes del inicio.
+   */
+    async cancelClassAttendance(
+      userId: number,
+      classId: number,
+      currentTime: Date,
+    ) {
+      // 1) Traer la clase por ID
+      const cls = await this.prisma.classSchedule.findUnique({
+        where: { id: classId },
+      });
+      if (!cls) throw new Error('Clase no encontrada');
+  
+      // 2) Calcular diferencia en minutos
+      const [h, m] = cls.start_time.split(':').map(Number);
+      const start = new Date(currentTime);
+      start.setHours(h, m, 0, 0);
+  
+      const diffMin = Math.floor((start.getTime() - currentTime.getTime()) / 60000);
+      if (diffMin < 10) {
+        throw new Error(
+          'Ya no puedes cancelar; faltan menos de 10 minutos para iniciar.'
+        );
+      }
+  
+      // 3) Verificar reserva confirmada
+      const reservation = await this.prisma.reservation.findFirst({
+        where: {
+          user_id: userId,
+          class_id: classId,
+          status: 'confirmed',
+        },
+      });
+      if (!reservation) {
+        throw new Error('No tienes una reserva confirmada para esta clase.');
+      }
+  
+      // 4) Eliminar la reserva
+      await this.prisma.reservation.delete({
+        where: { id: reservation.id },
+      });
+  
+      // 5) Revertir el descuento (si no es ilimitado)
+      const user = await this.prisma.user.findUnique({
+        where: { id: userId },
+        include: { current_pack: true },
+      });
+      if (user?.current_pack && !user.current_pack.unlimited_classes) {
+        await this.prisma.user.update({
+          where: { id: userId },
+          data: { classes_remaining: { increment: 1 } },
+        });
+      }
+  
+      return { message: 'Asistencia cancelada correctamente' };
+    }
+  
+  
 
   // @Cron(CronExpression.EVERY_DAY_AT_2AM)
   // async resetWeeklyClasses() {

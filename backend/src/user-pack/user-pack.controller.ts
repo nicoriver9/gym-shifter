@@ -6,6 +6,7 @@ import { UpdateClassesIncludedDto } from './dto/update-classes-included.dto';
 import { ConfirmAttendanceDto } from './dto/confirm-attendance.dto';
 import { Roles } from 'src/auth/roles/roles.decorator';
 import { Role } from '@prisma/client';
+import { CancelAttendanceDto } from './dto/cancel-attendance.dto';
 
 @Controller('api/user-pack')
 export class UserPackController {
@@ -39,11 +40,13 @@ export class UserPackController {
     }
   }
 
+  @Roles(Role.Admin, Role.User)
   @Post('confirm-attendance')
   async confirmAttendance(@Body() confirmDto: ConfirmAttendanceDto) {
-    try {      
+    try {
+      const serverTimezoneDiff: number = parseInt(process.env.SERVER_TIMEZONE_DIFF);
       const currentDateTime = new Date(confirmDto.currentDateTime);
-      currentDateTime.setHours(currentDateTime.getHours() - 3);
+      currentDateTime.setHours(currentDateTime.getHours() - serverTimezoneDiff);
 
       const result = await this.userPackService.confirmClassAttendance(
         confirmDto.userId,
@@ -77,6 +80,26 @@ export class UserPackController {
         success: false,
         message: error.message,
       };
+    }
+  }
+
+  /** Cancelar asistencia hasta 10 minutos antes */
+  @Roles(Role.Admin, Role.User)
+  @Post('cancel-attendance')
+  async cancelAttendance(@Body() dto: CancelAttendanceDto) {
+    try {
+      // Ajuste de zona horaria si hiciera falta:
+      const now = new Date(dto.currentDateTime);
+      now.setHours(now.getHours() - 3);
+
+      const result = await this.userPackService.cancelClassAttendance(
+        dto.userId,
+        dto.classId,
+        now,
+      );
+      return { success: true, ...result };
+    } catch (error) {
+      return { success: false, message: error.message };
     }
   }
 
