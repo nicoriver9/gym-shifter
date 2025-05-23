@@ -52,7 +52,7 @@ const QRScanOnlyPage = () => {
       }
 
       try {
-        const result = await confirmClassAttendance(userId, now);        
+        const result = await confirmClassAttendance(userId, now);
         if (result.success && result.data) {
           setUserPack(result.data.pack_name);
           setUserPackClassesIncluded(result.data.classes_remaining);

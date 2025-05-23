@@ -1,28 +1,20 @@
 import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
-import { PackInfo } from "../../components/user/PackInfo";
-import { useUserPackStore } from "../../store/packCounter";
-import { findCurrentClass } from "../../utils/user/classUtils";
-import { CurrentClassSection } from "../../components/user/CurrentClassSection";
-import { confirmClassAttendance } from "../../services/user/userPackService";
-import { ConfirmationModal } from "../../components/user/ConfirmationModal";
-import { FaQrcode } from "react-icons/fa";
-import { FiCheckCircle } from "react-icons/fi";
+import Swal from "sweetalert2";
 import AOS from "aos";
 import "aos/dist/aos.css";
 
+import { PackInfo } from "../../components/user/PackInfo";
+import { useUserPackStore } from "../../store/packCounter";
+import {
+  confirmClassAttendance,
+  cancelAttendance,
+  getNextClass,
+} from "../../services/user/userPackService";
+
 const AttendancePage = () => {
-  const navigate = useNavigate();
-  const [classes, setClasses] = useState<any[]>([]);
-  const [classTypes, setClassTypes] = useState<any[]>([]);
-  const [teachers, setTeachers] = useState<any[]>([]);
-  const [hasCurrentClass, setHasCurrentClass] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [success, setSuccess] = useState<string | null>(null);
+  const [nextClass, setNextClass] = useState<any>(null);
+  const [isLoading, setIsLoading] = useState(true);
   const [isProcessing, setIsProcessing] = useState(false);
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [currentClass, setCurrentClass] = useState<any>(null);
-  const [loading, setLoading] = useState(true); // Nuevo estado de carga
 
   const userId = Number(localStorage.getItem("user_id"));
   const {
@@ -40,81 +32,119 @@ const AttendancePage = () => {
 
   useEffect(() => {
     AOS.init({ duration: 600 });
-    const fetchData = async () => {
+    (async () => {
       try {
-        const [classTypesRes, teachersRes, classesRes] = await Promise.all([
-          fetch(`${import.meta.env.VITE_API_URL}/api/class-types`).then((r) =>
-            r.json()
-          ),
-          fetch(`${import.meta.env.VITE_API_URL}/api/teachers`).then((r) =>
-            r.json()
-          ),
-          fetch(`${import.meta.env.VITE_API_URL}/api/classes`).then((r) =>
-            r.json()
-          ),
-        ]);
-        setClassTypes(classTypesRes);
-        setTeachers(teachersRes);
-        setClasses(classesRes);
-        setHasCurrentClass(!!findCurrentClass(classesRes, new Date()));
-      } catch (err) {
-        console.error("Error al cargar datos:", err);
+        const res = await getNextClass(userId);
+        if (res.success && res.data.is_upcoming) {
+          setNextClass(res.data);
+        }
+      } catch (e) {
+        console.error(e);
       } finally {
-        setLoading(false);
+        setIsLoading(false);
       }
-    };
-
-    fetchData();
+    })();
   }, []);
 
-  const showConfirmationModal = () => {
+  const minutesUntil = (time: string) => {
+    const [h, m] = time.split(":").map(Number);
     const now = new Date();
-    const found = findCurrentClass(classes, now);
-    if (!found) {
-      setError("No hay clases en curso en este momento.");
-      return;
-    }
-    setCurrentClass({
-      ...found,
-      classType: classTypes.find((t) => t.id === found.class_type_id),
-      teacher: teachers.find((t) => t.id === found.teacher_id),
-    });
-    setIsModalOpen(true);
+    const c = new Date();
+    c.setHours(h, m, 0, 0);
+    return Math.floor((c.getTime() - now.getTime()) / 60000);
   };
 
-  const handleManualConfirmation = async () => {
-    setIsProcessing(true);
-    setError(null);
-    setSuccess(null);
+  const handleConfirm = async () => {
+    if (!nextClass) return;
+    const mins = minutesUntil(nextClass.start_time);
+    if (mins > 60) {
+      return Swal.fire("⏳ Aún falta mucho", "Solo 1h antes", "info");
+    }
+    if (nextClass.has_confirmed) {
+      return Swal.fire(
+        "✅ Ya confirmaste",
+        "No necesitas volver a confirmar",
+        "info"
+      );
+    }
+
+    const ok = await Swal.fire({
+      title: "Confirmar asistencia",
+      html: `<b>${nextClass.name}</b><br/>${nextClass.start_time} - ${nextClass.end_time}<br/>Prof: ${nextClass.teacher}`,
+      showCancelButton: true,
+      confirmButtonText: "Sí",
+      cancelButtonText: "No",
+      confirmButtonColor: "#16a34a",
+      cancelButtonColor: "#dc2626",
+    });
+    if (!ok.isConfirmed) return;
+
     try {
-      const now = new Date();
-      const result = await confirmClassAttendance(userId, now);
-      if (result.success && result.data) {
-        setUserPack(result.data.pack_name);
-        setUserPackClassesIncluded(result.data.classes_remaining);
-        setPackExpirationDate(result.data.pack_expiration_date);
-        setSuccess(
-          `✅ Asistencia confirmada: ${result.data.class_name} con ${result.data.teacher_name}. Clases restantes: ${result.data.classes_remaining}`
-        );
+      setIsProcessing(true);
+      const resp = await confirmClassAttendance(userId, new Date());
+      if (resp.success && resp.data) {
+        setUserPack(resp.data.pack_name);
+        setUserPackClassesIncluded(resp.data.classes_remaining);
+        setPackExpirationDate(resp.data.pack_expiration_date);
+        Swal.fire("✅ Confirmado", "¡Has dado presente!", "success");
+        setNextClass({ ...nextClass, has_confirmed: true });
       } else {
-        throw new Error(result.message);
+        throw new Error(resp.message);
       }
-    } catch (err: any) {
-      setError(err.message || "Error al confirmar asistencia.");
+    } catch (e: any) {
+      Swal.fire("❌ Error", e.message, "error");
     } finally {
       setIsProcessing(false);
-      setIsModalOpen(false);
-      setCurrentClass(null);
     }
   };
 
-  if (loading) {
+  const handleCancel = async () => {
+    if (!nextClass) return;
+    const mins = minutesUntil(nextClass.start_time);
+    if (mins < 10) {
+      return Swal.fire(
+        "⏳ Muy tarde",
+        "Menos de 10 minutos restantes",
+        "warning"
+      );
+    }
+    const ok = await Swal.fire({
+      title: "Cancelar asistencia",
+      text: "¿Seguro?",
+      showCancelButton: true,
+      confirmButtonText: "Sí",
+      cancelButtonText: "No",
+      confirmButtonColor: "#f87171",
+    });
+    if (!ok.isConfirmed) return;
+
+    try {
+      setIsProcessing(true);
+      const resp = await await cancelAttendance(
+        userId,
+        nextClass.id,
+        new Date()
+      );
+      if (resp.success) {
+        setUserPackClassesIncluded(
+          userPackClassesIncluded ? userPackClassesIncluded + 1 : 1
+        );
+        Swal.fire("✅ Cancelado", resp.message, "success");
+        setNextClass({ ...nextClass, has_confirmed: false });
+      } else {
+        throw new Error(resp.message);
+      }
+    } catch (e: any) {
+      Swal.fire("❌ Error", e.message, "error");
+    } finally {
+      setIsProcessing(false);
+    }
+  };
+
+  if (isLoading) {
     return (
-      <div className="flex justify-center items-center min-h-screen" data-aos="fade-up">
-        <div className="text-center">
-          <p className="text-white text-lg mb-3">Cargando datos de clase...</p>
-          <div className="w-10 h-10 border-4 border-purple-500 border-t-transparent rounded-full animate-spin mx-auto"></div>
-        </div>
+      <div className="flex justify-center items-center min-h-screen">
+        <p className="text-white">Cargando...</p>
       </div>
     );
   }
@@ -122,80 +152,45 @@ const AttendancePage = () => {
   return (
     <div className="max-w-xl mx-auto mt-10 px-4">
       <PackInfo />
-      <CurrentClassSection
-        classes={classes}
-        classTypes={classTypes}
-        teachers={teachers}
-      />
 
-      <ConfirmationModal
-        isOpen={isModalOpen}
-        onCancel={() => {
-          setIsModalOpen(false);
-          setCurrentClass(null);
-        }}
-        onConfirm={handleManualConfirmation}
-        message={
-          currentClass ? (
-            <div>
-              <p>¿Confirmar asistencia a:</p>
-              <p className="font-bold text-lg mt-2">
-                {currentClass.classType?.name}
-              </p>
-              <p>
-                Horario: {currentClass.start_time} - {currentClass.end_time}
-              </p>
-              <p>Profesor: {currentClass.teacher?.name}</p>
-              <p className="mt-2">Se descontará una clase de tu pack.</p>
-            </div>
-          ) : (
-            "¿Confirmar asistencia a la clase actual?"
-          )
-        }
-      />
+      {hasValidPack && nextClass ? (
+        <div className="bg-indigo-800 p-6 rounded-lg text-white shadow-md">
+          <h2 className="text-xl font-bold mb-2 text-center">Próxima Clase</h2>
+          <p className="text-center mb-1 font-semibold">{nextClass.name}</p>
+          <p className="text-center mb-1">
+            {nextClass.start_time} – {nextClass.end_time}
+          </p>
+          <p className="text-center mb-4">Prof: {nextClass.teacher}</p>
 
-      {error && (
-        <div className="bg-red-100 text-red-800 px-4 py-2 my-4 rounded-md text-center">
-          ❌ {error}
-        </div>
-      )}
-      {success && (
-        <div className="bg-green-100 text-green-800 px-4 py-2 my-4 rounded-md text-center">
-          {success}
-        </div>
-      )}
-
-      {hasValidPack && hasCurrentClass && (
-        <div className="text-center mt-6 space-y-4">
-          <button
-            onClick={() => navigate("/dashboard/scan")}
-            disabled={!!success}
-            className={`flex items-center justify-center gap-2 w-full text-white font-semibold px-6 py-3 rounded-lg shadow-md transition ${success
-              ? "bg-gray-500 cursor-not-allowed"
-              : "bg-teal-500 hover:bg-teal-600"
+          <div className="flex justify-center gap-4">
+            {/* Confirmar / Presente */}
+            <button
+              onClick={handleConfirm}
+              disabled={isProcessing || nextClass.has_confirmed}
+              className={`py-2 px-4 rounded font-semibold transition ${
+                nextClass.has_confirmed
+                  ? "bg-gray-600 cursor-not-allowed text-gray-300"
+                  : "bg-green-500 hover:bg-green-600 text-white"
               }`}
-          >
-            <FaQrcode className="text-xl" />
-            Confirmar por QR
-          </button>
+            >
+              {nextClass.has_confirmed ? "Presente" : "Confirmar"}
+            </button>
 
-          <button
-            onClick={showConfirmationModal}
-            disabled={isProcessing || !!success}
-            className={`flex items-center justify-center gap-2 w-full text-white font-semibold px-6 py-3 rounded-lg shadow-md transition ${isProcessing || success
-              ? "bg-gray-500 cursor-not-allowed"
-              : "bg-orange-500 hover:bg-orange-600"
-              }`}
-          >
-            <FiCheckCircle className="text-xl" />
-            {isProcessing ? "Procesando..." : "Confirmar manual"}
-          </button>
+            {/* Cancelar Asistencia (sólo aparece tras confirmar) */}
+            {nextClass.has_confirmed && (
+              <button
+                onClick={handleCancel}
+                disabled={isProcessing}
+                className="py-2 px-4 rounded bg-red-500 hover:bg-red-600 text-white font-semibold transition"
+              >
+                Cancelar Asistencia
+              </button>
+            )}
+          </div>
         </div>
-      )}
-
-      {!hasValidPack && (
-        <div className="bg-red-900 text-white p-4 rounded-lg text-center mt-6">
-          No puedes confirmar asistencia porque no tienes un pack activo.
+      ) : (
+        <div className="bg-gray-800 text-gray-400 p-4 rounded-lg text-center">
+          No hay clases próximas disponibles.
         </div>
       )}
     </div>

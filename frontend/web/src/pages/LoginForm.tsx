@@ -88,6 +88,8 @@ const LoginForm = ({ onLogin }: { onLogin: () => void }) => {
       localStorage.setItem("access_token", data.access_token);
       localStorage.setItem("user_id", data.user_id);
       localStorage.setItem("username", data.username);
+      localStorage.setItem("firstName", data.firstName);
+      localStorage.setItem("lastName", data.lastName);
       localStorage.setItem("role", data.role);
 
       onLogin();

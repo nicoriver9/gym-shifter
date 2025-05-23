@@ -1,6 +1,14 @@
-import { FiLogOut, FiPackage, FiCheckCircle, FiClock, FiSettings } from "react-icons/fi";
-import { Link, Outlet } from "react-router-dom";
+import {
+  FiLogOut,
+  FiPackage,
+  FiCheckCircle,
+  FiClock,
+  FiSettings,
+} from "react-icons/fi";
+import { Outlet, useLocation, useNavigate } from "react-router-dom";
 import { useUserPackStore } from "../../store/packCounter";
+import { useIsMobile } from "../../hooks/useIsMobile";
+import { PackInfo } from "../../components/user/PackInfo";
 
 interface UserDashboardProps {
   onLogout: () => void;
@@ -14,82 +22,92 @@ const UserDashboard: React.FC<UserDashboardProps> = ({ onLogout }) => {
   const { userPackClassesIncluded } = useUserPackStore();
   const noClassesAvailable = userPackClassesIncluded === 0;
 
+  const isMobile = useIsMobile();
+  const navigate = useNavigate();
+  const location = useLocation();
+  const isMainDashboard = location.pathname === "/dashboard" || location.pathname === "/dashboard/";
+
+
   return (
     <div className="relative min-h-screen w-full bg-gray-900 text-white flex flex-col items-center py-10 px-4 sm:px-6 lg:px-8">
       {/* Header */}
       <header className="w-full max-w-4xl flex items-center justify-between bg-gray-800 p-4 rounded-lg shadow mb-8">
         <div className="flex-grow">
-          <h1 className="text-2xl font-bold text-center">Hola!! {firstName} {lastName}</h1>
+          <h1 className="text-2xl font-bold text-center">
+            Hola!! {firstName} {lastName}
+          </h1>
         </div>
         <button
           onClick={onLogout}
-          className="w-10 h-10 flex items-center justify-center bg-red-600 hover:bg-red-700 rounded-full transition"
+          className="w-14 h-11 flex items-center justify-center bg-red-600 hover:bg-red-700 rounded-full transition"
         >
           <FiLogOut className="text-xl text-white" />
           <span className="sr-only">Cerrar Sesión</span>
         </button>
       </header>
 
-      {/* Badge de clases restantes */}
-      <div className="mb-6 px-3 py-1 bg-gray-700 rounded-full text-sm flex items-center">
-        <span className="font-medium mr-2">Clases restantes:</span>
-        <span className="font-bold">{userPackClassesIncluded}</span>
-      </div>
+      {/* Pack actual solo en ruta raíz del dashboard */}
+      {isMainDashboard && <PackInfo />}
 
-      {/* Navegación mobile-first */}
-      <nav className="w-full max-w-4xl flex flex-col sm:flex-row items-center gap-4 mb-10 justify-center">
+      {/* Navegación */}
+      <nav className="w-2/3 max-w-4xl flex flex-col sm:flex-row items-center gap-4 mt-10 mb-16 justify-center">
         {/* Packs */}
-        <Link
-          to="/dashboard/packs"
-          data-aos="fade-up" data-aos-duration="1000"
-          className="flex w-3/5 sm:w-auto items-center justify-center gap-2 px-6 py-3 bg-purple-600 hover:bg-purple-700 rounded-full text-base font-medium transition"
+        <button
+          onClick={() =>
+            isMobile ? navigate("/packs") : navigate("/dashboard/packs")
+          }
+          className="flex w-full sm:w-auto items-center justify-center gap-2 px-4 sm:px-6 py-3 sm:py-4 bg-indigo-600 hover:bg-indigo-700 text-white text-sm sm:text-lg font-semibold rounded-full transition shadow-md hover:shadow-xl active:scale-95"
         >
-          <FiPackage /> <span>Packs</span>
-        </Link>
+          <FiPackage className="text-xl sm:text-2xl" />
+          <span className="leading-tight">Packs</span>
+        </button>
 
-        {/* Confirmar asistencia (destacado en mobile) */}
-        <Link
-          to="/dashboard/confirm-attendance"
-          data-aos="fade-up" data-aos-duration="1500"
-          className={`
-            flex w-3/5 sm:w-auto items-center justify-center text-center gap-2 px-6 py-3
-            ${noClassesAvailable
-              ? "bg-gray-500 cursor-not-allowed opacity-60"
-              : "bg-green-600 hover:bg-green-700"}
-            rounded-full text-base font-semibold transition
-          `}
-          onClick={(e) => noClassesAvailable && e.preventDefault()}
+        {/* Confirmar Asistencia */}
+        <button
+          onClick={() => {
+            if (noClassesAvailable) return;
+            isMobile
+              ? navigate("/confirm-attendance")
+              : navigate("/dashboard/confirm-attendance");
+          }}
+          className={`flex w-full sm:w-auto items-center justify-center gap-2 px-4 sm:px-6 py-3 sm:py-4 rounded-full text-sm sm:text-lg font-semibold transition shadow-md hover:shadow-xl active:scale-95 ${noClassesAvailable
+            ? "bg-gray-500 cursor-not-allowed opacity-60"
+            : "bg-teal-500 hover:bg-teal-600 text-white"
+            }`}
         >
-          <FiCheckCircle /> <span>Confirmar Asistencia</span>
-        </Link>
+          <FiCheckCircle className="text-xl sm:text-2xl" />
+          <span className="leading-tight">Confirmar Asistencia</span>
+        </button>
 
         {/* Clases de Hoy */}
-        <Link
-          to="/dashboard/today-classes"
-          data-aos="fade-up" data-aos-duration="2000"
-          className={`
-            flex w-3/5 sm:w-auto items-center justify-center gap-2 px-6 py-3
-            ${noClassesAvailable
-              ? "bg-gray-500 cursor-not-allowed opacity-60"
-              : "bg-purple-600 hover:bg-purple-700"}
-            rounded-full text-base font-medium transition
-          `}
-          onClick={(e) => noClassesAvailable && e.preventDefault()}
+        <button
+          onClick={() => {
+            if (noClassesAvailable) return;
+            isMobile
+              ? navigate("/today-classes")
+              : navigate("/dashboard/today-classes");
+          }}
+          className={`flex w-full sm:w-auto items-center justify-center gap-2 px-4 sm:px-6 py-3 sm:py-4 rounded-full text-sm sm:text-lg font-semibold transition shadow-md hover:shadow-xl active:scale-95 ${noClassesAvailable
+            ? "bg-gray-500 cursor-not-allowed opacity-60"
+            : "bg-fuchsia-600 hover:bg-fuchsia-700 text-white"
+            }`}
         >
-          <FiClock /> <span>Clases de Hoy</span>
-        </Link>
+          <FiClock className="text-xl sm:text-2xl" />
+          <span className="leading-tight">Clases de Hoy</span>
+        </button>
 
-        {/* Admin */}
+        {/* Administración */}
         {userRole === "Admin" && (
-          <Link
-            to="/dashboard/administration"
-            data-aos="fade-up" data-aos-duration="2500"
-            className="flex w-3/5 sm:w-auto items-center justify-center gap-2 px-6 py-3 bg-sky-900 hover:bg-sky-700 rounded-full text-base font-medium transition"
+          <button
+            onClick={() => navigate("/dashboard/administration")}
+            className="flex w-full sm:w-auto items-center justify-center gap-2 px-4 sm:px-6 py-3 sm:py-4 bg-blue-800 hover:bg-blue-700 text-white text-sm sm:text-lg font-semibold rounded-full transition shadow-md hover:shadow-xl active:scale-95"
           >
-            <FiSettings /> <span>Administración</span>
-          </Link>
+            <FiSettings className="text-xl sm:text-2xl" />
+            <span className="leading-tight">Administración</span>
+          </button>
         )}
       </nav>
+
 
       {/* Contenido anidado */}
       <div className="w-full max-w-4xl">

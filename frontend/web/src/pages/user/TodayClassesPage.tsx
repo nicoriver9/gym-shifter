@@ -4,7 +4,7 @@ import dayGridPlugin from '@fullcalendar/daygrid';
 import timeGridPlugin from '@fullcalendar/timegrid';
 import interactionPlugin from '@fullcalendar/interaction';
 import esLocale from '@fullcalendar/core/locales/es';
-import { PackInfo } from '../../components/user/PackInfo';
+// import { PackInfo } from '../../components/user/PackInfo';
 import AOS from "aos";
 import "aos/dist/aos.css";
 
@@ -83,58 +83,60 @@ const TodayClassesPage = () => {
   }
 
   return (
-    <div className="max-w-4xl mx-auto mt-10 px-4 sm:px-6">
-      <PackInfo />
+    <div className="min-h-screen bg-gray-900 text-white p-4">
+      <div className="max-w-4xl mx-auto mt-10 px-4 sm:px-6">
+        {/* <PackInfo /> */}
 
-      <h2 className="text-3xl sm:text-4xl font-semibold text-white text-center mb-3">
-        Clases de Hoy
-      </h2>
-      <div className="text-white text-lg sm:text-2xl text-center mb-6 font-semibold capitalize">
-        {formattedDate}
-      </div>
+        <h2 className="text-3xl sm:text-4xl font-semibold text-white text-center mb-3">
+          Clases de Hoy
+        </h2>
+        <div className="text-white text-lg sm:text-2xl text-center mb-6 font-semibold capitalize">
+          {formattedDate}
+        </div>
 
-      <div className="bg-gray-800 rounded-xl shadow-lg p-2 sm:p-6" data-aos="fade-up">
-        <FullCalendar
-          plugins={[dayGridPlugin, timeGridPlugin, interactionPlugin]}
-          locale={esLocale}
-          initialView="timeGridDay"
-          events={events}
-          editable={false}
-          selectable={false}
-          height="auto"
-          slotMinTime="06:00:00"
-          slotMaxTime="22:00:00"
-          slotLabelFormat={{
-            hour: '2-digit',
-            minute: '2-digit',
-            hour12: false
-          }}
-          headerToolbar={{
-            left: 'prev,next today',
-            center: '',
-            right: 'timeGridDay,timeGridWeek,dayGridMonth',
-          }}
-          buttonText={{
-            today: 'Hoy',
-            day: 'Día',
-            week: 'Semana',
-            month: 'Mes',
-          }}
-          views={{
-            timeGridDay: {
-              titleFormat: { weekday: 'long', day: 'numeric', month: 'long' },
-            },
-          }}
-          eventClassNames={() =>
-            'bg-purple-600 text-white font-medium rounded-lg px-2 py-1 shadow-md'
-          }
-          dayHeaderClassNames={() =>
-            'bg-gray-700 text-gray-200 p-2 text-center text-sm sm:text-base rounded'
-          }
-          slotLabelClassNames={() =>
-            'text-gray-400 text-xs sm:text-sm text-center'
-          }
-        />
+        <div className="bg-gray-800 rounded-xl shadow-lg p-2 sm:p-6" data-aos="fade-up">
+          <FullCalendar
+            plugins={[dayGridPlugin, timeGridPlugin, interactionPlugin]}
+            locale={esLocale}
+            initialView="timeGridDay"
+            events={events}
+            editable={false}
+            selectable={false}
+            height="auto"
+            slotMinTime="06:00:00"
+            slotMaxTime="22:00:00"
+            slotLabelFormat={{
+              hour: '2-digit',
+              minute: '2-digit',
+              hour12: false
+            }}
+            headerToolbar={{
+              left: 'prev,next today',
+              center: '',
+              right: 'timeGridDay,timeGridWeek,dayGridMonth',
+            }}
+            buttonText={{
+              today: 'Hoy',
+              day: 'Día',
+              week: 'Semana',
+              month: 'Mes',
+            }}
+            views={{
+              timeGridDay: {
+                titleFormat: { weekday: 'long', day: 'numeric', month: 'long' },
+              },
+            }}
+            eventClassNames={() =>
+              'bg-purple-600 text-white font-medium rounded-lg px-2 py-1 shadow-md'
+            }
+            dayHeaderClassNames={() =>
+              'bg-gray-700 text-gray-200 p-2 text-center text-sm sm:text-base rounded'
+            }
+            slotLabelClassNames={() =>
+              'text-gray-400 text-xs sm:text-sm text-center'
+            }
+          />
+        </div>
       </div>
     </div>
   );

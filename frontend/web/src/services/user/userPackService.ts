@@ -31,6 +31,47 @@ export const confirmClassAttendance = async (
   return response.json();
 };
 
+// ✅ Cancelar asistencia a una clase
+export const cancelAttendance = async (
+  userId: number,
+  classId: number,
+  currentDateTime: Date
+) => {
+  const response = await fetch(`${API_URL}/cancel-attendance`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${getAccessToken()}`,
+    },
+    body: JSON.stringify({
+      userId,
+      classId,
+      currentDateTime: currentDateTime.toISOString(),
+    }),
+  });
+  if (!response.ok) {
+    const err = await response.json();
+    throw new Error(err.message || 'Error al cancelar asistencia');
+  }
+  return response.json();
+};
+
+// ✅ Obtener próxima clase disponible para el usuario
+export const getNextClass = async (userId: number) => {
+  const response = await fetch(
+    `${import.meta.env.VITE_API_URL}/api/classes/next?userId=${userId}`,
+    {
+      headers: { Authorization: `Bearer ${getAccessToken()}` },
+    }
+  );
+  if (!response.ok) {
+    const err = await response.json();
+    throw new Error(err.message || 'Error al obtener próxima clase');
+  }
+  return response.json();
+};
+
+
 export const assignPackToUser = async (userId: number, packId: number) => {
   const response = await fetch(`${API_URL}/${userId}/packs/${packId}`, {
     method: 'POST',

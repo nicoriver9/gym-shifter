@@ -4,17 +4,18 @@ import {
   Route,
   Navigate,
 } from "react-router-dom";
+
 import LoginForm from "../pages/LoginForm";
 import UserDashboard from "../pages/user/UserDashboard";
 import PacksPage from "../pages/user/PacksPage";
-import AttendancePage from "../pages/user/AttendancePage"; // ✅ nueva vista principal
-import QRScanOnlyPage from "../pages/user/QRScanOnlyPage"; // ✅ vista solo QR
+import AttendancePage from "../pages/user/AttendancePage";
+import QRScanOnlyPage from "../pages/user/QRScanOnlyPage";
 import TodayClassesPage from "../pages/user/TodayClassesPage";
 import MainPanel from "../components/MainPanel";
 import AccessDenied from "../pages/AccessDenied";
-import PaymentAliasCard from "../pages/user/PaymentAliasCard"; // alias de pago
+import PaymentAliasCard from "../pages/user/PaymentAliasCard";
+import UserLayout from "../layouts/UserLayout";
 
-// Props del router
 interface AppRoutesProps {
   isAuthenticated: boolean;
   userRole: string | null;
@@ -43,7 +44,7 @@ const AppRoutes: React.FC<AppRoutesProps> = ({
           }
         />
 
-        {/* Dashboard */}
+        {/* Dashboard con layout */}
         <Route
           path="/dashboard"
           element={
@@ -55,11 +56,9 @@ const AppRoutes: React.FC<AppRoutesProps> = ({
           }
         >
           <Route path="packs" element={<PacksPage />} />
-          <Route path="confirm-attendance" element={<AttendancePage />} /> {/* ✅ nueva ruta */}
-          <Route path="scan" element={<QRScanOnlyPage />} /> {/* ✅ nueva ruta */}
+          <Route path="confirm-attendance" element={<AttendancePage />} />
+          <Route path="scan" element={<QRScanOnlyPage />} />
           <Route path="today-classes" element={<TodayClassesPage />} />
-
-          {/* Panel Admin */}
           <Route
             path="administration"
             element={
@@ -72,16 +71,32 @@ const AppRoutes: React.FC<AppRoutesProps> = ({
           />
         </Route>
 
+        {/* Rutas externas con layout de usuario */}
+        <Route element={<UserLayout />}>
+          <Route
+            path="/packs"
+            element={isAuthenticated ? <PacksPage /> : <Navigate to="/login" />}
+          />
+          <Route
+            path="/today-classes"
+            element={isAuthenticated ? <TodayClassesPage /> : <Navigate to="/login" />}
+          />
+          <Route
+            path="/confirm-attendance"
+            element={isAuthenticated ? <AttendancePage /> : <Navigate to="/login" />}
+          />
+        </Route>
+
         {/* Alias de pago */}
         <Route path="/payment/alias" element={<PaymentAliasCard />} />
 
-        {/* Redirección de éxito de pago */}
+        {/* Redirección post-pago */}
         <Route
           path="/payments/success"
           element={<Navigate to="/dashboard/packs" replace />}
         />
 
-        {/* Catch all */}
+        {/* Ruta por defecto */}
         <Route path="*" element={<Navigate to="/login" />} />
       </Routes>
     </Router>

@@ -1,6 +1,8 @@
 import { useState, useEffect } from "react";
 import AppRoutes from "./router/Routes";
 import SplashScreen from "./pages/SplashScreen";
+import "./app.css";
+
 
 import AOS from "aos";
 import "aos/dist/aos.css";

@@ -31,10 +31,8 @@ export const CurrentClassSection = ({ classes, classTypes, teachers }: CurrentCl
       }
     };
 
-    // Verificamos al montar el componente
     checkForCurrentClass();
 
-    // Verificamos cada 30 segundos
     const interval = setInterval(() => {
       checkForCurrentClass();
     }, 30000);
@@ -67,29 +65,14 @@ export const CurrentClassSection = ({ classes, classTypes, teachers }: CurrentCl
   }
 
   return (
-    <div className="bg-purple-900 border border-purple-600 rounded-lg p-4 mb-6">
-      <h3 className="text-xl text-center font-bold text-white mb-5">Clase en Curso</h3>
-
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-white text-center">
-        <div>
-          <p className="font-semibold">Clase:</p>
-          <p className="text-lg">{currentClass.classType?.name || 'Clase sin nombre'}</p>
-        </div>
-
-        <div>
-          <p className="font-semibold">Profesor:</p>
-          <p className="text-lg">{currentClass.teacher?.name || 'Profesor no asignado'}</p>
-        </div>
-
-        <div>
-          <p className="font-semibold">Horario:</p>
-          <p className="text-lg">
-            {currentClass.start_time} - {currentClass.end_time}
-            <span className="block text-sm text-purple-300">{timeLeft}</span>
-          </p>
-        </div>
-      </div>
-
+    <div className="bg-gradient-to-br from-purple-700 to-indigo-800 rounded-xl p-6 shadow-lg text-white mb-6">
+      <h3 className="text-lg font-semibold text-center mb-3">Clase en Curso</h3>
+      <p className="text-2xl font-bold text-center mb-2">{currentClass.classType?.name || 'Clase sin nombre'}</p>
+      <p className="text-center mb-1">Profesor: <span className="font-medium">{currentClass.teacher?.name || 'Profesor no asignado'}</span></p>
+      <p className="text-center mb-1">
+        Horario: <span className="font-medium">{currentClass.start_time} - {currentClass.end_time}</span>
+      </p>
+      <p className="text-center text-sm mt-2 opacity-80">{timeLeft || 'Clase en progreso'}</p>
       {currentClass.room && (
         <div className="mt-3 text-center">
           <span className="inline-block bg-gray-700 text-white px-3 py-1 rounded-full text-sm">
