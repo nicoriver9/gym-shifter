@@ -47,11 +47,14 @@ export class UserPackController {
       const serverTimezoneDiff: number = parseInt(process.env.SERVER_TIMEZONE_DIFF);
       const currentDateTime = new Date(confirmDto.currentDateTime);
       currentDateTime.setHours(currentDateTime.getHours() - serverTimezoneDiff);
+      console.log(currentDateTime);
 
       const result = await this.userPackService.confirmClassAttendance(
         confirmDto.userId,
         currentDateTime,
-      );
+      );      
+
+      // console.log(result);
 
       const response = {
         success: true,

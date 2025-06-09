@@ -5,30 +5,49 @@ import { PrismaService } from '../prisma/prisma.service';
 
 @Injectable()
 export class UserPackService {
-  constructor(
-    private prisma: PrismaService    
-  ) {}
+  constructor(private prisma: PrismaService) {}
 
   // src/user-pack/user-pack.service.ts
   async confirmClassAttendance(userId: number, currentDateTime: Date) {
     return await this.prisma.$transaction(async (prisma) => {
-      // 1. Encontrar la clase actual
+      console.log(`\n========== CONFIRMACIÓN DE ASISTENCIA ==========\n`);
+      console.log(`[INFO] Usuario: ${userId}`);
+      console.log(
+        `[INFO] Hora de confirmación recibida: ${currentDateTime.toLocaleString()}`,
+      );
+      console.log(`[INFO] Buscando clase confirmable...\n`);
+
+      // 1. Encontrar la clase actual o que va a comenzar en la próxima hora
       const currentClass = await this.findCurrentClass(currentDateTime);
       if (!currentClass) {
-        throw new Error(`No hay clases programadas en este horario ${currentDateTime}`);
+        console.error(
+          `[ERROR] No se encontró ninguna clase confirmable para este horario.`,
+        );
+        throw new Error(
+          `No hay clases programadas en este horario ${currentDateTime}`,
+        );
       }
 
-      // 2. Obtener información de la clase
+      console.log(`[INFO] Clase detectada: ${currentClass.classType.name}`);
+      console.log(`[INFO] Profesor: ${currentClass.teacher?.name}`);
+      console.log(
+        `[INFO] Horario: ${currentClass.start_time} - ${currentClass.end_time}`,
+      );
+      console.log(`[INFO] Sala: ${currentClass.room}\n`);
+
       const classInfo = {
         name: currentClass.classType.name,
-        teacher: currentClass.teacher.name,
+        teacher: currentClass.teacher?.name,
         start_time: currentClass.start_time,
         end_time: currentClass.end_time,
         room: currentClass.room,
       };
 
-      
-      // 3. Verificar si el usuario ya asistió
+      // 2. Verificar si ya asistió a esta clase
+      console.log(
+        `[INFO] Verificando si el usuario ya confirmó asistencia a esta clase...`,
+      );
+
       const existingAttendance = await prisma.reservation.findFirst({
         where: {
           user_id: userId,
@@ -36,15 +55,25 @@ export class UserPackService {
           status: 'confirmed',
         },
       });
-      
-      // console.log('existingAttendance', existingAttendance)
 
       if (existingAttendance) {
-        // Obtener el usuario sin descontar clases
+        console.warn(
+          `[INFO] El usuario YA había confirmado asistencia previamente.`,
+        );
+
         const user = await prisma.user.findUnique({
           where: { id: userId },
           include: { current_pack: true },
         });
+
+        console.log(`[INFO] Clases restantes: ${user?.classes_remaining}`);
+        console.log(`[INFO] Pack actual: ${user?.current_pack?.name}`);
+        console.log(
+          `[INFO] Pack ilimitado: ${user?.current_pack?.unlimited_classes}`,
+        );
+        console.log(
+          `[INFO] Fecha de expiración del pack: ${user?.pack_expiration_date?.toLocaleDateString()}`,
+        );
 
         return {
           user,
@@ -53,18 +82,35 @@ export class UserPackService {
         };
       }
 
+      // 3. Descontar clase
+      console.log(
+        `[INFO] Usuario NO había confirmado esta clase. Procediendo a descontar clase...`,
+      );
 
-      // 4. Descontar clase y registrar asistencia
       const user = await this.decrementUserClasses(userId, 1);
-      const createdAt = new Date();      
+
+      console.log(`[OK] Clase descontada correctamente.`);
+      console.log(`[INFO] Clases restantes: ${user.classes_remaining}`);
+      console.log(`[INFO] Pack actual: ${user.current_pack?.name}`);
+      console.log(
+        `[INFO] Pack ilimitado: ${user.current_pack?.unlimited_classes}`,
+      );
+      console.log(
+        `[INFO] Fecha de expiración del pack: ${user.pack_expiration_date?.toLocaleDateString()}`,
+      );
+
+      // 4. Registrar asistencia
+      const createdAt = new Date();
       await prisma.reservation.create({
         data: {
           user_id: userId,
           class_id: currentClass.id,
           status: 'confirmed',
-          created_at: createdAt
+          created_at: createdAt,
         },
       });
+
+      console.log(`[OK] Asistencia registrada correctamente.\n`);
 
       return {
         user,
@@ -75,9 +121,10 @@ export class UserPackService {
   }
 
   private async findCurrentClass(currentTime: Date) {
-    const currentDay = currentTime.getDay(); // 0 (Dom) a 6 (Sáb)
-    const currentMinutes = currentTime.getHours() * 60 + currentTime.getMinutes();
-  
+    const currentDay = currentTime.getDay(); // 0 (Domingo) a 6 (Sábado)
+    const currentMinutes =
+      currentTime.getHours() * 60 + currentTime.getMinutes();
+
     // Buscar clases del día actual
     const classes = await this.prisma.classSchedule.findMany({
       where: {
@@ -88,20 +135,30 @@ export class UserPackService {
         teacher: true,
       },
     });
-  
-    // Filtrar clases que empiezan dentro de los próximos 60 minutos
+
+    // Buscar clase que empieza en los próximos 60 min o en tolerancia de -10 min
     const upcomingClass = classes.find((cls) => {
       const [startHour, startMin] = cls.start_time.split(':').map(Number);
-      const classStartMinutes = startHour * 60 + startMin;
-  
-      const diffMinutes = classStartMinutes - currentMinutes;
-  
-      return diffMinutes > 0 && diffMinutes <= 60;
+      const startMinutes = startHour * 60 + startMin;
+
+      const diffMinutes = startMinutes - currentMinutes;
+
+      // Permitimos confirmar si faltan entre -10 min y +60 min para el inicio
+      return diffMinutes >= -10 && diffMinutes <= 60;
     });
-  
+
+    if (upcomingClass) {
+      console.log(
+        `[INFO] Clase encontrada para confirmar: ${upcomingClass.classType.name} - ${upcomingClass.start_time}`,
+      );
+    } else {
+      console.log(
+        `[INFO] No se encontró clase confirmable para este horario: ${currentTime.toLocaleString()}`,
+      );
+    }
+
     return upcomingClass || null;
   }
-  
 
   async decrementUserClasses(userId: number, decrementBy: number = 1) {
     return await this.prisma.$transaction(async (prisma) => {
@@ -183,11 +240,11 @@ export class UserPackService {
     const user = await this.prisma.user.findUnique({
       where: { id: userId },
     });
-  
+
     if (!user) {
       throw new Error('Usuario no encontrado');
     }
-  
+
     return this.prisma.user.update({
       where: { id: userId },
       data: {
@@ -208,11 +265,11 @@ export class UserPackService {
     if (!user) {
       throw new NotFoundException(`Usuario con ID ${userId} no encontrado`);
     }
-  
+
     // if (user.packs.length > 0) {
     //   throw new BadRequestException('El usuario ya tiene un pack asignado.');
     // }
-  
+
     const pack = await this.prisma.pack.findUnique({
       where: { id: packId },
     });
@@ -228,7 +285,9 @@ export class UserPackService {
       where: { id: userId },
       data: {
         current_pack_id: packId,
-        classes_remaining: pack.unlimited_classes ? 9999 : pack.classes_included,
+        classes_remaining: pack.unlimited_classes
+          ? 9999
+          : pack.classes_included,
         pack_expiration_date: expirationDate,
       },
       include: {
@@ -237,66 +296,66 @@ export class UserPackService {
     });
   }
 
-    /**
+  /**
    * Cancela la asistencia de un usuario a una clase
    * Solo si faltan al menos 10 minutos antes del inicio.
    */
-    async cancelClassAttendance(
-      userId: number,
-      classId: number,
-      currentTime: Date,
-    ) {
-      // 1) Traer la clase por ID
-      const cls = await this.prisma.classSchedule.findUnique({
-        where: { id: classId },
-      });
-      if (!cls) throw new Error('Clase no encontrada');
-  
-      // 2) Calcular diferencia en minutos
-      const [h, m] = cls.start_time.split(':').map(Number);
-      const start = new Date(currentTime);
-      start.setHours(h, m, 0, 0);
-  
-      const diffMin = Math.floor((start.getTime() - currentTime.getTime()) / 60000);
-      if (diffMin < 10) {
-        throw new Error(
-          'Ya no puedes cancelar; faltan menos de 10 minutos para iniciar.'
-        );
-      }
-  
-      // 3) Verificar reserva confirmada
-      const reservation = await this.prisma.reservation.findFirst({
-        where: {
-          user_id: userId,
-          class_id: classId,
-          status: 'confirmed',
-        },
-      });
-      if (!reservation) {
-        throw new Error('No tienes una reserva confirmada para esta clase.');
-      }
-  
-      // 4) Eliminar la reserva
-      await this.prisma.reservation.delete({
-        where: { id: reservation.id },
-      });
-  
-      // 5) Revertir el descuento (si no es ilimitado)
-      const user = await this.prisma.user.findUnique({
-        where: { id: userId },
-        include: { current_pack: true },
-      });
-      if (user?.current_pack && !user.current_pack.unlimited_classes) {
-        await this.prisma.user.update({
-          where: { id: userId },
-          data: { classes_remaining: { increment: 1 } },
-        });
-      }
-  
-      return { message: 'Asistencia cancelada correctamente' };
+  async cancelClassAttendance(
+    userId: number,
+    classId: number,
+    currentTime: Date,
+  ) {
+    // 1) Traer la clase por ID
+    const cls = await this.prisma.classSchedule.findUnique({
+      where: { id: classId },
+    });
+    if (!cls) throw new Error('Clase no encontrada');
+
+    // 2) Calcular diferencia en minutos
+    const [h, m] = cls.start_time.split(':').map(Number);
+    const start = new Date(currentTime);
+    start.setHours(h, m, 0, 0);
+
+    const diffMin = Math.floor(
+      (start.getTime() - currentTime.getTime()) / 60000,
+    );
+    if (diffMin < 10) {
+      throw new Error(
+        'Ya no puedes cancelar; faltan menos de 10 minutos para iniciar.',
+      );
     }
-  
-  
+
+    // 3) Verificar reserva confirmada
+    const reservation = await this.prisma.reservation.findFirst({
+      where: {
+        user_id: userId,
+        class_id: classId,
+        status: 'confirmed',
+      },
+    });
+    if (!reservation) {
+      throw new Error('No tienes una reserva confirmada para esta clase.');
+    }
+
+    // 4) Eliminar la reserva
+    await this.prisma.reservation.delete({
+      where: { id: reservation.id },
+    });
+
+    // 5) Revertir el descuento (si no es ilimitado)
+    const user = await this.prisma.user.findUnique({
+      where: { id: userId },
+      include: { current_pack: true },
+    });
+    if (user?.current_pack && !user.current_pack.unlimited_classes) {
+      await this.prisma.user.update({
+        where: { id: userId },
+        data: { classes_remaining: { increment: 1 } },
+      });
+    }
+
+    return { message: 'Asistencia cancelada correctamente' };
+  }
 
   // @Cron(CronExpression.EVERY_DAY_AT_2AM)
   // async resetWeeklyClasses() {
@@ -344,5 +403,4 @@ export class UserPackService {
   //   await this.resetWeeklyClasses(); // Llama directamente al cron interno
   //   return { message: 'Reinicio manual de clases semanales ejecutado.' };
   // }
-
 }

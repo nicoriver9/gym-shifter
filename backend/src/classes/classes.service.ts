@@ -36,6 +36,8 @@ export class ClassesService {
       },
     });
 
+    console.log(currentClass)
+
     // Estructura base cuando no hay clase
     const baseResponse = {
       id: null,
@@ -165,12 +167,31 @@ export class ClassesService {
    * Actualizar una clase en el calendario.
    */
   async updateClass(id: number, data: any) {
-    delete data.id;
-    delete data.title; 
+    // Desestructura sólo los campos válidos
+    const {
+      class_type_id,   // relación al modelo ClassType
+      teacher_id,      // relación al modelo Teacher
+      day_of_week,     // 0–6
+      start_time,      // "HH:MM"
+      end_time,        // "HH:MM"
+      room,            // opcional
+    } = data;
 
     return this.prisma.classSchedule.update({
       where: { id },
-      data,
+      data: {
+        // actualizamos la relación por connect
+        classType: { connect: { id: Number(class_type_id) } },
+        teacher:   { connect: { id: Number(teacher_id) } },
+
+        // campos escalares
+        day_of_week,
+        start_time,
+        end_time,
+
+        // sala (si viene)
+        ...(room !== undefined ? { room } : {}),
+      },
     });
   }
 
