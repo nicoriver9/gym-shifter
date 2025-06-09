@@ -58,7 +58,7 @@ export default function ClassScheduler() {
       headers: { Authorization: `Bearer ${token}` },
     })
       .then(r => r.json())
-      .then(data => {
+      .then(data => {        
         const ev = data.map((e: any) => ({
           id: e.id,
           title: classTypes.find((t) => t.id === e.class_type_id)?.name || "Sin nombre",
@@ -66,6 +66,7 @@ export default function ClassScheduler() {
           end: getDateForDay(e.day_of_week, e.end_time),
           class_type_id: e.class_type_id,
           teacher_id: e.teacher_id,
+          teacherName: e.teacher.name,
         }));
         setEvents(ev);
         setLoadingCalendar(false);
@@ -154,6 +155,7 @@ export default function ClassScheduler() {
       title: clickedEvent.title,
       class_type_id: clickedEvent.extendedProps.class_type_id,
       teacher_id: clickedEvent.extendedProps.teacher_id,
+      teacherName: clickedEvent.extendedProps.teacherName,
       start_time: clickedEvent.start.toTimeString().slice(0, 5),
       end_time: clickedEvent.end.toTimeString().slice(0, 5),
       day_of_week: clickedEvent.start.getDay(),

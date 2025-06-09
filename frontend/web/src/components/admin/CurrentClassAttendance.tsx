@@ -33,9 +33,11 @@ const CurrentClassAttendance = () => {
           }
         );
 
+        
         if (!response.ok) throw new Error("Error al obtener la clase actual");
-
+        
         const data = await response.json();
+        console.log(data)
         if (!data.success) throw new Error(data.message);
 
         setCurrentClass(data.data);

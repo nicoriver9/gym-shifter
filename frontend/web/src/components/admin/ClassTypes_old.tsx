@@ -6,21 +6,19 @@ import "aos/dist/aos.css";
 import CreateClassTypeModal from "./modals/classTypesModals/CreateClassTypeModal";
 import EditClassTypeModal from "./modals/classTypesModals/EditClassTypeModal";
 import ConfirmDeleteClassTypeModal from "./modals/classTypesModals/ConfirmDeleteClassTypeModal";
-import {
-  getClassTypes,
-  deleteClassType,
-} from "../../services/admin/classTypeService";
+import { getClassTypes, deleteClassType } from "../../services/admin/classTypeService";
 
 const badgeColors = [
-  "bg-purple-600",
-  "bg-purple-500",
-  "bg-indigo-500",
-  "bg-blue-500",
-  "bg-blue-400",
-  "bg-slate-500",
-  "bg-gray-500",
-  "bg-gray-400",
+  "bg-purple-600",   // 1 - morado fuerte
+  "bg-purple-500",   // 2
+  "bg-indigo-500",   // 3 - transición a azul
+  "bg-blue-500",     // 4 - azul
+  "bg-blue-400",     // 5
+  "bg-slate-500",    // 6 - azul grisáceo
+  "bg-gray-500",     // 7 - gris medio
+  "bg-gray-400",     // 8 - gris claro
 ];
+
 
 const ClassTypeTable = () => {
   const [classTypes, setClassTypes] = useState<any[]>([]);
@@ -102,13 +100,12 @@ const ClassTypeTable = () => {
         >
           <option value="Todos">Todas las clases</option>
           {classTypes.map((ct) => (
-            <option key={ct.id} value={ct.name} translate="no">
-              {ct.name}
-            </option>
+            <option key={ct.id} value={ct.name}>{ct.name}</option>
           ))}
         </select>
       </div>
 
+      {/* Spinner */}
       {loading ? (
         <div className="text-center text-white mt-20" data-aos="fade-up">
           <p className="text-lg">Cargando tipos de clases...</p>
@@ -116,7 +113,7 @@ const ClassTypeTable = () => {
         </div>
       ) : (
         <>
-          {/* Tabla escritorio */}
+          {/* Tabla para escritorio */}
           <div className="hidden md:block overflow-x-auto bg-gray-800 rounded-lg shadow-lg">
             <table className="w-full text-white">
               <thead>
@@ -135,12 +132,7 @@ const ClassTypeTable = () => {
                     >
                       <td className="px-6 py-4 text-center">{ct.id}</td>
                       <td className="px-6 py-4 text-center">
-                        <span
-                          translate="no"
-                          className={`px-3 py-1 rounded-full text-xs font-semibold ${getBadgeColor(
-                            ct.name
-                          )}`}
-                        >
+                        <span className={`px-3 py-1 rounded-full text-xs font-semibold ${getBadgeColor(ct.name)}`}>
                           {ct.name}
                         </span>
                       </td>
@@ -175,7 +167,7 @@ const ClassTypeTable = () => {
             </table>
           </div>
 
-          {/* Tarjetas móviles */}
+          {/* Tarjetas para móvil */}
           <div className="md:hidden flex flex-col gap-4 px-2 mt-6">
             {filteredClassTypes.map((ct, index) => (
               <div
@@ -184,17 +176,10 @@ const ClassTypeTable = () => {
                 data-aos="fade-up"
                 data-aos-delay={index * 100}
               >
-                <div className="text-lg font-bold text-purple-400">
-                  #{ct.id}
-                </div>
+                <div className="text-lg font-bold text-purple-400">#{ct.id}</div>
                 <div>
                   <strong>📚 Tipo:</strong>{" "}
-                  <span
-                    translate="no"
-                    className={`px-2 py-1 rounded-full text-xs font-semibold ${getBadgeColor(
-                      ct.name
-                    )}`}
-                  >
+                  <span className={`px-2 py-1 rounded-full text-xs font-semibold ${getBadgeColor(ct.name)}`}>
                     {ct.name}
                   </span>
                 </div>

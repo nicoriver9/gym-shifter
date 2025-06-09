@@ -6,6 +6,7 @@ export interface ClassEvent {
     start_time: string;
     end_time: string;
     teacher_id?: number;
+    teacherName?: string;
   }
   
   export interface Teacher {

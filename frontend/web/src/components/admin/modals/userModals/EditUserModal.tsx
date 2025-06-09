@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { toast, ToastContainer } from "react-toastify";
-import Swal from 'sweetalert2';
+import Swal from "sweetalert2";
 import { FaTimes, FaTrash } from "react-icons/fa";
 
 import {
@@ -155,8 +155,6 @@ const EditUserModal = ({
     }
   };
 
-
-
   const handleUnassignPack = async () => {
     const result = await Swal.fire({
       title: "¿Eliminar el pack?",
@@ -217,15 +215,15 @@ const EditUserModal = ({
       confirmButtonText: "Sí, restar",
       cancelButtonText: "Cancelar",
     });
-  
+
     if (!result.isConfirmed) return;
-  
+
     const token = localStorage.getItem("access_token");
     if (!token) {
       toast.error("No hay token de autenticación");
       return;
     }
-  
+
     try {
       const response = await fetch(
         `${import.meta.env.VITE_API_URL}/api/user-pack/decrement-classes`,
@@ -241,16 +239,16 @@ const EditUserModal = ({
           }),
         }
       );
-  
+
       const data = await response.json();
-  
+
       if (!data.success) {
         throw new Error(data.message || "Error al restar clase");
       }
-  
+
       await fetchUserInfo(); // refresca info del usuario en el modal
       refreshTable(); // refresca la tabla de usuarios
-  
+
       await Swal.fire({
         title: "Clase restada",
         text: `Clases restantes: ${data.data.classes_remaining}`,
@@ -275,7 +273,6 @@ const EditUserModal = ({
     }
   };
   if (!show) return null;
-
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50 px-4">
@@ -340,7 +337,12 @@ const EditUserModal = ({
               type="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              className="w-full p-2 rounded bg-gray-800 text-white"
+              disabled={email.toLowerCase().includes("@gmail.com")}
+              className={`w-full p-2 rounded text-white ${
+                email.toLowerCase().includes("@gmail.com")
+                  ? "bg-gray-700 cursor-not-allowed"
+                  : "bg-gray-800"
+              }`}
             />
           </div>
 
@@ -394,16 +396,21 @@ const EditUserModal = ({
                   {userInfo.pack_expiration_date && (
                     <div className="flex justify-between">
                       <span className="font-medium">Expira:</span>
-                      <span>{new Date(userInfo.pack_expiration_date).toLocaleDateString()}</span>
+                      <span>
+                        {new Date(
+                          userInfo.pack_expiration_date
+                        ).toLocaleDateString()}
+                      </span>
                     </div>
                   )}
                   <button
                     onClick={handleSubtractClass}
                     disabled={userInfo?.classes_remaining <= 0}
-                    className={`w-full mt-2 font-semibold px-4 py-2 rounded-lg transition ${userInfo?.classes_remaining <= 0
-                      ? "bg-gray-700 cursor-not-allowed text-gray-400"
-                      : "bg-yellow-600 hover:bg-yellow-700 text-white"
-                      }`}
+                    className={`w-full mt-2 font-semibold px-4 py-2 rounded-lg transition ${
+                      userInfo?.classes_remaining <= 0
+                        ? "bg-gray-700 cursor-not-allowed text-gray-400"
+                        : "bg-yellow-600 hover:bg-yellow-700 text-white"
+                    }`}
                   >
                     Restar Clase
                   </button>
@@ -441,13 +448,16 @@ const EditUserModal = ({
           </div>
         </div>
       </div>
-      <ToastContainer position="bottom-right" autoClose={3000} hideProgressBar />
+      <ToastContainer
+        position="bottom-right"
+        autoClose={3000}
+        hideProgressBar
+      />
       {processing && (
         <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center">
           <div className="w-16 h-16 border-4 border-white border-t-transparent rounded-full animate-spin"></div>
         </div>
       )}
-
     </div>
   );
 };

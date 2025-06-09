@@ -7,9 +7,46 @@ import { PackInfo } from "../../components/user/PackInfo";
 import { useUserPackStore } from "../../store/packCounter";
 import {
   confirmClassAttendance,
-  cancelAttendance,
+  // cancelAttendance,
   getNextClass,
 } from "../../services/user/userPackService";
+
+// Función reutilizable para mostrar modales con fondo oscuro
+const showDarkModal = ({
+  title,
+  text,
+  html,
+  icon,
+  showCancelButton = false,
+  confirmButtonText = "OK",
+  cancelButtonText = "Cancelar",
+  confirmButtonColor = "#6366f1",
+  cancelButtonColor = "#dc2626",
+}: {
+  title: string;
+  text?: string;
+  html?: string;
+  icon: "info" | "success" | "error" | "warning" | "question";
+  showCancelButton?: boolean;
+  confirmButtonText?: string;
+  cancelButtonText?: string;
+  confirmButtonColor?: string;
+  cancelButtonColor?: string;
+}) => {
+  return Swal.fire({
+    title,
+    text,
+    html,
+    icon,
+    background: "#1e293b",
+    color: "#f1f5f9",
+    confirmButtonText,
+    cancelButtonText,
+    confirmButtonColor,
+    cancelButtonColor,
+    showCancelButton,
+  });
+};
 
 const AttendancePage = () => {
   const [nextClass, setNextClass] = useState<any>(null);
@@ -35,7 +72,7 @@ const AttendancePage = () => {
     (async () => {
       try {
         const res = await getNextClass(userId);
-        if (res.success && res.data.is_upcoming) {
+        if (res.success && res.data.is_upcoming) {          
           setNextClass(res.data);
         }
       } catch (e) {
@@ -58,19 +95,28 @@ const AttendancePage = () => {
     if (!nextClass) return;
     const mins = minutesUntil(nextClass.start_time);
     if (mins > 60) {
-      return Swal.fire("⏳ Aún falta mucho", "Solo 1h antes", "info");
+      return showDarkModal({
+        title: "⏳ Aún falta mucho",
+        text: "Solo 1h antes",
+        icon: "info",
+      });
     }
+  
+    // ✅ Esta parte se mantiene igual
     if (nextClass.has_confirmed) {
-      return Swal.fire(
-        "✅ Ya confirmaste",
-        "No necesitas volver a confirmar",
-        "info"
-      );
+      return showDarkModal({
+        title: "✅ Ya confirmaste",
+        text: "No necesitas volver a confirmar",
+        icon: "info",
+        confirmButtonColor: "#22c55e",
+      });
     }
-
-    const ok = await Swal.fire({
-      title: "Confirmar asistencia",
+  
+    // Confirmación previa de OK del usuario
+    const ok = await showDarkModal({
+      title: "Confirmar asistencia (No podrás cancelar)",
       html: `<b>${nextClass.name}</b><br/>${nextClass.start_time} - ${nextClass.end_time}<br/>Prof: ${nextClass.teacher}`,
+      icon: "question",
       showCancelButton: true,
       confirmButtonText: "Sí",
       cancelButtonText: "No",
@@ -78,68 +124,103 @@ const AttendancePage = () => {
       cancelButtonColor: "#dc2626",
     });
     if (!ok.isConfirmed) return;
-
+  
     try {
       setIsProcessing(true);
+  
+      // ✅ Hacemos la confirmación al backend
       const resp = await confirmClassAttendance(userId, new Date());
+  
       if (resp.success && resp.data) {
+        // Actualizamos el store
         setUserPack(resp.data.pack_name);
         setUserPackClassesIncluded(resp.data.classes_remaining);
         setPackExpirationDate(resp.data.pack_expiration_date);
-        Swal.fire("✅ Confirmado", "¡Has dado presente!", "success");
+  
+        // ✅ Mostramos modal SEGÚN SI ES CONFIRMACIÓN NUEVA O YA CONFIRMADA
+        if (resp.data.is_new_confirmation) {
+          await showDarkModal({
+            title: "✅ Confirmado",
+            text: "¡Has dado presente!",
+            icon: "success",
+            confirmButtonColor: "#22c55e",
+          });
+        } else {
+          // 👉 Modal para caso "ya habías confirmado"
+          await showDarkModal({
+            title: "✅ Ya habías confirmado",
+            text: "Tu asistencia ya estaba registrada para esta clase.",
+            icon: "info",
+            confirmButtonColor: "#22c55e",
+          });
+        }
+  
+        // ✅ Marcamos que está confirmada visualmente
         setNextClass({ ...nextClass, has_confirmed: true });
       } else {
         throw new Error(resp.message);
       }
     } catch (e: any) {
-      Swal.fire("❌ Error", e.message, "error");
+      showDarkModal({
+        title: "❌ Error",
+        text: e.message,
+        icon: "error",
+      });
     } finally {
       setIsProcessing(false);
     }
   };
+  
 
-  const handleCancel = async () => {
-    if (!nextClass) return;
-    const mins = minutesUntil(nextClass.start_time);
-    if (mins < 10) {
-      return Swal.fire(
-        "⏳ Muy tarde",
-        "Menos de 10 minutos restantes",
-        "warning"
-      );
-    }
-    const ok = await Swal.fire({
-      title: "Cancelar asistencia",
-      text: "¿Seguro?",
-      showCancelButton: true,
-      confirmButtonText: "Sí",
-      cancelButtonText: "No",
-      confirmButtonColor: "#f87171",
-    });
-    if (!ok.isConfirmed) return;
+  // const handleCancel = async () => {
+  //   if (!nextClass) return;
+  //   const mins = minutesUntil(nextClass.start_time);
+  //   if (mins < 10) {
+  //     return showDarkModal({
+  //       title: "⏳ Muy tarde",
+  //       text: "Menos de 10 minutos restantes",
+  //       icon: "warning",
+  //       confirmButtonColor: "#facc15",
+  //     });
+  //   }
 
-    try {
-      setIsProcessing(true);
-      const resp = await await cancelAttendance(
-        userId,
-        nextClass.id,
-        new Date()
-      );
-      if (resp.success) {
-        setUserPackClassesIncluded(
-          userPackClassesIncluded ? userPackClassesIncluded + 1 : 1
-        );
-        Swal.fire("✅ Cancelado", resp.message, "success");
-        setNextClass({ ...nextClass, has_confirmed: false });
-      } else {
-        throw new Error(resp.message);
-      }
-    } catch (e: any) {
-      Swal.fire("❌ Error", e.message, "error");
-    } finally {
-      setIsProcessing(false);
-    }
-  };
+  //   const ok = await showDarkModal({
+  //     title: "Cancelar asistencia",
+  //     text: "¿Seguro?",
+  //     icon: "warning",
+  //     showCancelButton: true,
+  //     confirmButtonText: "Sí",
+  //     cancelButtonText: "No",
+  //     confirmButtonColor: "#f87171",
+  //   });
+  //   if (!ok.isConfirmed) return;
+
+  //   try {
+  //     setIsProcessing(true);
+  //     const resp = await cancelAttendance(userId, nextClass.id, new Date());
+  //     if (resp.success) {
+  //       setUserPackClassesIncluded(
+  //         userPackClassesIncluded ? userPackClassesIncluded + 1 : 1
+  //       );
+  //       await showDarkModal({
+  //         title: "✅ Cancelado",
+  //         text: resp.message,
+  //         icon: "success",
+  //       });
+  //       setNextClass({ ...nextClass, has_confirmed: false });
+  //     } else {
+  //       throw new Error(resp.message);
+  //     }
+  //   } catch (e: any) {
+  //     showDarkModal({
+  //       title: "❌ Error",
+  //       text: e.message,
+  //       icon: "error",
+  //     });
+  //   } finally {
+  //     setIsProcessing(false);
+  //   }
+  // };
 
   if (isLoading) {
     return (
@@ -162,30 +243,27 @@ const AttendancePage = () => {
           </p>
           <p className="text-center mb-4">Prof: {nextClass.teacher}</p>
 
-          <div className="flex justify-center gap-4">
-            {/* Confirmar / Presente */}
+          <div className="flex flex-col items-center gap-4 mt-4">
             <button
               onClick={handleConfirm}
               disabled={isProcessing || nextClass.has_confirmed}
-              className={`py-2 px-4 rounded font-semibold transition ${
-                nextClass.has_confirmed
-                  ? "bg-gray-600 cursor-not-allowed text-gray-300"
-                  : "bg-green-500 hover:bg-green-600 text-white"
-              }`}
+              className={`w-20 h-20 p-2 flex items-center justify-center text-sm sm:text-base font-semibold rounded-full border transition duration-300 shadow-lg ${nextClass.has_confirmed
+                ? "bg-gray-600 border-gray-500 cursor-not-allowed text-gray-300"
+                : "bg-green-500 border-green-700 hover:bg-green-600 text-white"
+                }`}
             >
               {nextClass.has_confirmed ? "Presente" : "Confirmar"}
             </button>
 
-            {/* Cancelar Asistencia (sólo aparece tras confirmar) */}
-            {nextClass.has_confirmed && (
+            {/* {nextClass.has_confirmed && (
               <button
                 onClick={handleCancel}
                 disabled={isProcessing}
-                className="py-2 px-4 rounded bg-red-500 hover:bg-red-600 text-white font-semibold transition"
+                className="w-40 py-2 px-4 text-center rounded-full bg-yellow-600 hover:bg-yellow-700 text-white font-semibold transition duration-300 shadow border border-yellow-800"
               >
                 Cancelar Asistencia
               </button>
-            )}
+            )} */}
           </div>
         </div>
       ) : (

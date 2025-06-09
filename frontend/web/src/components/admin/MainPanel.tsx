@@ -2,7 +2,7 @@ import { useState } from "react";
 // import { FiLogOut } from "react-icons/fi";
 // import { useNavigate } from "react-router-dom";
 
-import ClassTypeTable from "./ClassTypes";
+import ClassTypeTable from "./ClassTypes_old";
 import ClassScheduler from "./ClassScheduler";
 import TeacherTable from "./TeacherTable";
 import PackTable from "./PackTable";
