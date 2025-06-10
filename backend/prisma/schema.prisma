@@ -34,8 +34,8 @@ model ClassSchedule {
   id            Int       @id @default(autoincrement())
   class_type_id Int
   classType     ClassType @relation(fields: [class_type_id], references: [id])
-  teacher_id    Int
-  teacher       Teacher   @relation("TeacherClasses", fields: [teacher_id], references: [id], onDelete: Cascade) // onDelete aquí
+  teacher_id    Int?
+  teacher       Teacher?  @relation("TeacherClasses", fields: [teacher_id], references: [id], onDelete: Cascade) // onDelete aquí
   day_of_week   Int
   start_time    String
   end_time      String
@@ -61,11 +61,12 @@ model Pack {
 }
 
 model Reservation {
-  id         Int      @id @default(autoincrement())
-  user_id    Int
-  class_id   Int
-  status     String // "pending", "confirmed", "cancelled"
-  created_at DateTime @default(now())
+  id               Int      @id @default(autoincrement())
+  user_id          Int
+  class_id         Int
+  status           String // "pending", "confirmed", "cancelled"
+  created_at       DateTime @default(now())
+  reservation_date DateTime?
 
   user          User          @relation(fields: [user_id], references: [id])
   classSchedule ClassSchedule @relation(fields: [class_id], references: [id])
@@ -85,6 +86,7 @@ model User {
   current_pack_id      Int?
   current_pack         Pack?         @relation("UserCurrentPack", fields: [current_pack_id], references: [id])
   classes_remaining    Int           @default(0)
+  pack_date            DateTime?
   pack_expiration_date DateTime?
   last_class_reset     DateTime?
   payments             Payment[]

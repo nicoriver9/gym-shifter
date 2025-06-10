@@ -16,7 +16,7 @@ export class UserPackService {
         `[INFO] Hora de confirmación recibida: ${currentDateTime.toLocaleString()}`,
       );
       console.log(`[INFO] Buscando clase confirmable...\n`);
-
+  
       // 1. Encontrar la clase actual o que va a comenzar en la próxima hora
       const currentClass = await this.findCurrentClass(currentDateTime);
       if (!currentClass) {
@@ -27,14 +27,14 @@ export class UserPackService {
           `No hay clases programadas en este horario ${currentDateTime}`,
         );
       }
-
+  
       console.log(`[INFO] Clase detectada: ${currentClass.classType.name}`);
       console.log(`[INFO] Profesor: ${currentClass.teacher?.name}`);
       console.log(
         `[INFO] Horario: ${currentClass.start_time} - ${currentClass.end_time}`,
       );
       console.log(`[INFO] Sala: ${currentClass.room}\n`);
-
+  
       const classInfo = {
         name: currentClass.classType.name,
         teacher: currentClass.teacher?.name,
@@ -42,30 +42,35 @@ export class UserPackService {
         end_time: currentClass.end_time,
         room: currentClass.room,
       };
-
-      // 2. Verificar si ya asistió a esta clase
+  
+      // 2. Verificar si ya asistió a esta clase HOY
       console.log(
-        `[INFO] Verificando si el usuario ya confirmó asistencia a esta clase...`,
+        `[INFO] Verificando si el usuario ya confirmó asistencia a esta clase HOY...`,
       );
-
+  
+      // Importante: cortamos la hora para comparar solo la fecha
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+  
       const existingAttendance = await prisma.reservation.findFirst({
         where: {
           user_id: userId,
           class_id: currentClass.id,
           status: 'confirmed',
+          reservation_date: today, // ✅ Comparamos la fecha!
         },
       });
-
+  
       if (existingAttendance) {
         console.warn(
-          `[INFO] El usuario YA había confirmado asistencia previamente.`,
+          `[INFO] El usuario YA había confirmado asistencia previamente para HOY.`,
         );
-
+  
         const user = await prisma.user.findUnique({
           where: { id: userId },
           include: { current_pack: true },
         });
-
+  
         console.log(`[INFO] Clases restantes: ${user?.classes_remaining}`);
         console.log(`[INFO] Pack actual: ${user?.current_pack?.name}`);
         console.log(
@@ -74,21 +79,21 @@ export class UserPackService {
         console.log(
           `[INFO] Fecha de expiración del pack: ${user?.pack_expiration_date?.toLocaleDateString()}`,
         );
-
+  
         return {
           user,
           classInfo,
           isNewConfirmation: false,
         };
       }
-
+  
       // 3. Descontar clase
       console.log(
-        `[INFO] Usuario NO había confirmado esta clase. Procediendo a descontar clase...`,
+        `[INFO] Usuario NO había confirmado esta clase HOY. Procediendo a descontar clase...`,
       );
-
+  
       const user = await this.decrementUserClasses(userId, 1);
-
+  
       console.log(`[OK] Clase descontada correctamente.`);
       console.log(`[INFO] Clases restantes: ${user.classes_remaining}`);
       console.log(`[INFO] Pack actual: ${user.current_pack?.name}`);
@@ -98,20 +103,22 @@ export class UserPackService {
       console.log(
         `[INFO] Fecha de expiración del pack: ${user.pack_expiration_date?.toLocaleDateString()}`,
       );
-
+  
       // 4. Registrar asistencia
       const createdAt = new Date();
+  
       await prisma.reservation.create({
         data: {
           user_id: userId,
           class_id: currentClass.id,
           status: 'confirmed',
           created_at: createdAt,
+          reservation_date: today, // ✅ Guardamos el día de la reserva
         },
       });
-
+  
       console.log(`[OK] Asistencia registrada correctamente.\n`);
-
+  
       return {
         user,
         classInfo,
@@ -119,6 +126,7 @@ export class UserPackService {
       };
     });
   }
+  
 
   private async findCurrentClass(currentTime: Date) {
     const currentDay = currentTime.getDay(); // 0 (Domingo) a 6 (Sábado)
