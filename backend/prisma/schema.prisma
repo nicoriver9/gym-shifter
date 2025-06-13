@@ -61,11 +61,11 @@ model Pack {
 }
 
 model Reservation {
-  id               Int      @id @default(autoincrement())
+  id               Int       @id @default(autoincrement())
   user_id          Int
   class_id         Int
   status           String // "pending", "confirmed", "cancelled"
-  created_at       DateTime @default(now())
+  created_at       DateTime  @default(now())
   reservation_date DateTime?
 
   user          User          @relation(fields: [user_id], references: [id])
@@ -80,6 +80,7 @@ model User {
   googleId             String?       @unique // ID único de Google
   firstName            String
   lastName             String
+  phone                String? // ← nuevo campo para número de celular
   createdAt            DateTime      @default(now())
   updatedAt            DateTime      @updatedAt
   packs                Pack[]        @relation("UserPacks")
