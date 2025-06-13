@@ -50,11 +50,13 @@ export class UsersService {
         username: true,
         role: true,
         email: true,
+        googleId: true,
+        phone: true, 
         firstName: true,
         lastName: true,
         createdAt: true,
         updatedAt: true,
-        current_pack: true, // Pack activo actual
+        current_pack: true,
         classes_remaining: true,
         pack_expiration_date: true,
         last_class_reset: true,
@@ -70,12 +72,38 @@ export class UsersService {
   async getUserById(id: number) {
     return this.prisma.user.findUnique({
       where: { id, isActive: true },
-      include: {
-        current_pack: true,
-        reservations: true,
-      }, // Incluir packs y reservas
+      select: {
+        id: true,
+        username: true,
+        role: true,
+        email: true,
+        googleId: true,
+        phone: true,
+        firstName: true,
+        lastName: true,
+        current_pack: {
+          select: {
+            id: true,
+            name: true,
+            price: true,
+            validity_days: true,
+          },
+        },
+        classes_remaining: true,
+        pack_expiration_date: true,
+        last_class_reset: true,
+        reservations: {
+          select: {
+            id: true,
+            status: true,
+            reservation_date: true,
+            class_id: true,
+          },
+        },
+      },
     });
   }
+  
 
   // Actualizar un usuario
   async updateUser(id: number, data: UpdateUserDto) {
