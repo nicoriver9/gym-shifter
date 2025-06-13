@@ -18,9 +18,7 @@ export class ClassesService {
     const now = moment().tz('America/Argentina/Buenos_Aires');
     const currentDay = now.isoWeekday();
     const currentTime = now.format('HH:mm');
-
-    // console.log(currentDay, currentTime)
-
+  
     const currentClass = await this.prisma.classSchedule.findFirst({
       where: {
         day_of_week: currentDay,
@@ -30,15 +28,9 @@ export class ClassesService {
       include: {
         classType: true,
         teacher: true,
-        Reservation: {
-          where: { status: 'confirmed' },
-        },
       },
     });
-
-    console.log(currentClass)
-
-    // Estructura base cuando no hay clase
+  
     const baseResponse = {
       id: null,
       name: null,
@@ -49,26 +41,46 @@ export class ClassesService {
       room: null,
       is_active: false,
       extraData: {
-        currentDay, currentTime
-      }
+        currentDay,
+        currentTime,
+      },
     };
-
+  
     if (!currentClass) {
       return baseResponse;
     }
-
+  
+    // Calcular límites de tiempo
+    const todayStart = now.clone().startOf('day').toDate();
+    const classStartDateTime = moment(`${now.format('YYYY-MM-DD')}T${currentClass.start_time}`)
+      .tz('America/Argentina/Buenos_Aires')
+      .toDate();
+  
+    // Contar reservas confirmadas para esta clase, hechas antes del inicio
+    const confirmedReservationsCount = await this.prisma.reservation.count({
+      where: {
+        class_id: currentClass.id,
+        status: 'confirmed',
+        created_at: {
+          lte: classStartDateTime,
+          gte: todayStart,
+        },
+      },
+    });
+  
     return {
       id: currentClass.id,
       name: currentClass.classType.name,
       start_time: currentClass.start_time,
       end_time: currentClass.end_time,
-      teacher: currentClass.teacher.name,
-      attendees_count: currentClass.Reservation.length,
+      teacher: currentClass.teacher?.name ?? 'Sin profesor asignado',
+      attendees_count: confirmedReservationsCount,
       room: currentClass.room,
       is_active: true,
       extraData: {
-        currentDay, currentTime
-      }
+        currentDay,
+        currentTime,
+      },
     };
   }
 
