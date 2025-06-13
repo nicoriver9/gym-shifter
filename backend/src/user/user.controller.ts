@@ -29,15 +29,14 @@ export class UsersController {
   // Obtener todos los usuarios
   @Roles(Role.Admin, Role.User)
   @Get()
-  async getAll() {
-    const result = await this.usersService.getAllUsers()    
+  async getAll() {          
     return this.usersService.getAllUsers();
   }
 
   // Obtener un usuario por ID
   @Roles(Role.Admin, Role.User)
   @Get(':id')
-  async getById(@Param('id') id: number) {    
+  async getById(@Param('id') id: number) {        
     return await this.usersService.getUserById(Number(id));
   }
 
