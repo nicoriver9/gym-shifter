@@ -15,12 +15,21 @@ const CreateUserModal = ({ show, handleClose, refreshTable }: CreateUserModalPro
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [username, setUsername] = useState('');
+  const [phonePrefix, setPhonePrefix] = useState('+54 9');
+  const [phoneNumber, setPhoneNumber] = useState('');
   const [processing, setProcessing] = useState(false);
 
   if (!show) return null;
 
   const handleSubmit = async () => {
-    if (!firstName.trim() || !lastName.trim() || !email.trim() || !password.trim() || !username.trim()) {
+    if (
+      !firstName.trim() ||
+      !lastName.trim() ||
+      !email.trim() ||
+      !password.trim() ||
+      !username.trim() ||
+      !phoneNumber.trim()
+    ) {
       await Swal.fire({
         title: 'Campos incompletos',
         text: 'Todos los campos son obligatorios.',
@@ -32,9 +41,18 @@ const CreateUserModal = ({ show, handleClose, refreshTable }: CreateUserModalPro
       return;
     }
 
+    const fullPhoneNumber = `${phonePrefix}${phoneNumber}`;
+
     try {
       setProcessing(true);
-      await createUser({ firstName, lastName, username, email, password });
+      await createUser({
+        firstName,
+        lastName,
+        username,
+        email,
+        password,
+        phone: fullPhoneNumber,
+      });
       refreshTable();
       await Swal.fire({
         title: 'Usuario creado',
@@ -122,6 +140,32 @@ const CreateUserModal = ({ show, handleClose, refreshTable }: CreateUserModalPro
               onChange={(e) => setUsername(e.target.value)}
               className="w-full px-3 py-2 text-gray-900 rounded-lg focus:ring-2 focus:ring-purple-500 outline-none"
             />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium mb-1">Teléfono</label>
+            <div className="flex space-x-2">
+              <select
+                value={phonePrefix}
+                onChange={(e) => setPhonePrefix(e.target.value)}
+                className="w-1/3 px-3 py-2 text-gray-900 rounded-lg focus:ring-2 focus:ring-purple-500 outline-none"
+              >
+                <option value="+54 9">🇦🇷 +54 9 (Argentina)</option>
+                <option value="+1">🇺🇸 +1 (EE.UU.)</option>
+                <option value="+34">🇪🇸 +34 (España)</option>
+                <option value="+55">🇧🇷 +55 (Brasil)</option>
+                <option value="+598">🇺🇾 +598 (Uruguay)</option>
+                <option value="+595">🇵🇾 +595 (Paraguay)</option>
+                {/* puedes agregar más países aquí */}
+              </select>
+              <input
+                type="text"
+                value={phoneNumber}
+                onChange={(e) => setPhoneNumber(e.target.value)}
+                placeholder="Número sin prefijo"
+                className="w-2/3 px-3 py-2 text-gray-900 rounded-lg focus:ring-2 focus:ring-purple-500 outline-none"
+              />
+            </div>
           </div>
         </div>
 

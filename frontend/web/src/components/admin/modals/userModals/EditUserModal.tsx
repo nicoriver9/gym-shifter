@@ -44,10 +44,12 @@ const EditUserModal = ({
   const [processing, setProcessing] = useState(false);
   const [userInfo, setUserInfo] = useState<any>(user);
   const [username, setUsername] = useState("");
+  const [phonePrefix, setPhonePrefix] = useState("+54 9");
+  const [phoneNumber, setPhoneNumber] = useState("");
 
   const fetchUserInfo = async () => {
     try {
-      const updatedUser = await getUserById(user.id);
+      const updatedUser = await getUserById(user.id);      
       setUserInfo(updatedUser);
     } catch (error) {
       console.error("Error al obtener info del usuario:", error);
@@ -55,12 +57,29 @@ const EditUserModal = ({
   };
 
   useEffect(() => {
-    if (user) {
+    if (user) {           
       setFirstName(user.firstName || "");
       setLastName(user.lastName || "");
       setEmail(user.email || "");
       setPassword("");
-      setUsername(user.username || "");
+      setUsername(user.username || "");      
+      if (user.phone) {
+        const knownPrefixes = ["+54 9", "+1", "+34", "+55", "+598", "+595"];
+        let foundPrefix = knownPrefixes.find((prefix) =>
+          user.phone.startsWith(prefix)
+        );
+      
+        if (foundPrefix) {
+          setPhonePrefix(foundPrefix);
+          setPhoneNumber(user.phone.substring(foundPrefix.length).trim());
+        } else {
+          setPhonePrefix("+54 9");
+          setPhoneNumber(user.phone);
+        }
+      } else {
+        setPhonePrefix("+54 9");
+        setPhoneNumber("");
+      }
       fetchPacks();
       setUserInfo(user);
     }
@@ -80,12 +99,15 @@ const EditUserModal = ({
     setLoading(true);
 
     try {
+      const fullPhoneNumber = `${phonePrefix}${phoneNumber}`;
+
       await updateUser(user.id, {
         firstName,
         lastName,
         email,
         username,
         ...(password && { password }),
+        phone: fullPhoneNumber,
       });
       refreshTable();
       handleClose();
@@ -327,6 +349,30 @@ const EditUserModal = ({
               onChange={(e) => setUsername(e.target.value)}
               className="w-full p-2 rounded bg-gray-800 text-white"
             />
+          </div>
+          <div>
+            <label className="text-white block mb-1">Teléfono</label>
+            <div className="flex space-x-2">
+              <select
+                value={phonePrefix}
+                onChange={(e) => setPhonePrefix(e.target.value)}
+                className="w-1/3 p-2 rounded bg-gray-800 text-white"
+              >
+                <option value="+54 9">🇦🇷 +54 9 (Argentina)</option>
+                <option value="+1">🇺🇸 +1 (EE.UU.)</option>
+                <option value="+34">🇪🇸 +34 (España)</option>
+                <option value="+55">🇧🇷 +55 (Brasil)</option>
+                <option value="+598">🇺🇾 +598 (Uruguay)</option>
+                <option value="+595">🇵🇾 +595 (Paraguay)</option>
+              </select>
+              <input
+                type="text"
+                value={phoneNumber}
+                onChange={(e) => setPhoneNumber(e.target.value)}
+                placeholder="Número sin prefijo"
+                className="w-2/3 p-2 rounded bg-gray-800 text-white"
+              />
+            </div>
           </div>
 
           <div>
