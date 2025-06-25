@@ -1,5 +1,5 @@
 {
-  "name": "backoffice",
+  "name": "gym-active-backend-app",
   "version": "0.0.1",
   "description": "",
   "author": "",
@@ -7,7 +7,7 @@
   "license": "UNLICENSED",
   "scripts": {
     "postinstall": "prisma generate",
-    "build": "prisma generate && nest build",
+    "build": "prisma generate && nest build && cp -r node_modules/moment-timezone/moment-timezone.js dist/node_modules/moment-timezone/",
     "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",
     "start": "nest start",
     "start:dev": "nest start --watch",
@@ -36,8 +36,11 @@
     "moment": "^2.30.1",
     "moment-timezone": "^0.5.48",
     "passport-jwt": "^4.0.1",
+    "puppeteer": "^24.10.1",
+    "qrcode": "^1.5.4",
     "reflect-metadata": "^0.2.0",
-    "rxjs": "^7.8.1"
+    "rxjs": "^7.8.1",
+    "whatsapp-web.js": "^1.30.0"
   },
   "devDependencies": {
     "@nestjs/cli": "^10.0.0",
