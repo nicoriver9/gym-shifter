@@ -128,7 +128,7 @@ const QRScanOnlyPage = () => {
             container: { position: "relative", width: "100%", height: "100%" },
             video: { width: "100%", height: "100%", objectFit: "cover" },
             // quitamos cualquier borde del finder
-            finderBorder: 0,
+            // finderBorder: 0,
           }}
         >
           {/*

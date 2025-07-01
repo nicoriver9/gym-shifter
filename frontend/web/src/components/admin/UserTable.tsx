@@ -9,6 +9,11 @@ import EditUserModal from "./modals/userModals/EditUserModal";
 // import ConfirmDeleteUserModal from "./modals/userModals/ConfirmDeleteUserModal";
 import { getUsers, deleteUser } from "../../services/admin/userService";
 import { getPacks } from "../../services/admin/packService";
+import {
+  getWhatsappQR,
+  getWhatsappStatus,
+} from "../../services/admin/whatsappService";
+import WhatsappQRModal from "./modals/whatsappModals/WhatsappQRModal";
 // import { FaTimes } from "react-icons/fa";
 
 interface Pack {
@@ -29,7 +34,11 @@ const UserTable = () => {
   const [selectedUser, setSelectedUser] = useState<any>(null);
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
-  // const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [showQRModal, setShowQRModal] = useState(false);
+  const [qrImageData, setQRImageData] = useState<string | null>(null);
+  const [
+    // whatsappStatus
+    , setWhatsappStatus] = useState<string | null>(null);
   const [, setPacks] = useState<Pack[]>([]);
   const [loading, setLoading] = useState(true);
   const [totalUsers, setTotalUsers] = useState(0); // contador
@@ -39,6 +48,7 @@ const UserTable = () => {
     AOS.init({ duration: 600 });
     fetchUsers();
     fetchPacks();
+    checkWhatsappStatus();
   }, []);
 
   useEffect(() => {
@@ -64,10 +74,20 @@ const UserTable = () => {
     setPacks(data);
   };
 
+  const checkWhatsappStatus = async () => {
+    try {
+      const status = await getWhatsappStatus();
+      setWhatsappStatus(status);
+    } catch (err) {
+      console.error("Error al verificar estado de WhatsApp:", err);
+      setWhatsappStatus("disconnected");
+    }
+  };
+
   const fetchUsers = async () => {
     try {
       const data = await getUsers();
-      setUsers(data);      
+      setUsers(data);
       setFilteredUsers(data);
       setTotalUsers(data.length); // contar usuarios
     } catch (error) {
@@ -88,18 +108,13 @@ const UserTable = () => {
 
     setFilteredUsers(sorted);
     setIsAscOrder(!isAscOrder);
-    setCurrentPage(1); // Reiniciar a la primera página
+    setCurrentPage(1); 
   };
 
   const handleEdit = (user: any) => {
     setSelectedUser(user);
     setShowEditModal(true);
   };
-
-  // const handleDelete = (user: any) => {
-  //   setSelectedUser(user);
-  //   setShowDeleteModal(true);
-  // };
 
   const handleDeleteConfirm = async (user: any) => {
     const result = await Swal.fire({
@@ -228,6 +243,58 @@ const UserTable = () => {
             onChange={(e) => setSearchTerm(e.target.value)}
           />
         </div>
+      </div>
+
+      {/* Centrar el botón de conectar WhatsApp */}
+      <div className="flex justify-center mb-6">
+        <button
+          onClick={async () => {
+            try {
+              const status = await getWhatsappStatus();
+
+              if (status === "authenticated" || status === "ready") {
+                Swal.fire({
+                  icon: "success",
+                  title: "Ya estás conectado a WhatsApp",
+                  background: "#111827",
+                  color: "#f9fafb",
+                  confirmButtonColor: "#10b981",
+                });
+                return;
+              }
+
+              if (status === "qr") {
+                const qr = await getWhatsappQR();
+                if (!qr || !qr.startsWith("data:image/")) {
+                  throw new Error("QR inválido o vacío");
+                }
+                setQRImageData(qr);
+                setShowQRModal(true);
+              } else {
+                Swal.fire({
+                  title: "Estado desconocido",
+                  text: `Estado actual: ${status}`,
+                  icon: "warning",
+                  background: "#111827",
+                  color: "#f9fafb",
+                });
+              }
+            } catch (error) {
+              console.error("❌ Error al mostrar QR:", error);
+              Swal.fire({
+                title: "Error",
+                text: "No se pudo obtener el código QR.",
+                icon: "error",
+                background: "#111827",
+                color: "#f9fafb",
+                confirmButtonColor: "#ef4444",
+              });
+            }
+          }}
+          className="w-72 bg-purple-600 hover:bg-purple-700 text-white text-sm md:text-base font-medium px-4 py-2 rounded-md shadow-sm text-center"
+        >
+          🔌 Conectar WhatsApp
+        </button>
       </div>
 
       {/* Paginación superior */}
@@ -440,6 +507,13 @@ const UserTable = () => {
         handleConfirm={handleDeleteConfirm}
         user={selectedUser}
       /> */}
+      {showQRModal && qrImageData && (
+        <WhatsappQRModal
+          show={showQRModal}
+          qrImage={qrImageData}
+          onClose={() => setShowQRModal(false)}
+        />
+      )}
     </div>
   );
 };

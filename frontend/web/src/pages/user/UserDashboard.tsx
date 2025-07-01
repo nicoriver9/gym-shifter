@@ -97,7 +97,7 @@ const UserDashboard: React.FC<UserDashboardProps> = ({ onLogout }) => {
         </button>
 
         {/* Administración */}
-        {userRole === "Admin" && (
+        {userRole === "Admin" || userRole === "Instructor" && (
           <button
             onClick={() => navigate("/dashboard/administration")}
             className="flex w-full sm:w-auto items-center justify-center gap-2 px-4 sm:px-6 py-3 sm:py-4 bg-blue-800 hover:bg-blue-700 text-white text-sm sm:text-lg font-semibold rounded-full transition shadow-md hover:shadow-xl active:scale-95"

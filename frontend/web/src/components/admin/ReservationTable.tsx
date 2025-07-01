@@ -5,7 +5,6 @@ import "aos/dist/aos.css";
 import * as XLSX from "xlsx";
 import { FaSortUp, FaSortDown } from "react-icons/fa";
 
-
 import CreateReservationModal from "./modals/reservationModals/CreateReservationModal";
 import EditReservationModal from "./modals/reservationModals/EditReservationModal";
 import ConfirmDeleteReservationModal from "./modals/reservationModals/ConfirmDeleteReservationModal";
@@ -17,23 +16,31 @@ import { Reservation } from "../../interfaces/admin/IReservation";
 
 const RESERVATIONS_PER_PAGE = 10;
 
-const ReservationTable = () => {
+interface ReservationTableProps {
+  userRole: string | null;
+}
+
+const ReservationTable: React.FC<ReservationTableProps> = ({ userRole }) => {
   const [reservations, setReservations] = useState<Reservation[]>([]);
-  const [filteredReservations, setFilteredReservations] = useState<Reservation[]>([]);
-  const [paginatedReservations, setPaginatedReservations] = useState<Reservation[]>([]);
+  const [filteredReservations, setFilteredReservations] = useState<
+    Reservation[]
+  >([]);
+  const [paginatedReservations, setPaginatedReservations] = useState<
+    Reservation[]
+  >([]);
   const [currentPage, setCurrentPage] = useState(1);
   const [searchTerm, setSearchTerm] = useState("");
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
-  const [selectedReservation, setSelectedReservation] = useState<Reservation | null>(null);
+  const [selectedReservation, setSelectedReservation] =
+    useState<Reservation | null>(null);
   const [loading, setLoading] = useState(true);
   const [sortDescending, setSortDescending] = useState(true);
   const [classTypes, setClassTypes] = useState<string[]>([]);
   const [selectedClassType, setSelectedClassType] = useState<string>("Todos");
   const [selectedTeacher, setSelectedTeacher] = useState<string>("Todos");
   const [teachers, setTeachers] = useState<string[]>([]);
-
 
   useEffect(() => {
     AOS.init({ duration: 600 });
@@ -50,11 +57,15 @@ const ReservationTable = () => {
     let filtered = [...reservations];
 
     if (selectedClassType !== "Todos") {
-      filtered = filtered.filter(r => r.classSchedule.classType.name === selectedClassType);
+      filtered = filtered.filter(
+        (r) => r.classSchedule.classType.name === selectedClassType
+      );
     }
 
     if (selectedTeacher !== "Todos") {
-      filtered = filtered.filter(r => r.classSchedule.teacherName === selectedTeacher);
+      filtered = filtered.filter(
+        (r) => r.classSchedule.teacherName === selectedTeacher
+      );
     }
 
     if (searchTerm) {
@@ -79,12 +90,11 @@ const ReservationTable = () => {
     setCurrentPage(1);
   }, [searchTerm, selectedClassType, selectedTeacher, reservations]);
 
-
   const fetchReservations = async () => {
     try {
       const data = await getReservations();
 
-      const cleanData = data.filter(r => r.created_at);
+      const cleanData = data.filter((r) => r.created_at);
 
       const sortedData = [...cleanData].sort((a, b) => {
         const dateA = !isNaN(new Date(a.created_at).getTime())
@@ -96,21 +106,23 @@ const ReservationTable = () => {
         return sortDescending ? dateB - dateA : dateA - dateB;
       });
 
-      const uniqueClassTypes = [...new Set(sortedData.map(r => r.classSchedule.classType.name))];
-      const uniqueTeachers = [...new Set(sortedData.map(r => r.classSchedule.teacherName))];
+      const uniqueClassTypes = [
+        ...new Set(sortedData.map((r) => r.classSchedule.classType.name)),
+      ];
+      const uniqueTeachers = [
+        ...new Set(sortedData.map((r) => r.classSchedule.teacherName)),
+      ];
 
       setReservations(sortedData);
       setFilteredReservations(sortedData);
       setClassTypes(uniqueClassTypes);
       setTeachers(uniqueTeachers);
-
     } catch (error) {
       console.error("Error al obtener asistencias:", error);
     } finally {
       setLoading(false);
     }
   };
-
 
   const handleEdit = (r: Reservation) => {
     setSelectedReservation(r);
@@ -176,27 +188,38 @@ const ReservationTable = () => {
     XLSX.writeFile(workbook, "asistencias.xlsx");
   };
 
-  const totalPages = Math.ceil(filteredReservations.length / RESERVATIONS_PER_PAGE);
+  const totalPages = Math.ceil(
+    filteredReservations.length / RESERVATIONS_PER_PAGE
+  );
   const renderPagination = () => (
-    <div className="flex justify-center my-4 gap-2 flex-wrap">
-      {Array.from({ length: totalPages }, (_, index) => (
-        <button
-          key={index}
-          onClick={() => setCurrentPage(index + 1)}
-          className={`px-3 py-1 rounded-md text-sm font-semibold transition ${currentPage === index + 1
-            ? "bg-purple-600 text-white"
-            : "bg-gray-700 text-gray-300 hover:bg-purple-700"
+    <details className="my-4">
+      <summary className="text-sm text-white cursor-pointer hover:text-purple-400 transition">
+        Mostrar todas las páginas ({totalPages})
+      </summary>
+      <div className="flex justify-center flex-wrap gap-2 mt-3">
+        {Array.from({ length: totalPages }, (_, index) => (
+          <button
+            key={index}
+            onClick={() => setCurrentPage(index + 1)}
+            className={`px-3 py-1 rounded-md text-sm font-semibold transition ${
+              currentPage === index + 1
+                ? "bg-purple-600 text-white"
+                : "bg-gray-700 text-gray-300 hover:bg-purple-700"
             }`}
-        >
-          {index + 1}
-        </button>
-      ))}
-    </div>
+          >
+            {index + 1}
+          </button>
+        ))}
+      </div>
+    </details>
   );
 
   if (loading) {
     return (
-      <div className="flex justify-center items-center min-h-screen" data-aos="fade-up">
+      <div
+        className="flex justify-center items-center min-h-screen"
+        data-aos="fade-up"
+      >
         <div className="text-center">
           <p className="text-white text-lg mb-4">Cargando asistencias…</p>
           <div className="w-12 h-12 border-4 border-purple-500 border-t-transparent rounded-full animate-spin mx-auto"></div>
@@ -228,7 +251,9 @@ const ReservationTable = () => {
         >
           <option value="Todos">Todas las clases</option>
           {classTypes.map((type) => (
-            <option key={type} value={type}>{type}</option>
+            <option key={type} value={type}>
+              {type}
+            </option>
           ))}
         </select>
 
@@ -239,7 +264,9 @@ const ReservationTable = () => {
         >
           <option value="Todos">Todos los profesores</option>
           {teachers.map((t) => (
-            <option key={t} value={t}>{t}</option>
+            <option key={t} value={t}>
+              {t}
+            </option>
           ))}
         </select>
 
@@ -290,30 +317,38 @@ const ReservationTable = () => {
                   <td className="px-3 py-2 text-center whitespace-pre-line break-words max-w-[180px]">
                     {r.user.firstName + "\n" + r.user.lastName}
                   </td>
-                  <td className="px-3 py-2 text-center">{r.classSchedule.classType.name}</td>
+                  <td className="px-3 py-2 text-center">
+                    {r.classSchedule.classType.name}
+                  </td>
                   <td className="px-3 py-2 text-center whitespace-nowrap">
                     {r.classSchedule.start_time} - {r.classSchedule.end_time}
                   </td>
-                  <td className="px-3 py-2 text-center">{r.classSchedule.teacherName}</td>
+                  <td className="px-3 py-2 text-center">
+                    {r.classSchedule.teacherName}
+                  </td>
                   <td className="px-3 py-2 text-center whitespace-nowrap text-xs">
                     {formatDateTime(r.created_at)}
                   </td>
                   <td className="px-3 py-2 text-center">
                     <div className="flex justify-center gap-2">
-                      <button
-                        className="bg-green-500 hover:bg-green-600 px-3 py-1 rounded-md text-xs font-semibold transition"
-                        onClick={() => handleEdit(r)}
-                        title="Editar"
-                      >
-                        <FaEdit className="inline mr-1" />
-                      </button>
-                      <button
-                        className="bg-red-600 hover:bg-red-700 px-3 py-1 rounded-md text-xs font-semibold transition"
-                        onClick={() => handleDelete(r)}
-                        title="Eliminar"
-                      >
-                        <FaTrash className="inline mr-1" />
-                      </button>
+                      {userRole !== "Instructor" && (
+                        <>
+                          <button
+                            className="bg-green-500 hover:bg-green-600 px-3 py-1 rounded-md text-xs font-semibold transition"
+                            onClick={() => handleEdit(r)}
+                            title="Editar"
+                          >
+                            <FaEdit className="inline mr-1" />
+                          </button>
+                          <button
+                            className="bg-red-600 hover:bg-red-700 px-3 py-1 rounded-md text-xs font-semibold transition"
+                            onClick={() => handleDelete(r)}
+                            title="Eliminar"
+                          >
+                            <FaTrash className="inline mr-1" />
+                          </button>
+                        </>
+                      )}
                     </div>
                   </td>
                 </tr>
@@ -341,16 +376,25 @@ const ReservationTable = () => {
             <div className="text-lg font-bold text-purple-400">
               {r.user.firstName} {r.user.lastName}
             </div>
-            <div><strong>📧 Email:</strong> {r.user.email}</div>
+            <div>
+              <strong>📧 Email:</strong> {r.user.email}
+            </div>
             <div>
               <strong>📚 Clase:</strong>{" "}
               <span className="inline-block bg-purple-600 text-white text-xs px-2 py-1 rounded-full">
                 {r.classSchedule.classType.name}
               </span>
             </div>
-            <div><strong>🕓 Horario:</strong> {r.classSchedule.start_time} - {r.classSchedule.end_time}</div>
-            <div><strong>👨‍🏫 Profesor:</strong> {r.classSchedule.teacherName}</div>
-            <div><strong>🗓️ Confirmación:</strong> {formatDateTime(r.created_at)}</div>
+            <div>
+              <strong>🕓 Horario:</strong> {r.classSchedule.start_time} -{" "}
+              {r.classSchedule.end_time}
+            </div>
+            <div>
+              <strong>👨‍🏫 Profesor:</strong> {r.classSchedule.teacherName}
+            </div>
+            <div>
+              <strong>🗓️ Confirmación:</strong> {formatDateTime(r.created_at)}
+            </div>
 
             <div className="flex justify-end gap-4 pt-2">
               <button

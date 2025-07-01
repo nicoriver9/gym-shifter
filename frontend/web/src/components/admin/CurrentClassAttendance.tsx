@@ -40,6 +40,7 @@ const CurrentClassAttendance = () => {
         if (!data.success) throw new Error(data.message);
         
         setCurrentClass(data.data);
+        // console.log("Clase actual:", data.data);
       } catch (err) {
         setError((err as Error).message);
       } finally {

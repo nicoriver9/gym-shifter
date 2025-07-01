@@ -62,8 +62,9 @@ const AppRoutes: React.FC<AppRoutesProps> = ({
           <Route
             path="administration"
             element={
-              isAuthenticated && userRole === "Admin" ? (
-                <MainPanel onLogout={onLogout} />
+              isAuthenticated &&
+              (userRole === "Admin" || userRole === "Instructor") ? (
+                <MainPanel userRole={userRole} onLogout={onLogout} />
               ) : (
                 <AccessDenied />
               )
@@ -79,11 +80,15 @@ const AppRoutes: React.FC<AppRoutesProps> = ({
           />
           <Route
             path="/today-classes"
-            element={isAuthenticated ? <TodayClassesPage /> : <Navigate to="/login" />}
+            element={
+              isAuthenticated ? <TodayClassesPage /> : <Navigate to="/login" />
+            }
           />
           <Route
             path="/confirm-attendance"
-            element={isAuthenticated ? <AttendancePage /> : <Navigate to="/login" />}
+            element={
+              isAuthenticated ? <AttendancePage /> : <Navigate to="/login" />
+            }
           />
         </Route>
 
@@ -91,10 +96,10 @@ const AppRoutes: React.FC<AppRoutesProps> = ({
         <Route path="/payment/alias" element={<PaymentAliasCard />} />
 
         {/* Redirección post-pago */}
-        <Route
+        {/* <Route
           path="/payments/success"
           element={<Navigate to="/dashboard/packs" replace />}
-        />
+        /> */}
 
         {/* Ruta por defecto */}
         <Route path="*" element={<Navigate to="/login" />} />
