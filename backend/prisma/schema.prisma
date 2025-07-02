@@ -135,4 +135,5 @@ model Payment {
 enum Role {
   Admin
   User
+  Instructor
 }
