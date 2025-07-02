@@ -54,10 +54,22 @@ export class ClassesService {
     const todayStart = now.clone().startOf('day').toDate();
     const classStartDateTime = moment(`${now.format('YYYY-MM-DD')}T${currentClass.start_time}`)
       .tz('America/Argentina/Buenos_Aires')
+      .subtract(3, 'hours')
       .toDate();
   
     // Contar reservas confirmadas para esta clase, hechas antes del inicio
     const confirmedReservationsCount = await this.prisma.reservation.count({
+      where: {
+        class_id: currentClass.id,
+        status: 'confirmed',
+        created_at: {
+          lte: classStartDateTime,
+          gte: todayStart,
+        },
+      },
+    });
+
+    const confirmedReservations = await this.prisma.reservation.findMany({
       where: {
         class_id: currentClass.id,
         status: 'confirmed',
@@ -80,10 +92,12 @@ export class ClassesService {
       extraData: {
         currentDay,
         currentTime,
+        todayStart,
+        classStartDateTime,                
       },
     };
   }
-
+  
   async getNextClass(userId?: number) {
     const now = moment().tz('America/Argentina/Buenos_Aires');
     const currentDay = now.isoWeekday(); // 1–7

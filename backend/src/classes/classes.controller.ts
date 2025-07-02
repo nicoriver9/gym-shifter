@@ -26,7 +26,7 @@ export class ClassesController {
     return this.classesService.createClass(data);
   }
 
-   @Roles(Role.Admin)
+  @Roles(Role.Admin)
   @Get('current')
   async getCurrentClass() {
     try {

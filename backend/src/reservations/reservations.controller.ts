@@ -27,14 +27,14 @@ export class ReservationsController {
   }
 
   // Obtener todas las reservaciones
-  @Roles(Role.Admin)
+  @Roles(Role.Admin, Role.Instructor)
   @Get()
   async getAll() {
     return this.reservationsService.getAllReservations();
   }
 
   // Obtener una reservación por ID
-  @Roles(Role.Admin)
+  @Roles(Role.Admin, Role.Instructor)
   @Get(':id')
   async getById(@Param('id') id: string) {
     const reservation = await this.reservationsService.getReservationById(Number(id));

@@ -106,21 +106,44 @@ export class UsersService {
   
 
   // Actualizar un usuario
-  async updateUser(id: number, data: UpdateUserDto) {
-    // Si incluye password, la hasheamos
-    if (data.password) {
-      data.password = await bcrypt.hash(data.password, 10);
-    }
+  async updateUser(id: number, updateData: UpdateUserDto) {
+  const existingUser = await this.prisma.user.findUnique({
+    where: { id },
+  });
 
-    if (data.firstName) {
-      data.username = data.firstName;
-    }
-
-    return this.prisma.user.update({
-      where: { id },
-      data,
-    });
+  if (!existingUser) {
+    throw new NotFoundException(`Usuario con ID ${id} no encontrado`);
   }
+
+  const updatedFields: any = {};
+
+  for (const key of Object.keys(updateData)) {
+    const value = updateData[key as keyof UpdateUserDto];
+
+    if (key === 'password' && value) {
+      const isSamePassword = await bcrypt.compare(value, existingUser.password || '');
+      if (!isSamePassword) {
+        updatedFields.password = await bcrypt.hash(value, 10);
+      }
+    } else if (key === 'firstName' && value !== existingUser.firstName) {
+      updatedFields.firstName = value;
+      // También actualizamos username si va ligado a firstName
+      updatedFields.username = value;
+    } else if (key !== 'password' && value !== existingUser[key]) {
+      updatedFields[key] = value;
+    }
+  }
+
+  if (Object.keys(updatedFields).length === 0) {
+    throw new BadRequestException('No hay cambios para actualizar');
+  }
+
+  return this.prisma.user.update({
+    where: { id },
+    data: updatedFields,
+  });
+}
+
 
   // Eliminar un usuario
   async deleteUser(id: number) {

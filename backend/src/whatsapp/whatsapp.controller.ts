@@ -55,7 +55,8 @@ export class WhatsappController {
     }
   }
 
-  @UseGuards(JwtAuthGuard)
+  // Endpoint: POST http://localhost:3000/api/whatsapp/send-pack-reminders
+  // @UseGuards(JwtAuthGuard)
   @Post('send-pack-reminders')
   async sendPackReminders() {
     try {

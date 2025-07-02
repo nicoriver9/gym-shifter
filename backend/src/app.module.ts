@@ -18,6 +18,7 @@ import { AuthModule } from './auth/auth.module';
 import { UserPackController } from './user-pack/user-pack.controller';
 import { UserPackService } from './user-pack/user-pack.service';
 import { UserPackModule } from './user-pack/user-pack.module';
+import { WhatsappModule } from './whatsapp/whatsapp.module';
 
 @Module({
   imports: [
@@ -33,6 +34,7 @@ import { UserPackModule } from './user-pack/user-pack.module';
     UserModule,
     PaymentsModule,
     UserPackModule,
+    WhatsappModule,
   ],
   controllers: [AppController, ClassTypeController, UserPackController],
   providers: [AppService, ClassTypeService, UsersService, UserPackService],

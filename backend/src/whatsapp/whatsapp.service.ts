@@ -146,8 +146,9 @@ export class WhatsappService {
     const successfulReminders: { name: string; phone: string }[] = [];
 
     for (const user of usersToRemind) {
-      const phoneNumber = user.phone!.replace('+', '').replace(/\D/g, '');
-      const message = `¡Hola ${user.firstName}! 🏋️‍♀️\n\nTe recordamos que tu pack de clases en *Gym Active App* vencerá mañana.\n\nSi deseas renovarlo, podés hacerlo desde la aplicación o contactándonos.\n\n¡Seguimos entrenando juntos! 💪`;
+      // const phoneNumber = user.phone!.replace('+', '').replace(/\D/g, '');
+      const phoneNumber = '5492616689241';
+      const message = `¡Hola ${user.firstName}! 🏋️‍♀️\n\nTe recordamos que tu pack de clases en *GymActive* vencerá mañana.\n\nSi deseas renovarlo, podés hacerlo desde la aplicación o contactándonos.\n\n¡Seguimos entrenando juntos! 💪`;
 
       try {
         await this.client.sendMessage(`${phoneNumber}@c.us`, message);
