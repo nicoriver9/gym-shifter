@@ -1,14 +1,14 @@
 import { useEffect, useState } from "react";
 import AOS from "aos";
 import "aos/dist/aos.css";
+import { useAttendanceStore } from "../../store/attendanceStore";
 
 interface ClassAttendance {
-  id: number | null;
+  id: number | null; // este es el classSchedule.id
   name: string | null;
   start_time: string | null;
   end_time: string | null;
   teacher: string | null;
-  attendees_count: number;
   room?: string | null;
   is_active: boolean;
 }
@@ -17,6 +17,12 @@ const CurrentClassAttendance = () => {
   const [currentClass, setCurrentClass] = useState<ClassAttendance | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+
+  const attendeeCount = useAttendanceStore((state) => state.attendeeCount);
+  const setCurrentClassId = useAttendanceStore((state) => state.setCurrentClassId);
+  const computeAttendeeCountForCurrentClass = useAttendanceStore(
+    (state) => state.computeAttendeeCountForCurrentClass
+  );
 
   useEffect(() => {
     AOS.init({ duration: 600 });
@@ -33,14 +39,19 @@ const CurrentClassAttendance = () => {
           }
         );
 
-        
         if (!response.ok) throw new Error("Error al obtener la clase actual");
-        
-        const data = await response.json();        
+
+        const data = await response.json();
         if (!data.success) throw new Error(data.message);
-        
-        setCurrentClass(data.data);
-        // console.log("Clase actual:", data.data);
+
+        const current = data.data;
+        setCurrentClass(current);
+
+        // Actualiza el ID en el store y computa asistentes
+        if (current?.id) {
+          setCurrentClassId(current.id);
+          computeAttendeeCountForCurrentClass();
+        }
       } catch (err) {
         setError((err as Error).message);
       } finally {
@@ -51,7 +62,7 @@ const CurrentClassAttendance = () => {
     fetchCurrentClass();
     const interval = setInterval(fetchCurrentClass, 60000);
     return () => clearInterval(interval);
-  }, []);
+  }, [setCurrentClassId, computeAttendeeCountForCurrentClass]);
 
   if (loading) {
     return (
@@ -81,12 +92,8 @@ const CurrentClassAttendance = () => {
   }
 
   return (
-    <div
-      className="bg-purple-800 border border-purple-500 rounded-xl p-6 mb-8 shadow-lg max-w-3xl mx-auto text-center"
-    >
-      <h3 className="text-2xl font-bold text-white mb-6">
-        CLASE EN CURSO
-      </h3>
+    <div className="bg-purple-800 border border-purple-500 rounded-xl p-6 mb-8 shadow-lg max-w-3xl mx-auto text-center">
+      <h3 className="text-2xl font-bold text-white mb-6">CLASE EN CURSO</h3>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 justify-items-center text-white">
         <div>
@@ -102,13 +109,14 @@ const CurrentClassAttendance = () => {
         <div>
           <p className="font-semibold text-sm text-gray-300">Horario:</p>
           <p className="text-lg font-medium">
-            {currentClass.start_time?.substring(0, 5) ?? "--:--"} - {currentClass.end_time?.substring(0, 5) ?? "--:--"}
+            {currentClass.start_time?.substring(0, 5) ?? "--:--"} -{" "}
+            {currentClass.end_time?.substring(0, 5) ?? "--:--"}
           </p>
         </div>
 
         <div>
           <p className="font-semibold text-sm text-gray-300">Asistentes:</p>
-          <p className="text-lg font-medium">{currentClass.attendees_count}</p>
+          <p className="text-lg font-medium">{attendeeCount}</p>
         </div>
       </div>
 

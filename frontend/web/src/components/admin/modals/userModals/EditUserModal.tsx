@@ -46,10 +46,11 @@ const EditUserModal = ({
   const [username, setUsername] = useState("");
   const [phonePrefix, setPhonePrefix] = useState("+54 9");
   const [phoneNumber, setPhoneNumber] = useState("");
+  const [userRole, setUserRole] = useState("User"); // default
 
   const fetchUserInfo = async () => {
     try {
-      const updatedUser = await getUserById(user.id);      
+      const updatedUser = await getUserById(user.id);
       setUserInfo(updatedUser);
     } catch (error) {
       console.error("Error al obtener info del usuario:", error);
@@ -57,18 +58,20 @@ const EditUserModal = ({
   };
 
   useEffect(() => {
-    if (user) {           
+    if (user) {
       setFirstName(user.firstName || "");
       setLastName(user.lastName || "");
       setEmail(user.email || "");
       setPassword("");
-      setUsername(user.username || "");      
+      setUsername(user.username || "");
+      setUserRole(user.role || "User");
+
       if (user.phone) {
         const knownPrefixes = ["+54 9", "+1", "+34", "+55", "+598", "+595"];
         let foundPrefix = knownPrefixes.find((prefix) =>
           user.phone.startsWith(prefix)
         );
-      
+
         if (foundPrefix) {
           setPhonePrefix(foundPrefix);
           setPhoneNumber(user.phone.substring(foundPrefix.length).trim());
@@ -106,6 +109,7 @@ const EditUserModal = ({
         lastName,
         email,
         username,
+        role: userRole, 
         ...(password && { password }),
         phone: fullPhoneNumber,
       });
@@ -294,6 +298,7 @@ const EditUserModal = ({
       });
     }
   };
+
   if (!show) return null;
 
   return (
@@ -373,6 +378,19 @@ const EditUserModal = ({
                 className="w-2/3 p-2 rounded bg-gray-800 text-white"
               />
             </div>
+          </div>
+
+          <div>
+            <label className="text-white block mb-1">Rol del Usuario</label>
+            <select
+              value={userRole}
+              onChange={(e) => setUserRole(e.target.value)}
+              className="w-full p-2 rounded bg-gray-800 text-white"
+            >
+                <option value="User">Usuario</option>
+                <option value="Instructor">Instructor</option>
+                <option value="Admin">Admin</option>
+            </select>
           </div>
 
           <div>

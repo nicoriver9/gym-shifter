@@ -8,7 +8,7 @@ import {
 import LoginForm from "../pages/LoginForm";
 import UserDashboard from "../pages/user/UserDashboard";
 import PacksPage from "../pages/user/PacksPage";
-import AttendancePage from "../pages/user/AttendancePage";
+import AttendancePage from "../pages/user/ConfirmationAttendancePage";
 import QRScanOnlyPage from "../pages/user/QRScanOnlyPage";
 import TodayClassesPage from "../pages/user/TodayClassesPage";
 import MainPanel from "../components/MainPanel";

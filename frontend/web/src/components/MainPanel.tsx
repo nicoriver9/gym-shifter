@@ -1,5 +1,5 @@
 import { useState } from "react";
-import ClassTypeTable from "./admin/ClassTypes_old";
+import ClassTypeTable from "./admin/ClassTypes";
 import ClassScheduler from "./admin/ClassScheduler";
 import TeacherTable from "./admin/TeacherTable";
 import PackTable from "./admin/PackTable";

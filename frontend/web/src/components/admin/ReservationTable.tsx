@@ -14,6 +14,8 @@ import {
 } from "../../services/admin/reservationService";
 import { Reservation } from "../../interfaces/admin/IReservation";
 
+import { useAttendanceStore } from "../../store/attendanceStore";
+
 const RESERVATIONS_PER_PAGE = 10;
 
 interface ReservationTableProps {
@@ -37,10 +39,11 @@ const ReservationTable: React.FC<ReservationTableProps> = ({ userRole }) => {
     useState<Reservation | null>(null);
   const [loading, setLoading] = useState(true);
   const [sortDescending, setSortDescending] = useState(true);
-  const [classTypes, setClassTypes] = useState<string[]>([]);
-  const [selectedClassType, setSelectedClassType] = useState<string>("Todos");
+ const [selectedClassType, setSelectedClassType] = useState<string>("Todos"); 
   const [selectedTeacher, setSelectedTeacher] = useState<string>("Todos");
+  const [classTypes, setClassTypes] = useState<string[]>([]);
   const [teachers, setTeachers] = useState<string[]>([]);
+
 
   useEffect(() => {
     AOS.init({ duration: 600 });
@@ -117,6 +120,9 @@ const ReservationTable: React.FC<ReservationTableProps> = ({ userRole }) => {
       setFilteredReservations(sortedData);
       setClassTypes(uniqueClassTypes);
       setTeachers(uniqueTeachers);
+      useAttendanceStore.getState().setReservations(sortedData);
+      useAttendanceStore.getState().computeAttendeeCountForCurrentClass();
+
     } catch (error) {
       console.error("Error al obtener asistencias:", error);
     } finally {
@@ -171,6 +177,8 @@ const ReservationTable: React.FC<ReservationTableProps> = ({ userRole }) => {
     });
   };
 
+  
+
   const exportToExcel = () => {
     const dataToExport = filteredReservations.map((r) => ({
       Usuario: `${r.user.firstName} ${r.user.lastName}`,
@@ -191,6 +199,7 @@ const ReservationTable: React.FC<ReservationTableProps> = ({ userRole }) => {
   const totalPages = Math.ceil(
     filteredReservations.length / RESERVATIONS_PER_PAGE
   );
+
   const renderPagination = () => (
     <details className="my-4">
       <summary className="text-sm text-white cursor-pointer hover:text-purple-400 transition">
