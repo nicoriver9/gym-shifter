@@ -7,11 +7,10 @@ import { PackInfo } from "../../components/user/PackInfo";
 import { useUserPackStore } from "../../store/packCounter";
 import {
   confirmClassAttendance,
-  // cancelAttendance,
   getNextClass,
 } from "../../services/user/userPackService";
+import { countConfirmedForClass } from "../../utils/user/attendanceUtils";
 
-// Función reutilizable para mostrar modales con fondo oscuro
 const showDarkModal = ({
   title,
   text,
@@ -48,8 +47,9 @@ const showDarkModal = ({
   });
 };
 
-const AttendancePage = () => {
+const ConfirmationAttendancePage = () => {
   const [nextClass, setNextClass] = useState<any>(null);
+  const [confirmedCount, setConfirmedCount] = useState<number | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isProcessing, setIsProcessing] = useState(false);
 
@@ -62,6 +62,9 @@ const AttendancePage = () => {
     setPackExpirationDate,
   } = useUserPackStore();
 
+  const isAlreadyConfirmed = nextClass?.has_confirmed;
+
+
   const hasValidPack =
     !!userPack &&
     userPack !== "No tienes un pack asignado" &&
@@ -72,8 +75,10 @@ const AttendancePage = () => {
     (async () => {
       try {
         const res = await getNextClass(userId);
-        if (res.success && res.data.is_upcoming) {          
+        if (res.success && res.data.is_upcoming) {
           setNextClass(res.data);
+          const updatedCount = await countConfirmedForClass(res.data);
+          setConfirmedCount(updatedCount);
         }
       } catch (e) {
         console.error(e);
@@ -91,10 +96,9 @@ const AttendancePage = () => {
     return Math.floor((c.getTime() - now.getTime()) / 60000);
   };
 
-
-  
   const handleConfirm = async () => {
     if (!nextClass) return;
+
     const mins = minutesUntil(nextClass.start_time);
     if (mins > 60) {
       return showDarkModal({
@@ -103,8 +107,7 @@ const AttendancePage = () => {
         icon: "info",
       });
     }
-  
-    // ✅ Esta parte se mantiene igual
+
     if (nextClass.has_confirmed) {
       return showDarkModal({
         title: "✅ Ya confirmaste",
@@ -113,8 +116,7 @@ const AttendancePage = () => {
         confirmButtonColor: "#22c55e",
       });
     }
-  
-    // Confirmación previa de OK del usuario
+
     const ok = await showDarkModal({
       title: "Confirmar asistencia (No podrás cancelar)",
       html: `<b>${nextClass.name}</b><br/>${nextClass.start_time} - ${nextClass.end_time}<br/>Prof: ${nextClass.teacher}`,
@@ -126,20 +128,17 @@ const AttendancePage = () => {
       cancelButtonColor: "#dc2626",
     });
     if (!ok.isConfirmed) return;
-  
+
     try {
       setIsProcessing(true);
-  
-      // ✅ Hacemos la confirmación al backend
+
       const resp = await confirmClassAttendance(userId, new Date());
-  
+
       if (resp.success && resp.data) {
-        // Actualizamos el store
         setUserPack(resp.data.pack_name);
         setUserPackClassesIncluded(resp.data.classes_remaining);
         setPackExpirationDate(resp.data.pack_expiration_date);
-  
-        // ✅ Mostramos modal SEGÚN SI ES CONFIRMACIÓN NUEVA O YA CONFIRMADA
+
         if (resp.data.is_new_confirmation) {
           await showDarkModal({
             title: "✅ Confirmado",
@@ -148,7 +147,6 @@ const AttendancePage = () => {
             confirmButtonColor: "#22c55e",
           });
         } else {
-          // 👉 Modal para caso "ya habías confirmado"
           await showDarkModal({
             title: "✅ Ya habías confirmado",
             text: "Tu asistencia ya estaba registrada para esta clase.",
@@ -156,9 +154,12 @@ const AttendancePage = () => {
             confirmButtonColor: "#22c55e",
           });
         }
-  
-        // ✅ Marcamos que está confirmada visualmente
+
         setNextClass({ ...nextClass, has_confirmed: true });
+
+        // 🔄 Refrescar cantidad confirmados
+        const updatedCount = await countConfirmedForClass(nextClass);
+        setConfirmedCount(updatedCount);
       } else {
         throw new Error(resp.message);
       }
@@ -172,57 +173,6 @@ const AttendancePage = () => {
       setIsProcessing(false);
     }
   };
-  
-
-  // const handleCancel = async () => {
-  //   if (!nextClass) return;
-  //   const mins = minutesUntil(nextClass.start_time);
-  //   if (mins < 10) {
-  //     return showDarkModal({
-  //       title: "⏳ Muy tarde",
-  //       text: "Menos de 10 minutos restantes",
-  //       icon: "warning",
-  //       confirmButtonColor: "#facc15",
-  //     });
-  //   }
-
-  //   const ok = await showDarkModal({
-  //     title: "Cancelar asistencia",
-  //     text: "¿Seguro?",
-  //     icon: "warning",
-  //     showCancelButton: true,
-  //     confirmButtonText: "Sí",
-  //     cancelButtonText: "No",
-  //     confirmButtonColor: "#f87171",
-  //   });
-  //   if (!ok.isConfirmed) return;
-
-  //   try {
-  //     setIsProcessing(true);
-  //     const resp = await cancelAttendance(userId, nextClass.id, new Date());
-  //     if (resp.success) {
-  //       setUserPackClassesIncluded(
-  //         userPackClassesIncluded ? userPackClassesIncluded + 1 : 1
-  //       );
-  //       await showDarkModal({
-  //         title: "✅ Cancelado",
-  //         text: resp.message,
-  //         icon: "success",
-  //       });
-  //       setNextClass({ ...nextClass, has_confirmed: false });
-  //     } else {
-  //       throw new Error(resp.message);
-  //     }
-  //   } catch (e: any) {
-  //     showDarkModal({
-  //       title: "❌ Error",
-  //       text: e.message,
-  //       icon: "error",
-  //     });
-  //   } finally {
-  //     setIsProcessing(false);
-  //   }
-  // };
 
   if (isLoading) {
     return (
@@ -244,28 +194,27 @@ const AttendancePage = () => {
             {nextClass.start_time} – {nextClass.end_time}
           </p>
           <p className="text-center mb-4">Prof: {nextClass.teacher}</p>
+          {confirmedCount !== null && (
+            <p className="text-center text-sm text-purple-200">
+              Confirmados:{" "}
+              <span className="font-semibold text-white">
+                {confirmedCount}
+              </span>
+            </p>
+          )}
 
           <div className="flex flex-col items-center gap-4 mt-4">
             <button
               onClick={handleConfirm}
               disabled={isProcessing || nextClass.has_confirmed}
-              className={`w-20 h-20 p-2 flex items-center justify-center text-sm sm:text-base font-semibold rounded-full border transition duration-300 shadow-lg ${nextClass.has_confirmed
-                ? "bg-gray-600 border-gray-500 cursor-not-allowed text-gray-300"
-                : "bg-green-500 border-green-700 hover:bg-green-600 text-white"
-                }`}
+              className={`w-20 h-20 p-2 flex items-center justify-center text-sm sm:text-base font-semibold rounded-full border transition duration-300 shadow-lg ${
+                nextClass.has_confirmed
+                  ? "bg-gray-600 border-gray-500 cursor-not-allowed text-gray-300"
+                  : "bg-green-500 border-green-700 hover:bg-green-600 text-white"
+              }`}
             >
-              {nextClass.has_confirmed ? "Presente" : "Confirmar"}
+              {isAlreadyConfirmed ? "Presente" : "Confirmar"}
             </button>
-
-            {/* {nextClass.has_confirmed && (
-              <button
-                onClick={handleCancel}
-                disabled={isProcessing}
-                className="w-40 py-2 px-4 text-center rounded-full bg-yellow-600 hover:bg-yellow-700 text-white font-semibold transition duration-300 shadow border border-yellow-800"
-              >
-                Cancelar Asistencia
-              </button>
-            )} */}
           </div>
         </div>
       ) : (
@@ -277,4 +226,4 @@ const AttendancePage = () => {
   );
 };
 
-export default AttendancePage;
+export default ConfirmationAttendancePage;
