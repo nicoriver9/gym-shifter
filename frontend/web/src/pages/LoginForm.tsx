@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { GoogleLogin } from "@react-oauth/google";
 import { jwtDecode } from "jwt-decode";
-// import AOS from "aos";
+import { useNavigate } from "react-router-dom"; // 👈 Importar useNavigate
 import "aos/dist/aos.css";
 
 const LoginForm = ({ onLogin }: { onLogin: () => void }) => {
@@ -9,6 +9,7 @@ const LoginForm = ({ onLogin }: { onLogin: () => void }) => {
   const [password, setPassword] = useState("");
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+  const navigate = useNavigate(); // 👈 Inicializar navigate
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -16,13 +17,16 @@ const LoginForm = ({ onLogin }: { onLogin: () => void }) => {
     setIsLoading(true);
 
     try {
-      const response = await fetch(`${import.meta.env.VITE_API_URL}/api/auth/login`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ username, password }),
-      });
+      const response = await fetch(
+        `${import.meta.env.VITE_API_URL}/api/auth/login`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ username, password }),
+        }
+      );
 
       const data = await response.json();
 
@@ -46,11 +50,11 @@ const LoginForm = ({ onLogin }: { onLogin: () => void }) => {
       }
     } catch (error) {
       console.error("Error al iniciar sesión:", error);
-      if (error instanceof Error) {
-        setErrorMessage(error.message);
-      } else {
-        setErrorMessage("Ocurrió un error inesperado al iniciar sesión.");
-      }
+      setErrorMessage(
+        error instanceof Error
+          ? error.message
+          : "Ocurrió un error inesperado al iniciar sesión."
+      );
     } finally {
       setIsLoading(false);
     }
@@ -62,18 +66,21 @@ const LoginForm = ({ onLogin }: { onLogin: () => void }) => {
     try {
       const decodedToken: any = jwtDecode(credentialResponse.credential);
 
-      const response = await fetch(`${import.meta.env.VITE_API_URL}/api/auth/login`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          email: decodedToken.email,
-          google_id: decodedToken.sub,
-          firstName: decodedToken.given_name,
-          lastName: decodedToken.family_name,
-        }),
-      });
+      const response = await fetch(
+        `${import.meta.env.VITE_API_URL}/api/auth/login`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            email: decodedToken.email,
+            google_id: decodedToken.sub,
+            firstName: decodedToken.given_name,
+            lastName: decodedToken.family_name,
+          }),
+        }
+      );
 
       const data = await response.json();
 
@@ -95,7 +102,9 @@ const LoginForm = ({ onLogin }: { onLogin: () => void }) => {
       onLogin();
     } catch (error) {
       console.error("Error al iniciar sesión con Google:", error);
-      setErrorMessage((error as Error).message || "Ocurrió un error inesperado.");
+      setErrorMessage(
+        (error as Error).message || "Ocurrió un error inesperado."
+      );
     } finally {
       setIsLoading(false);
     }
@@ -166,9 +175,20 @@ const LoginForm = ({ onLogin }: { onLogin: () => void }) => {
 
         <div className="my-4 border-t border-gray-600"></div>
 
-        <div className="flex justify-center">
-          <GoogleLogin onSuccess={handleGoogleSuccess} onError={handleGoogleError} />
+        <div className="flex flex-col items-center space-y-4">
+          <GoogleLogin
+            onSuccess={handleGoogleSuccess}
+            onError={handleGoogleError}
+          />
         </div>
+      </div>
+      <div>
+        <button
+          onClick={() => navigate("/privacy")}
+          className="text-sm text-purple-400 hover:underline transition mt-2"
+        >
+          Ver políticas de privacidad
+        </button>
       </div>
 
       <footer className="w-full mt-6 text-center text-xs text-gray-400 px-4 sm:px-0">

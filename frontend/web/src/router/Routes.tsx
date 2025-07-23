@@ -15,6 +15,7 @@ import MainPanel from "../components/MainPanel";
 import AccessDenied from "../pages/AccessDenied";
 import PaymentAliasCard from "../pages/user/PaymentAliasCard";
 import UserLayout from "../layouts/UserLayout";
+import PrivacyPolicy from "../pages/PrivacyPolicy";
 
 interface AppRoutesProps {
   isAuthenticated: boolean;
@@ -43,7 +44,7 @@ const AppRoutes: React.FC<AppRoutesProps> = ({
             )
           }
         />
-
+        <Route path="/privacy" element={<PrivacyPolicy />} />
         {/* Dashboard con layout */}
         <Route
           path="/dashboard"
